@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}내 프로젝트{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+<body>
+    <header>
+        <h1>공통 헤더</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">홈</a></li>
+                <!-- 필요하면 다른 메뉴도 추가 -->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 AiX Final Project</p>
+    </footer>
+</body>
+</html>
