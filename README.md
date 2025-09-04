@@ -127,42 +127,57 @@ git push origin dev
 
 👉 조금 번거롭더라도, 장기적으로는 **충돌 없는 안정적인 협업**을 위해 꼭 필요한 방법입니다.
 
----
-
 ## 1. 네임스페이스란?
 
-* **이름 충돌을 피하기 위해 영역을 구분하는 방법**
-* 같은 이름의 파일이나 URL이 여러 곳에 있어도, 네임스페이스를 붙이면 안전하게 호출 가능
+- **이름 충돌을 피하기 위해 영역을 구분하는 방법**  
+- 같은 이름의 파일이나 URL이 여러 곳에 있어도, 네임스페이스를 붙이면 안전하게 호출 가능  
 
-예시:
+예시:  
+- `core/templates/core/home.html` → `render(request, "core/home.html")`  
+- `users/templates/users/home.html` → `render(request, "users/home.html")`  
 
-* `core/templates/core/home.html` → `render(request, "core/home.html")`
-* `users/templates/users/home.html` → `render(request, "users/home.html")`
-
-✅ 전역 템플릿(`templates/base.html`)은 그냥 `"base.html"`만 써도 됩니다.
+✅ **전역 템플릿(`templates/base.html`)은 경로 없이 파일명 `"base.html"`만 호출하면 됩니다.**  
 
 ---
 
-## 2. URL 네임스페이스 (미리 알아두기)
+## 2. 경로가 왜 이렇게 길어야 할까?
 
-* 각 앱의 `urls.py`에 `app_name = "core"` 지정
-* 뷰 이름 지정 후:
+예: `core/templates/core/home.html`
 
+- **앞의 `core/templates/`**  
+  → Django가 `core` 앱의 템플릿을 탐색하는 위치  
+
+- **뒤의 `core/home.html`**  
+  → 호출할 때 구분자 역할 (앱 이름 네임스페이스)  
+
+👉 표면적으로는 `core`가 두 번 반복돼 보이지만,  
+하나라도 빠지면 Django는 **어느 앱의 home.html인지 구분하지 못해 충돌**이 발생합니다.  
+
+즉,  
+- `templates/base.html` → 호출: `"base.html"` (전역은 경로 필요 없음)  
+- `core/templates/core/home.html` → 호출: `"core/home.html"` (앱 전용은 앱 이름/파일명 구조 필수)  
+
+---
+
+## 3. URL 네임스페이스 (미리 알아두기)
+
+- 각 앱의 `urls.py`에 `app_name = "core"` 지정  
+- 뷰 이름 지정 후:  
   ```python
   path("", views.home, name="home")
-  ```
+````
 
-  템플릿에서는 이렇게 사용합니다:
+* 템플릿에서 호출:
 
   ```html
   <a href="{% url 'core:home' %}">홈</a>
   ```
 
-👉 원리: **URL도 이름 충돌 방지를 위해 “앱이름:라우트이름” 구조 사용**
+👉 URL도 템플릿과 동일한 원리로 **“앱이름:라우트이름”** 구조를 씁니다.
 
 ---
 
-## 3. 정적 파일 (Static files)
+## 4. 정적 파일 (Static files)
 
 ### Django 설정
 
@@ -183,19 +198,6 @@ STATICFILES_DIRS = [
 * **전역 static**: 공용 리소스 (예: `global.css`, `main.js`)
 * **앱별 static**: 각 앱 전용 리소스 (예: `core_style.css`, `crawling_chart.js`)
 
-👉 전역 → 앱별 순서로 관리하면 충돌을 피할 수 있습니다.
-
----
-
-## 4. 왜 앱별 분리가 필요할까?
-
-지난번 프로젝트에서는 모든 HTML을 한 폴더에 몰아넣어서
-
-* `login.html` 같은 이름이 겹치고,
-* "이게 어느 기능이지?" 혼동되는 경우가 많았습니다.
-
-👉 이번에는 앱별로 `templates` / `static`을 분리해서 관리합니다.
-
 ---
 
 ## 5. 구조 예시
@@ -203,17 +205,18 @@ STATICFILES_DIRS = [
 ```
 aix_final_prj/
  ├─ templates/                # 전역 공통 템플릿
- │   └─ base.html
+ │   └─ base.html             # 호출 시 → "base.html"
  ├─ core/
  │   ├─ templates/core/       # core 앱 전용 템플릿
- │   │   ├─ home.html
- │   │   ├─ about.html
- │   │   └─ contact.html
+ │   │   ├─ home.html         # 호출 시 → "core/home.html"
+ │   │   ├─ about.html        # 호출 시 → "core/about.html"
+ │   │   └─ contact.html      # 호출 시 → "core/contact.html"
  │   └─ static/core/          # core 앱 전용 정적 파일
  │       ├─ css/core_style.css
  │       └─ js/core_script.js
  ├─ crawling/
  │   ├─ templates/crawling/   # crawling 앱 전용 템플릿
+ │   │   └─ list.html         # 호출 시 → "crawling/list.html"
  │   └─ static/crawling/
  └─ ...
 ```
@@ -224,30 +227,40 @@ aix_final_prj/
 
 * **명확성**
 
-  * `core/templates/core/home.html` → core 앱 전용
-  * `crawling/templates/crawling/list.html` → crawling 앱 전용
-    → 이름 충돌 없음, 소속이 바로 보임
-
+  * 앱 이름이 경로에 포함 → 파일이 어느 앱 소속인지 바로 알 수 있음
 * **협업 편의성**
 
-  * 각자 맡은 앱 안에서만 작업 → 충돌 최소화
-  * 공통 레이아웃은 `base.html`에서만 관리
-
+  * 충돌 최소화, 각자 맡은 앱 내부에서만 작업 가능
 * **실무 표준**
 
-  * Django 공식 권장 패턴
-  * 새로운 팀원이 와도 구조만 보면 바로 이해 가능
+  * Django 공식 권장 방식, 새 팀원이 와도 구조만 보고 이해 가능
 
 ---
 
 ## ✅ 결론
 
-* **HTML (템플릿)**: `"앱이름/파일명.html"`
-* **URL**: `"앱이름:라우트이름"`
-* **정적 파일**: 전역 → 앱별 순서
+* **HTML (템플릿)**
 
-👉 처음에는 `core/templates/core/...`처럼 경로가 길어져 조금 번거롭습니다.
-하지만 **장기적으로는 이름 충돌 없는 안정적 협업**을 위해 꼭 필요한 방식입니다.
-이 규칙만 지켜도 **팀 프로젝트가 훨씬 수월해집니다!**😉
+  * 앱 전용: `"앱이름/파일명.html"`
+  * 전역: `"base.html"`
+
+* **URL**
+
+  * `"앱이름:라우트이름"`
+
+* **정적 파일**
+
+  * 전역 → 앱별 순서로 탐색
+
+👉 **경로가 다소 길어도 충돌 없는 안정적인 협업을 위해 필요한 규칙**입니다.
 
 ---
+
+🙌 이 규칙만 지켜도 **팀 프로젝트가 훨씬 수월해집니다!**
+처음엔 불편해 보여도, 나중에는 “이 구조 덕분에 살았다!” 하는 순간이 올 거예요 😉
+
+```
+
+
+
+
