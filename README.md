@@ -280,5 +280,12 @@ aix_final_prj/
 
 ---
 
-창도, 이 문서를 **팀 Notion 공유 페이지**에 붙이면 좋을 듯한데,
-혹시 내가 이걸 **체크박스 To-do 스타일**로 팀원들이 따라할 수 있게 변형해줄까?
+### 📌 고정된 Header/Footer와 본문 여백 관리
+
+현재 프로젝트에서는 `header`와 `footer`가 `position: fixed`로 화면 상/하단에 고정되어 있습니다.  
+따라서 본문(`main`)은 header/footer 높이만큼 `margin-top` / `margin-bottom`을 주어 겹침을 방지합니다.
+
+👉 협업 시 header/footer의 **높이(padding, font-size 등)가 변경되면**  
+`main`의 margin 값도 반드시 같이 수정해주어야 합니다.  
+(예: header 높이를 80px로 늘리면 → `main { margin-top: 80px; }` 로 변경)
+
