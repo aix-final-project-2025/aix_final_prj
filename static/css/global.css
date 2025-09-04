@@ -1,0 +1,140 @@
+/* ===== 기본 세팅 ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+a {
+  color: #0066cc;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===== 레이아웃 ===== */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ceacac;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  z-index: 1000;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #666;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  z-index: 1000;
+}
+
+main {
+  margin-top: 60px;    /* header 높이만큼 띄우기 */
+  margin-bottom: 60px; /* footer 높이만큼 띄우기 */
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+nav ul li {
+  display: inline-block;
+  margin: 0 15px;
+}
+
+/* ===== 공통 컨테이너 ===== */
+.container {
+  width: 80%;
+  margin: auto;
+  overflow: hidden;
+}
+
+/* ===== 텍스트 ===== */
+h1, h2, h3 {
+  margin-top: 0;
+}
+
+/* ===== 버튼 ===== */
+button {
+  background-color: #0066cc;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #005bb5;
+}
+
+/* ===== 폼 요소 ===== */
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+input:focus, textarea:focus {
+  border-color: #0066cc;
+  outline: none;
+}
+
+/* ===== 테이블 ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th, .table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+.table th {
+  background-color: #f2f2f2;
+}
+.table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+.table tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* ===== 알림 박스 ===== */
+.alert {
+  padding: 15px;
+  color: white;
+  margin-bottom: 20px;
+}
+.alert.success { background-color: #4CAF50; }
+.alert.info { background-color: #2196F3; }
+.alert.warning { background-color: #ff9800; }
+.alert.error { background-color: #f44336; }
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+  .container { width: 95%; }
+  nav ul li {
+    display: block;
+    margin: 10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  header, footer { padding: 15px 0; }
+  button {
+    width: 100%;
+    padding: 15px;
+  }
+}

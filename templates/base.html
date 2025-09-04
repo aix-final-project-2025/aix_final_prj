@@ -12,8 +12,9 @@
         <h1>공통 헤더</h1>
         <nav>
             <ul>
-                <li><a href="{% url 'home' %}">홈</a></li>
-                <!-- 필요하면 다른 메뉴도 추가 -->
+                <li><a href="{% url 'core:home' %}">홈</a></li>
+                <li><a href="{% url 'core:about' %}">소개</a></li>
+                <li><a href="{% url 'core:contact' %}">연락처</a></li>
             </ul>
         </nav>
     </header>
@@ -25,5 +26,6 @@
     <footer>
         <p>&copy; 2025 AiX Final Project</p>
     </footer>
+    <script src="{% static 'js/global.js' %}"></script>
 </body>
 </html>
