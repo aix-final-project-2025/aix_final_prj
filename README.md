@@ -119,65 +119,56 @@ git push origin dev
 
 ---
 
+좋은 피드백이야 👍 창도!
+말씀대로 **"그냥"** 같은 표현은 너무 모호하지.
+초보 팀원들도 읽었을 때 **경로 규칙과 호출 방식**을 딱 알 수 있도록 문구를 구조적으로 다듬어서 최종 버전 만들어줄게 🚀
+
+---
+
 # 📌 AiX Final Project — 협업을 위한 Django 기본 규칙 안내
 
 팀원 여러분 반갑습니다 🙌
 이번 프로젝트는 **여러 명이 함께 개발**하는 협업이므로,
 작업 초기에 **폴더 구조와 네임스페이스 규칙**을 정해두는 것이 중요합니다.
 
-👉 조금 번거롭더라도, 장기적으로는 **충돌 없는 안정적인 협업**을 위해 꼭 필요한 방법입니다.
+👉 경로가 다소 길어지는 수고스러움이 있지만, **장기적으로 충돌 없는 안정적인 협업**을 위해 꼭 필요한 방식입니다.
+
+---
 
 ## 1. 네임스페이스란?
 
-- **이름 충돌을 피하기 위해 영역을 구분하는 방법**  
-- 같은 이름의 파일이나 URL이 여러 곳에 있어도, 네임스페이스를 붙이면 안전하게 호출 가능  
+* **이름 충돌을 피하기 위해 영역을 구분하는 방법**
+* 같은 이름의 파일이나 URL이 여러 곳에 있어도, 네임스페이스를 붙이면 안전하게 호출 가능
 
-예시:  
-- `core/templates/core/home.html` → `render(request, "core/home.html")`  
-- `users/templates/users/home.html` → `render(request, "users/home.html")`  
+예시:
 
-✅ **전역 템플릿(`templates/base.html`)은 경로 없이 파일명 `"base.html"`만 호출하면 됩니다.**  
+* `core/templates/core/home.html` → `render(request, "core/home.html")`
+* `users/templates/users/home.html` → `render(request, "users/home.html")`
 
----
-
-## 2. 경로가 왜 이렇게 길어야 할까?
-
-예: `core/templates/core/home.html`
-
-- **앞의 `core/templates/`**  
-  → Django가 `core` 앱의 템플릿을 탐색하는 위치  
-
-- **뒤의 `core/home.html`**  
-  → 호출할 때 구분자 역할 (앱 이름 네임스페이스)  
-
-👉 표면적으로는 `core`가 두 번 반복돼 보이지만,  
-하나라도 빠지면 Django는 **어느 앱의 home.html인지 구분하지 못해 충돌**이 발생합니다.  
-
-즉,  
-- `templates/base.html` → 호출: `"base.html"` (전역은 경로 필요 없음)  
-- `core/templates/core/home.html` → 호출: `"core/home.html"` (앱 전용은 앱 이름/파일명 구조 필수)  
+✅ **전역 템플릿(`templates/base.html`)은 경로 없이 파일명 `"base.html"`만 호출하면 됩니다.**
 
 ---
 
-## 3. URL 네임스페이스 (미리 알아두기)
+## 2. URL 네임스페이스 (미리 알아두기)
 
-- 각 앱의 `urls.py`에 `app_name = "core"` 지정  
-- 뷰 이름 지정 후:  
+* 각 앱의 `urls.py`에 `app_name = "core"` 지정
+* 뷰 이름 지정 후:
+
   ```python
   path("", views.home, name="home")
-````
+  ```
 
-* 템플릿에서 호출:
+  템플릿에서는 이렇게 사용합니다:
 
   ```html
   <a href="{% url 'core:home' %}">홈</a>
   ```
 
-👉 URL도 템플릿과 동일한 원리로 **“앱이름:라우트이름”** 구조를 씁니다.
+👉 원리: **URL도 이름 충돌 방지를 위해 “앱이름:라우트이름” 구조 사용**
 
 ---
 
-## 4. 정적 파일 (Static files)
+## 3. 정적 파일 (Static files)
 
 ### Django 설정
 
@@ -197,6 +188,19 @@ STATICFILES_DIRS = [
 
 * **전역 static**: 공용 리소스 (예: `global.css`, `main.js`)
 * **앱별 static**: 각 앱 전용 리소스 (예: `core_style.css`, `crawling_chart.js`)
+
+👉 전역 → 앱별 순서로 관리하면 충돌을 피할 수 있습니다.
+
+---
+
+## 4. 왜 앱별 분리가 필요할까?
+
+지난번 프로젝트에서는 모든 HTML을 한 폴더에 몰아넣어서
+
+* `login.html` 같은 이름이 겹치고,
+* "이게 어느 기능이지?" 혼동되는 경우가 많았습니다.
+
+👉 이번에는 앱별로 `templates` / `static`을 분리해서 관리합니다.
 
 ---
 
@@ -227,13 +231,19 @@ aix_final_prj/
 
 * **명확성**
 
-  * 앱 이름이 경로에 포함 → 파일이 어느 앱 소속인지 바로 알 수 있음
+  * `core/templates/core/home.html` → 호출: `"core/home.html"`
+  * `crawling/templates/crawling/list.html` → 호출: `"crawling/list.html"`
+    → 이름 충돌 없음, 소속이 바로 보임
+
 * **협업 편의성**
 
-  * 충돌 최소화, 각자 맡은 앱 내부에서만 작업 가능
+  * 각자 맡은 앱 안에서만 작업 → 충돌 최소화
+  * 공통 레이아웃은 `templates/base.html` → 호출: `"base.html"`
+
 * **실무 표준**
 
-  * Django 공식 권장 방식, 새 팀원이 와도 구조만 보고 이해 가능
+  * Django 공식 권장 패턴
+  * 새로운 팀원이 와도 구조만 보면 바로 이해 가능
 
 ---
 
@@ -252,15 +262,23 @@ aix_final_prj/
 
   * 전역 → 앱별 순서로 탐색
 
-👉 **경로가 다소 길어도 충돌 없는 안정적인 협업을 위해 필요한 규칙**입니다.
+---
+
+# 📌 왜 `core/templates/core/home.html` 구조여야 할까요?
+
+여러분, Django에서는 템플릿을 이렇게 두 번 `core`가 반복된 경로로 관리합니다.
+👉 **초반 개발시에는 경로가 다소 길어져도, 협업 시 이름 충돌 없이 안정적으로 관리할 수 있습니다.**
+
+* `core/templates/` → Django가 탐색하는 위치
+* `core/home.html` → 앱 이름 네임스페이스
+* 최종 구조: **`core/templates/core/home.html` → 호출: `"core/home.html"`**
 
 ---
 
 🙌 이 규칙만 지켜도 **팀 프로젝트가 훨씬 수월해집니다!**
-처음엔 불편해 보여도, 나중에는 “이 구조 덕분에 살았다!” 하는 순간이 올 거예요 😉
+처음엔 불편해 보여도, 나중에는 “와 이 구조 덕분에 살았다!” 하는 순간이 올 거예요 😉
 
-```
+---
 
-
-
-
+창도, 이 문서를 **팀 Notion 공유 페이지**에 붙이면 좋을 듯한데,
+혹시 내가 이걸 **체크박스 To-do 스타일**로 팀원들이 따라할 수 있게 변형해줄까?
