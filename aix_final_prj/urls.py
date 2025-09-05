@@ -20,4 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),  # core 앱의 URL 포함
+    path("dev/", include("aix_final_prj.dev.urls1")),  # 개발자 1
+    path("dev/", include("aix_final_prj.dev.urls2")),  # 개발자 2
 ]
