@@ -15,6 +15,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+TRASH_MODEL_PATH = os.path.join(BASE_DIR, "keras", "trash_classifier_efficientnetv2_best_final.keras")
+TRASH_CLASS_NAMES_PATH = os.path.join(BASE_DIR, "keras", "class_names.json")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 

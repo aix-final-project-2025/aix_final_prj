@@ -36,12 +36,12 @@ class UploadView(FormView):
 
 class PredictApiView(View):
     def post(self, request, *args, **kwargs):
-
+        print('call FILEs OK ======== ')
         if 'image' not in request.FILES:
             return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
 
         file = request.FILES['image']
-
+        print('FILEs OK ======== ')
         # 파일을 PIL 이미지로 로드 및 base64 변환
         try:
             image = Image.open(file).convert("RGB")
@@ -50,13 +50,15 @@ class PredictApiView(View):
             image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
             image_data_uri = f"data:image/png;base64,{img_str}"
-
+            print('FILEs 1 OK ======== ')
         except Exception as e:
             return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
 
         # predict 호출
         try:
+            print('FILEs 2 OK ======== ')
             res = predict_from_pil(image)
+            print('FILEs 3 OK ======== ')
         except Exception as e:
             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
 

@@ -158,10 +158,12 @@ def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     """
     PIL 이미지 → 예측 수행 → 결과 반환
     """
+  
     global _MODEL, _CLASS_NAMES
     if _MODEL is None or _CLASS_NAMES is None:
         raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
 
+    
     x = preprocess_image(image)
     print(x)
     preds = _MODEL.predict(x, verbose=1)[0]
