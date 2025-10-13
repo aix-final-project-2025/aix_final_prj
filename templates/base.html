@@ -1,31 +1,203 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}내 프로젝트{% endblock %}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{% block page_title %}아이콘 전개 반응형 사이드바 예제{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
+
+    <style>
+        /* 폰트 적용 */
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        /* Sidebar styles (기존 스타일 유지) */
+        .sidebar {
+            height: 100%;
+            width: 60px;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            overflow-x: hidden;
+            transition: width 0.3s;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 10px;
+        }
+
+        .sidebar a {
+            padding: 12px 18px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .sidebar a:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .sidebar a .icon {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 25px;
+            text-align: center;
+        }
+
+        .sidebar a .text {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.3s, transform 0.3s;
+            flex-grow: 1;
+        }
+
+        .sidebar.expanded a .text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar .closebtn {
+            display: none;
+        }
+
+        /* Main content (배경색 흰색 추가 및 기존 스타일 유지) */
+        .main {
+            transition: margin-left 0.3s;
+            padding: 20px;
+            margin-left: 60px;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        .main.expanded {
+            margin-left: 250px;
+        }
+
+        /* 햄버거 버튼 스타일 */
+        .togglebtn {
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            display: block;
+            transition: background-color 0.2s;
+        }
+
+        .togglebtn:hover {
+            background-color: #0b7dda;
+        }
+
+        /* ⚠️ 페이지 콘텐츠(검색바/제목) 스타일은 test.html에 정의합니다. */
+
+        /* Responsive */
+        @media screen and (max-width: 600px) {
+            .sidebar {
+                width: 50px;
+            }
+
+            .sidebar.expanded {
+                width: 70%;
+            }
+
+            .main {
+                margin-left: 50px;
+                padding: 15px;
+            }
+
+            .main.expanded {
+                margin-left: 70%;
+            }
+
+            .sidebar a {
+                font-size: 16px;
+            }
+
+            .sidebar-header {
+                height: 50px;
+            }
+
+            /* ⚠️ 페이지 콘텐츠(검색바/제목) 스타일은 test.html에 정의합니다. */
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-    <header>
-        <h1>공통 헤더</h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'core:home' %}">홈</a></li>
-                <li><a href="{% url 'core:about' %}">소개</a></li>
-                <li><a href="{% url 'core:contact' %}">연락처</a></li>
-            </ul>
-        </nav>
-    </header>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <div id="mySidebar" class="sidebar" onmouseover="expandNav()" onmouseout="collapseNav()">
 
-    <footer>
-        <p>&copy; 2025 AiX Final Project</p>
-    </footer>
-    <script src="{% static 'js/global.js' %}"></script>
+        <div class="sidebar-header">
+            <button class="togglebtn">&#9776;</button>
+        </div>
+
+        <a href="#"><span class="icon">🏠</span> <span class="text">Home</span></a>
+        <a href="#"><span class="icon">🏆</span> <span class="text">recyclables</span></a>
+        <a href="{% url 'core:upload' %}"><span class="icon">💾</span> <span class="text">upload</span></a>
+        <a href="#"><span class="icon">🤖</span> <span class="text">coffee</span></a>
+        <a href="#"><span class="icon">📊</span> <span class="text">Benchmarks</span></a>
+        <a href="#"><span class="icon">💻</span> <span class="text">Code</span></a>
+        <a href="#"><span class="icon">💬</span> <span class="text">Discussions</span></a>
+        <a href="#"><span class="icon">📚</span> <span class="text">Learn</span></a>
+        <a href="#"><span class="icon">💡</span> <span class="text">More</span></a>
+        <a href="#"><span class="icon">📢</span> <span class="text">View Active Events</span></a>
+        
+    </div>
+
+    <div class="main" id="mainContent">
+        {% block content %}{% endblock %} </div>
+
+    <script>
+        const sidebar = document.getElementById("mySidebar");
+        const main = document.getElementById("mainContent");
+
+        /* 메뉴바 확장/축소 함수 */
+        function expandNav() {
+            sidebar.classList.add('expanded');
+            main.classList.add('expanded');
+        }
+
+        function collapseNav() {
+            sidebar.classList.remove('expanded');
+            main.classList.remove('expanded');
+        }
+
+        /* 검색 바 클릭 시 동작 함수 (어떤 페이지에서든 사용할 수 있도록 base에 정의) */
+        function goToSearchPage() {
+            console.log("검색 바가 클릭되었습니다. 검색 페이지로 이동합니다.");
+            alert("검색 페이지로 이동하는 동작이 실행되었습니다!");
+        }
+    </script>
+    <script src="{% static 'js/core_script.js' %}"></script>
+    {% block extra_script %}{% endblock %}
 </body>
+
 </html>

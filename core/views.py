@@ -1,5 +1,9 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 def home(request):
     return render(request, 'core/home.html')
 
@@ -8,6 +12,10 @@ def about(request):
 
 def contact(request):
     return render(request, 'core/contact.html')
+
+def upload_view(request):
+    # 세희 추가
+    return render(request, 'upload.html') 
 
 class ArticleListView(ListView):
     #model = Article/
@@ -18,3 +26,31 @@ class ArticleDetailView(DetailView):
     #model = Article
     template_name = 'article_detail.html'
     context_object_name = 'article'
+
+# 4. API 뷰 함수 (추가하신 내용) 세희
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_predict_view(request):
+    if 'image' not in request.FILES:
+        return JsonResponse({"error": "이미지 파일이 전송되지 않았습니다."}, status=400)
+
+    uploaded_file = request.FILES['image']
+    
+    # ⚠️ 여기에 실제 이미지 처리 및 예측 로직을 구현해야 합니다.
+    
+    # 임시 응답 (예시)
+    result_data = {
+        "result_message": "임시 예측 결과: 플라스틱",
+        "confidence": 0.95,
+        "top_3": [
+            ["플라스틱", 0.95],
+            ["캔", 0.03],
+            ["종이", 0.01]
+        ],
+        "recycling_guide": {
+            "category": "플라스틱",
+            "action": "내용물을 비우고 깨끗하게 헹군 뒤 압착하여 배출"
+        }
+    }
+    
+    return JsonResponse(result_data)
