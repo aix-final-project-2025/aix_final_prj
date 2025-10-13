@@ -169,7 +169,7 @@ def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     max_idx = int(np.argmax(preds))
     print(max_idx)
     print(f"====={_CLASS_NAMES[max_idx]}=")    
-    print(" 111111111111 ")
+  
     max_prob = float(preds[max_idx])
     predicted_class = _CLASS_NAMES[max_idx]
     
