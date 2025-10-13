@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from django.conf import settings
+from aix_final_prj.service.keras_utils import WarmUpCosine
 
 # ====== 설정 ======
 MODEL_PATH = getattr(settings, "TRASH_MODEL_PATH", "trash_classifier_efficientnetv2_best_final.keras")
@@ -72,7 +73,9 @@ def load_model_and_classes(model_path=MODEL_PATH, class_names_path=CLASS_NAMES_P
     """
     global _MODEL, _CLASS_NAMES
     if _MODEL is None:
-        _MODEL = tf.keras.models.load_model(model_path)
+        # _MODEL = tf.keras.models.load_model(model_path) 
+        _MODEL = tf.keras.models.load_model(model_path,custom_objects={"WarmUpCosine": WarmUpCosine})
+        
         print("Model loaded from:", model_path)
 
     if _CLASS_NAMES is None:
@@ -151,7 +154,7 @@ def classify_image(model, image_path, classes, threshold=0.5):
         return classes[class_id], float(confidence)
 
 # ver 1
-def predict_from_pil_v1(image: Image.Image, threshold=THRESHOLD_DEFAULT):
+def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     """
     PIL 이미지 → 예측 수행 → 결과 반환
     """
@@ -193,7 +196,7 @@ def predict_from_pil_v1(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     }
 
 
-def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
+def predict_from_pil_v2(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     """
     PIL 이미지 → 예측 수행 → 결과 반환
     """
