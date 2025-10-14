@@ -1,0 +1,30 @@
+/* 전역 배경 + 기본 폰트 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  background: linear-gradient(135deg, #fceabb, #f8b500, #e17d5a);
+  background-attachment: fixed;
+  background-size: cover;
+  color: #4a2c2a;
+}
+
+/* 루트 컨테이너: 화면 전체 차지 */
+#root {
+  height: 100vh;
+  display: flex;
+}
+
+/* 반응형 이미지: 화면 크기에 맞게 자동 조정 */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* 텍스트 기본 중앙 정렬 */
+h1, h2, h3, h4, h5, h6, p {
+  text-align: center;
+}
