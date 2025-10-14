@@ -37,12 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-<<<<<<< HEAD
-    'aix_final_prj.service',
-=======
+
+    # 'aix_final_prj.service', 에러로 중복삭제
+
     'corsheaders',
     'aix_final_prj.service.apps.ServiceConfig', # 선언은 service/apps.py를 구동시킴
->>>>>>> dev
+
 ]
 
 MIDDLEWARE = [
