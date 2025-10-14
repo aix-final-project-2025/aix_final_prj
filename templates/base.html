@@ -9,188 +9,85 @@
     <title>{% block page_title %}아이콘 전개 반응형 사이드바 예제{% endblock %}</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
     <style>
-        /* 폰트 적용 */
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f8f8;
-            color: #333;
-        }
-
-        /* Sidebar styles (기존 스타일 유지) */
-        .sidebar {
-            height: 100%;
-            width: 60px;
-            position: fixed;
-            z-index: 1000;
-            top: 0;
-            left: 0;
-            background-color: #fff;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-            overflow-x: hidden;
-            transition: width 0.3s;
-        }
-
-        .sidebar.expanded {
-            width: 250px;
-        }
-
-        .sidebar-header {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 10px;
-        }
-
-        .sidebar a {
-            padding: 12px 18px;
-            text-decoration: none;
-            font-size: 18px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s;
-            white-space: nowrap;
-        }
-
-        .sidebar a:hover {
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-
-        .sidebar a .icon {
-            font-size: 20px;
-            margin-right: 15px;
-            width: 25px;
-            text-align: center;
-        }
-
-        .sidebar a .text {
-            opacity: 0;
-            transform: translateX(-10px);
-            transition: opacity 0.3s, transform 0.3s;
-            flex-grow: 1;
-        }
-
-        .sidebar.expanded a .text {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .sidebar .closebtn {
-            display: none;
-        }
-
-        /* Main content (배경색 흰색 추가 및 기존 스타일 유지) */
-        .main {
-            transition: margin-left 0.3s;
-            padding: 20px;
-            margin-left: 60px;
-            background-color: #fff;
-            min-height: 100vh;
-        }
-
-        .main.expanded {
-            margin-left: 250px;
-        }
-
-        /* 햄버거 버튼 스타일 */
-        .togglebtn {
-            font-size: 24px;
-            line-height: 1;
-            cursor: pointer;
-            background-color: #2196F3;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            display: block;
-            transition: background-color 0.2s;
-        }
-
-        .togglebtn:hover {
-            background-color: #0b7dda;
-        }
-
-        /* ⚠️ 페이지 콘텐츠(검색바/제목) 스타일은 test.html에 정의합니다. */
-
-        /* Responsive */
-        @media screen and (max-width: 600px) {
-            .sidebar {
-                width: 50px;
-            }
-
-            .sidebar.expanded {
-                width: 70%;
-            }
-
-            .main {
-                margin-left: 50px;
-                padding: 15px;
-            }
-
-            .main.expanded {
-                margin-left: 70%;
-            }
-
-            .sidebar a {
-                font-size: 16px;
-            }
-
-            .sidebar-header {
-                height: 50px;
-            }
-
-            /* ⚠️ 페이지 콘텐츠(검색바/제목) 스타일은 test.html에 정의합니다. */
-        }
+        /* ⚠️ 여기에 CSS 코드를 삽입하세요. (이전 답변에서 안내해드린 최종 CSS) */
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 
 <body>
-
-    <div id="mySidebar" class="sidebar" onmouseover="expandNav()" onmouseout="collapseNav()">
+    <div id="navbar">
+        <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
+    </div>
+    
+    <div id="mySidebar" class="sidebar">
 
         <div class="sidebar-header">
-            <button class="togglebtn">&#9776;</button>
         </div>
 
         <a href="{% url 'core:home' %}"><span class="icon">🏠</span> <span class="text">Home</span></a>
-        <a href="#"><span class="icon">🏆</span> <span class="text">recyclables</span></a>
-        <a href="{% url 'core:upload' %}"><span class="icon">💾</span> <span class="text">upload</span></a>
-        <a href="#"><span class="icon">🤖</span> <span class="text">coffee</span></a>
-        <a href="#"><span class="icon">📊</span> <span class="text">Benchmarks</span></a>
-        <a href="#"><span class="icon">💻</span> <span class="text">Code</span></a>
-        <a href="#"><span class="icon">💬</span> <span class="text">Discussions</span></a>
-        <a href="#"><span class="icon">📚</span> <span class="text">Learn</span></a>
-        <a href="#"><span class="icon">💡</span> <span class="text">More</span></a>
-        <a href="#"><span class="icon">📢</span> <span class="text">View Active Events</span></a>
         
-    </div>
+        <a href="{% url 'recyclables' %}">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
+                     alt="recyclables icon" 
+                     style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">recyclables</span>
+        </a>
+        
+        <a href="{% url 'core:upload' %}"><span class="icon">💾</span> <span class="text">upload</span></a>
+        
+        <a href="#">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
+                     alt="coffee icon" 
+                     style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">coffee</span>
+        </a>
+        
+        <a href="#">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" 
+                     alt="News icon" 
+                     style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">News</span>
+        </a>
+        
+        <a href="#">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" 
+                     alt="Settings icon" 
+                     style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">settings</span>
+        </a>
 
+    </div>
+    
     <div class="main" id="mainContent">
-        {% block content %}{% endblock %} </div>
+        {% block content %}{% endblock %}
+    </div>
 
     <script>
         const sidebar = document.getElementById("mySidebar");
         const main = document.getElementById("mainContent");
+        const toggleButton = document.querySelector('.togglebtn');
 
-        /* 메뉴바 확장/축소 함수 */
-        function expandNav() {
-            sidebar.classList.add('expanded');
-            main.classList.add('expanded');
-        }
+        /* 🟢 메뉴바 확장/축소 토글 함수 (클릭 시 작동) */
+        function toggleNav() {
+            // expanded 클래스가 있으면 제거 (닫기), 없으면 추가 (열기)
+            const isExpanded = sidebar.classList.toggle('expanded');
+            
+            // 햄버거 버튼 모양 변경 (선택 사항)
+            toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;'; // X 또는 햄버거 아이콘
+        } /* 🟢 닫는 괄호 } 추가! */
 
-        function collapseNav() {
-            sidebar.classList.remove('expanded');
-            main.classList.remove('expanded');
-        }
-
-        /* 검색 바 클릭 시 동작 함수 (어떤 페이지에서든 사용할 수 있도록 base에 정의) */
+        /* 검색 바 클릭 시 동작 함수 (기존 로직 유지) */
         function goToSearchPage() {
             console.log("검색 바가 클릭되었습니다. 검색 페이지로 이동합니다.");
             alert("검색 페이지로 이동하는 동작이 실행되었습니다!");

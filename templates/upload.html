@@ -1,18 +1,10 @@
 
 {% extends 'base.html' %}
 
-{% block page_title %}쓰레기 분류기 - 이미지 업로드{% endblock %}
+{% block page_title %}재활용 분류기 - 이미지 업로드{% endblock %}
 
 {% block extra_head %}
-    <style>
-        /* base.html의 margin, background, color 설정과 충돌 방지를 위해 body 스타일은 일부 제거 */
-        /* body { 
-            font-family: Arial, sans-serif;
-            margin: 40px; 
-            background: #f5f7fa; 
-            color: #333; 
-        } */
-        
+    <style>     
         /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
         h1 {
             text-align: center;
@@ -52,8 +44,23 @@
         #cameraButton:hover {
             background: #1565c0;
         }
+        #fileButton {
+            display: block; /* 이 속성이 버튼을 한 줄에 하나씩 배치하고 블럭 크기를 만듭니다 */
+            margin: 15px auto;
+            padding: 10px 20px;
+            background: #1976d2; /* 또는 다른 색상으로 변경 가능 */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        #fileButton:hover {
+            background: #1565c0;
+        }
         button[type="submit"] {
-            margin-top: 20px;
+            display: inline-block;
+            margin: 20px 0 0 0;
             padding: 10px 20px;
             background: #4caf50;
             border: none;
@@ -99,7 +106,8 @@
             <input type="file" id="fileElem" name="image" accept="image/*" capture="environment" required>
         </div>
 
-        <button id="cameraButton" type="button">📷 카메라로 촬영하기</button>
+        <button id="cameraButton" type="button">📷 카메라 호출</button>
+        <button id="fileButton" type="button">📁 파일 선택</button>
         <button type="submit">업로드 및 예측</button>
     </form>
 
@@ -117,6 +125,8 @@
         const fileInput = document.getElementById("fileElem");
         const dropMessage = document.getElementById("drop-message");
         const cameraButton = document.getElementById("cameraButton");
+        const fileButton = document.getElementById("fileButton"); // 세희 추가
+        const openAppSettingsButton = document.getElementById("openAppSettings"); // 세희 추가
 
         // 📱 모바일/PC 구분
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -148,19 +158,33 @@
             if (file) showPreview(file);
         });
 
-        // ✅ 카메라 버튼 (iOS / Android 전용)
+// 🆕 환경에 따라 버튼 표시/숨김 및 기능 연결 로직 (수정된 올바른 구조)
+if (isMobile) {
+    // 모바일 환경
+    if (fileButton) fileButton.style.display = 'none'; // 파일 선택 숨김
+    
+    // 모바일: 카메라 촬영 유도 기능 연결
+    if (cameraButton) {
         cameraButton.addEventListener("click", () => {
-            if (isMobile) {
-                // 모바일: 카메라 촬영 유도
-                fileInput.setAttribute("capture", "environment");
-                fileInput.click();
-            } else {
-                // 데스크톱: 파일 선택만 허용
-                alert("카메라는 모바일 기기에서만 동작합니다.");
-                fileInput.removeAttribute("capture");
-                fileInput.click();
-            }
+            fileInput.setAttribute("capture", "environment");
+            fileInput.click();
         });
+    }
+} else {
+    // 웹(PC) 환경
+    if (cameraButton) cameraButton.style.display = 'none'; // 카메라 호출 숨김
+    
+    // PC에서 '파일 선택' 버튼 클릭 시 숨겨진 파일 입력창 실행
+    if (fileButton) {
+        fileButton.addEventListener("click", () => {
+            fileInput.removeAttribute("capture");
+            fileInput.click();
+        });
+    }
+}
+
+    // 드롭 영역 클릭 시 파일 선택 (모바일/PC 공통)
+  dropArea.addEventListener("click", () => fileInput.click());
 
         // 미리보기
         function showPreview(file) {
@@ -214,23 +238,24 @@
             }
         });
         
-        // ⚙️ 앱 서버 설정 버튼 스크립트
-        document.getElementById("openAppSettings").addEventListener("click", () => {
-            // 사용자 기기 감지
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        // ⚙️ 앱 서버 설정 버튼 스크립트 통합
+        if (openAppSettingsButton) {
+            openAppSettingsButton.addEventListener("click", () => {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-            if (isAndroid) {
-                window.location.href = "myapp://settings";  // Android 앱 URI
-            } else if (isIOS) {
-                window.location.href = "myapp://settings";  // iOS 앱 URI
-            } else {
-                alert("앱이 설치된 모바일 기기에서만 설정을 열 수 있습니다.");
-            }
-        });
+                if (isAndroid) {
+                    window.location.href = "myapp://settings";  // Android 앱 URI
+                } else if (isIOS) {
+                    window.location.href = "myapp://settings";  // iOS 앱 URI
+                } else {
+                    alert("앱이 설치된 모바일 기기에서만 설정을 열 수 있습니다.");
+                }
+            });
+        }
     </script>
 {% endblock extra_script %}
-=======
+
 <!doctype html>
 <html>
 <head>
@@ -459,4 +484,4 @@ document.getElementById("openAppSettings").addEventListener("click", () => {
 </script>
 </body>
 </html>
->>>>>>> dev
+

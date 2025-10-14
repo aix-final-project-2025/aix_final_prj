@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}재활용 리스트{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/recyclables.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="recycling-table-container"> 
+    <h2>재활용 항목 리스트 (최신순)</h2>
+        <a href="{% url 'core:upload' %}" class="upload-btn-relative" title="항목 업로드">
+        Upload</a>
+    
+    <table class="recycling-table"> 
+        <thead>
+            <tr>
+                <th>사진</th>
+                <th>설명</th>
+                <th>수정</th>  <th>삭제</th>  </tr>
+        </thead>
+        <tbody>
+            {% for item in recycling_items %}
+            <tr class="recycling-item" data-item-id="{{ item.id }}"> 
+                
+                <td class="item-image-cell">
+                    <div class="item-image">
+                        <img src="{{ item.image.url }}" alt="업로드 이미지">
+                    </div>
+                </td>
+
+                <td class="item-details-cell">
+                    <p class="description-text">{{ item.description }}</p>
+                </td>
+
+                <td class="item-action-cell">
+                    <button class="edit-btn" data-id="{{ item.id }}">
+                        <img src="{% static 'images/edit_icon.png' %}" alt="수정" class="action-icon">
+                    </button>
+                </td>
+                
+                <td class="item-action-cell">
+                    <button class="delete-btn" data-id="{{ item.id }}">
+                        <img src="{% static 'images/trash_icon.png' %}" alt="삭제" class="action-icon">
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">아직 등록된 재활용 항목이 없습니다.</td> </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
+</div>
+{% endblock %}
+
+
+{% block extra_script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const listContainer = document.querySelector('.recycling-table-container'); // 🟢 선택자 변경
+
+    listContainer.addEventListener('click', function(event) {
+        const target = event.target.closest('.edit-btn');
+        if (target) {
+            const itemId = target.dataset.id;
+            const itemElement = target.closest('.recycling-item');
+            const descriptionElement = itemElement.querySelector('.description-text');
+            
+            // 현재 텍스트 내용을 가져옵니다.
+            const currentText = descriptionElement.textContent;
+            
+            // 텍스트를 입력 가능한 <textarea>로 변경합니다.
+            const textareaHtml = `<textarea id="edit-desc-${itemId}" class="edit-textarea">${currentText}</textarea>`;
+            
+            descriptionElement.innerHTML = textareaHtml;
+            
+            // 버튼을 '저장' 버튼으로 변경합니다.
+            target.innerHTML = `<img src="{% static 'images/save_icon.png' %}" alt="저장" class="action-icon">`;
+            target.classList.remove('edit-btn');
+            target.classList.add('save-btn');
+            
+            // 포커스를 텍스트 영역으로 이동
+            document.getElementById(`edit-desc-${itemId}`).focus();
+
+            // ⚠️ 실제 저장 및 삭제 로직은 별도의 Django View(POST 요청)를 만들어 구현해야 합니다.
+            alert(`항목 ID ${itemId}의 수정 모드로 전환되었습니다. 저장/삭제 기능 구현 필요.`);
+        }
+        
+        // 🚨 삭제 버튼 로직 (실제 DB 삭제 로직 필요)
+        const deleteTarget = event.target.closest('.delete-btn');
+        if (deleteTarget) {
+            const itemId = deleteTarget.dataset.id;
+            if (confirm("정말로 이 항목을 삭제하시겠습니까?")) {
+                // 여기에 Django DELETE View로 요청을 보내는 AJAX 코드가 필요합니다.
+                alert(`항목 ID ${itemId}를 삭제하는 로직이 실행되었습니다. (실제 삭제는 미구현)`);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
