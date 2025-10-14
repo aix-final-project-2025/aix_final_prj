@@ -1,2 +1,5 @@
+<<<<<<< HEAD
 aix_final_prj/dataset/TS_2.직접촬영_09.형광등_001.형광등.zip filter=lfs diff=lfs merge=lfs -text
+=======
+>>>>>>> dev
 *.keras filter=lfs diff=lfs merge=lfs -text
