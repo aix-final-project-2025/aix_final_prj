@@ -65,26 +65,26 @@ body {
     cursor: pointer;
 }
 
-/* 🟢 [핵심 수정] 아이콘 정렬 및 크기 조정 */
+/* 🟢 아이콘 정렬 및 크기 조정 (기본 데스크톱 크기) */
 .sidebar a .icon {
-    font-size: 20px;
+    font-size: 20px; /* Home 이모티콘 기본 크기 */
     margin-right: 15px;
     
-    /* ⚠️ [수정] PNG 아이콘 크기에 맞게 width와 height를 30px로 통일 */
+    /* ⚠️ PNG 아이콘 크기에 맞게 width와 height를 30px로 통일 */
     width: 30px; 
     height: 30px; 
     
-    /* ⚠️ [수정] Flexbox를 사용하여 내부 요소(img) 수직/수평 중앙 정렬 */
+    /* ⚠️ Flexbox를 사용하여 내부 요소(img) 수직/수평 중앙 정렬 */
     display: flex;
     align-items: center; /* 수직 가운데 정렬 */
     justify-content: center; /* 수평 가운데 정렬 */
     
-    text-align: center; /* 기존 속성 유지 (Flex와 함께 작동) */
+    text-align: center;
 }
 
-/* 🟢 [추가] <img> 태그의 수직 정렬을 확실하게 보장하고 크기 조정 */
+/* 🟢 <img> 태그의 수직 정렬을 확실하게 보장하고 크기 조정 */
 .sidebar a .icon img {
-    vertical-align: middle; /* 이미지 정렬 기준을 중간으로 설정 */
+    vertical-align: middle; 
     max-width: 100%;
     max-height: 100%;
 }
@@ -133,7 +133,7 @@ body {
     background-color: #0b7dda;
 }
 
-/* Responsive */
+/* Responsive (600px 이하 스타일) */
 @media screen and (max-width: 600px) {
     .sidebar {
         width: 70%; 
@@ -157,3 +157,40 @@ body {
         height: 50px;
     }
 }
+
+/* ★★★ 모바일 환경(앱 환경) 글자 및 사이드바 요소 크기 조정 (768px 이하) ★★★ */
+@media screen and (max-width: 768px) {
+    
+    /* 1. 기본 텍스트 크기 증가 */
+    body {
+        font-size: 1.1em;
+    }
+
+    /* 2. 사이드바 항목 간격 확대 */
+    .sidebar a {
+        padding: 15px 18px; 
+    }
+
+    /* 3. 사이드바 메뉴 텍스트 크기 증가 (1.2em로 더 강조) */
+    .sidebar a .text {
+        font-size: 1.2em;
+    }
+    
+    /* 4. 아이콘 컨테이너 크기 증가 (30px -> 35px) */
+    .sidebar a .icon {
+        width: 35px; 
+        height: 35px; 
+        font-size: 28px; /* 폰트/이모티콘 기반 아이콘(Home 등) 크기 조정 */
+    }
+    
+    /* 5. 제목 크기 증가 */
+    .page-title {
+        font-size: 1.8em;
+    }
+
+    /* 6. 재활용 앨범 설명 텍스트 증가 (recyclables.css 내용 가정) */
+    .description-text {
+        font-size: 1.1em;
+    }
+}
+/* ★★★ 수정 끝 ★★★ */
