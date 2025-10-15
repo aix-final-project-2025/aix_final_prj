@@ -15,25 +15,32 @@ body {
     padding: 10px 20px;
 }
 
-/* Sidebar styles (기존 스타일 유지) */
+/* Sidebar styles 수정 */
 .sidebar {
     height: 100%;
-    width: 60px;
+    width: 60px; /* 초기 너비 유지 */
     position: fixed;
     z-index: 1000;
     top: 0;
-    left: -60px; /* 🟢 초기 상태: 왼쪽으로 완전히 숨김 */
+    left: 0; /* ★★★ left를 0으로 고정합니다. */
+    
+    /* 🟢 초기 상태: 왼쪽으로 100% 숨김 */
+    transform: translateX(-100%); 
+    
     background-color: #fff;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     overflow-x: hidden;
-    transition: left 0.3s, width 0.3s; /* left 속성 전환 추가 */
+    
+    /* ★★★ transition을 transform과 width로 변경합니다. */
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; 
 }
 
 .sidebar.expanded {
-    width: 250px;
-    left: 0; /* 🟢 확장 상태: 화면에 나타남 */
+    width: 250px; /* 확장된 너비 유지 */
+    
+    /* 🟢 확장 상태: 화면에 나타남 (0으로 이동) */
+    transform: translateX(0); 
 }
-
 .sidebar-header {
     height: 60px;
     display: flex;

@@ -1,101 +1,144 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page_title %}재활용 리스트{% endblock %}
+{% block page_title %}재활용 앨범{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=delete,more_vert" />
+
 <link rel="stylesheet" href="{% static 'css/recyclables.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="recycling-table-container"> 
-    <h2>재활용 항목 리스트 (최신순)</h2>
-        <a href="{% url 'core:upload' %}" class="upload-btn-relative" title="항목 업로드">
-        Upload</a>
+<div class="recycling-album-container"> 
     
-    <table class="recycling-table"> 
-        <thead>
-            <tr>
-                <th>사진</th>
-                <th>설명</th>
-                <th>수정</th>  <th>삭제</th>  </tr>
-        </thead>
-        <tbody>
-            {% for item in recycling_items %}
-            <tr class="recycling-item" data-item-id="{{ item.id }}"> 
+    <div class="content-header">
+        <h2 class="page-title">재활용 앨범 (최신순)</h2>
+        <a href="{% url 'core:upload' %}" class="upload-btn" title="항목 업로드">
+             Upload
+        </a>
+    </div>
+    
+    <div class="album-grid"> 
+        
+        <div class="album-card" data-item-id="test-1" style="background-color: #f0f0f0;">
+            <div class="card-image-wrapper">
+                <img src="{% static 'images/temp_recycle_photo.jpg' %}" alt="테스트 이미지" class="card-image">
                 
-                <td class="item-image-cell">
-                    <div class="item-image">
-                        <img src="{{ item.image.url }}" alt="업로드 이미지">
+                <div class="card-dropdown-menu">
+                    <button class="dropdown-toggle" data-id="test-1">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                    <div class="menu-content hidden">
+                        <a href="#" class="delete-action" data-id="test-1">
+                            <span class="material-symbols-outlined delete-icon">delete</span> 삭제하기
+                        </a>
                     </div>
-                </td>
-
-                <td class="item-details-cell">
-                    <p class="description-text">{{ item.description }}</p>
-                </td>
-
-                <td class="item-action-cell">
-                    <button class="edit-btn" data-id="{{ item.id }}">
-                        <img src="{% static 'images/edit_icon.png' %}" alt="수정" class="action-icon">
-                    </button>
-                </td>
+                </div>
                 
-                <td class="item-action-cell">
-                    <button class="delete-btn" data-id="{{ item.id }}">
-                        <img src="{% static 'images/trash_icon.png' %}" alt="삭제" class="action-icon">
+            </div>
+            <div class="card-caption">
+                <p class="description-text">테스트 사진입니다</p>
+            </div>
+        </div>
+        
+        <div class="album-card" data-item-id="test-2" style="background-color: #f0f0f0;">
+            <div class="card-image-wrapper">
+                <img src="{% static 'images/temp_recycle_photo.jpg' %}" alt="테스트 이미지" class="card-image">
+                
+                <div class="card-dropdown-menu">
+                    <button class="dropdown-toggle" data-id="test-2">
+                        <span class="material-symbols-outlined">more_vert</span>
                     </button>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">아직 등록된 재활용 항목이 없습니다.</td> </tr>
-            {% endfor %}
-        </tbody>
-    </table> 
+                    <div class="menu-content hidden">
+                        <a href="#" class="delete-action" data-id="test-2">
+                            <span class="material-symbols-outlined delete-icon">delete</span> 삭제하기
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="card-caption">
+                <p class="description-text">테스트 사진입니다</p>
+            </div>
+        </div>
+        {% for item in recycling_items %}
+        <div class="album-card" data-item-id="{{ item.id }}"> 
+            
+            <div class="card-image-wrapper">
+                <img src="{{ item.image.url }}" alt="업로드 이미지" class="card-image">
+                
+                <div class="card-dropdown-menu">
+                    <button class="dropdown-toggle" data-id="{{ item.id }}">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                    <div class="menu-content hidden">
+                        <a href="#" class="delete-action" data-id="{{ item.id }}">
+                            <span class="material-symbols-outlined delete-icon">delete</span> 삭제하기
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-caption">
+                <p class="description-text">테스트 사진입니다</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-items-message" style="grid-column: 1 / -1;">
+            아직 등록된 재활용 항목이 없습니다.
+        </div>
+        {% endfor %}
+    </div> 
 </div>
 {% endblock %}
-
 
 {% block extra_script %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const listContainer = document.querySelector('.recycling-table-container'); // 🟢 선택자 변경
+    const albumGrid = document.querySelector('.album-grid');
 
-    listContainer.addEventListener('click', function(event) {
-        const target = event.target.closest('.edit-btn');
+    albumGrid.addEventListener('click', function(event) {
+        
+        const target = event.target.closest('.dropdown-toggle');
+        
+        // 1. 드롭다운 버튼 클릭 로직
         if (target) {
-            const itemId = target.dataset.id;
-            const itemElement = target.closest('.recycling-item');
-            const descriptionElement = itemElement.querySelector('.description-text');
+            event.preventDefault(); // 기본 동작 방지
+            const menuContent = target.closest('.card-dropdown-menu').querySelector('.menu-content');
             
-            // 현재 텍스트 내용을 가져옵니다.
-            const currentText = descriptionElement.textContent;
+            // 모든 다른 드롭다운 닫기
+            document.querySelectorAll('.menu-content').forEach(menu => {
+                if (menu !== menuContent) {
+                    menu.classList.add('hidden');
+                }
+            });
             
-            // 텍스트를 입력 가능한 <textarea>로 변경합니다.
-            const textareaHtml = `<textarea id="edit-desc-${itemId}" class="edit-textarea">${currentText}</textarea>`;
-            
-            descriptionElement.innerHTML = textareaHtml;
-            
-            // 버튼을 '저장' 버튼으로 변경합니다.
-            target.innerHTML = `<img src="{% static 'images/save_icon.png' %}" alt="저장" class="action-icon">`;
-            target.classList.remove('edit-btn');
-            target.classList.add('save-btn');
-            
-            // 포커스를 텍스트 영역으로 이동
-            document.getElementById(`edit-desc-${itemId}`).focus();
+            // 현재 드롭다운 토글
+            menuContent.classList.toggle('hidden');
+            return;
+        }
 
-            // ⚠️ 실제 저장 및 삭제 로직은 별도의 Django View(POST 요청)를 만들어 구현해야 합니다.
-            alert(`항목 ID ${itemId}의 수정 모드로 전환되었습니다. 저장/삭제 기능 구현 필요.`);
+        // 2. 삭제 메뉴 항목 클릭 로직
+        const deleteTarget = event.target.closest('.delete-action');
+        if (deleteTarget) {
+            event.preventDefault(); 
+            const itemId = deleteTarget.dataset.id;
+            
+            // 드롭다운 닫기
+            deleteTarget.closest('.menu-content').classList.add('hidden');
+
+            if (confirm(`항목 ID ${itemId}를 정말로 삭제하시겠습니까?`)) {
+                // ⚠️ 여기에 Django DELETE/POST 요청을 보내는 AJAX 코드를 구현해야 합니다.
+                alert(`항목 ID ${itemId}를 삭제하는 로직이 실행되었습니다. (실제 삭제 미구현)`);
+            }
         }
         
-        // 🚨 삭제 버튼 로직 (실제 DB 삭제 로직 필요)
-        const deleteTarget = event.target.closest('.delete-btn');
-        if (deleteTarget) {
-            const itemId = deleteTarget.dataset.id;
-            if (confirm("정말로 이 항목을 삭제하시겠습니까?")) {
-                // 여기에 Django DELETE View로 요청을 보내는 AJAX 코드가 필요합니다.
-                alert(`항목 ID ${itemId}를 삭제하는 로직이 실행되었습니다. (실제 삭제는 미구현)`);
-            }
+        // 3. 드롭다운 외부 클릭 시 닫기
+        if (!event.target.closest('.card-dropdown-menu')) {
+             document.querySelectorAll('.menu-content').forEach(menu => {
+                menu.classList.add('hidden');
+            });
         }
     });
 });
