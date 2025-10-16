@@ -31,6 +31,9 @@ h1 {
   cursor: pointer;
   box-sizing: border-box;
    margin: 0 auto; /* 수평 중앙 정렬 */
+   /* ✅ 추가: 최소 높이 설정 (JS로 높이를 설정해도, 혹시 모를 경우를 대비) */
+   min-height: 300px; 
+   overflow: hidden; /* 이미지가 영역을 벗어나지 않도록 */
 }
 
 #drop-area.dragover {
@@ -55,7 +58,7 @@ input[type="file"] { display: none; }
   background: #f5f7fa;
   position: fixed;
   bottom: 0px;
-  left: 10;
+  left: 0;
   height: 100px;
   width: 100%;
   z-index: 100;
@@ -74,27 +77,14 @@ button {
 #submitButton { background: #4caf50; color: #fff; }
 #submitButton:hover { background: #43a047; }
 
-/* 드래그 영역 이미지 */
-/* #drop-area img {
-  max-width: calc(100% - 80px);
-  margin: 40px auto 20px auto;
-  border-radius: 8px;
-  display: block;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  object-fit: contain;
-} */
-/* 드래그 영역 이미지 */
+/* ✅ 수정: 드래그 영역 이미지 - 이미지가 컨테이너 내에서 잘 보이도록 속성 조정 */
 #drop-area img {
-  /* max-width: calc(100% - 80px); */ /* 이미지 너비를 최대화하는 것이 중앙 배치에 유리 */
-  
-  /* 수정: 기존 마진(margin: 40px auto 20px auto;)을 제거하고 0으로 설정 */
   margin: 0; 
-  max-width: 100%; /*  이미지 컨테이너보다 살짝 작게 설정하여 여백 확보 */
-  max-height: 100%; /*  높이도 제한 */
+  max-width: 100%; 
+  max-height: 100%; 
+  height: auto; 
+  width: auto; 
   border-radius: 8px;
-  /* display: none; */ /* JS에서 제어하므로 유지 */
-  /* 수정: flex 컨테이너 내부에서 중앙 정렬을 위해 block 속성을 제거 (또는 flex-item으로 동작하도록 함) */
-  /* display: block; */ 
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   object-fit: contain; 
 }
@@ -112,7 +102,7 @@ button {
   z-index: 999;
 }
 
-/* ✅ Modal Sheet (공통) */
+/* ✅ 수정: Modal Sheet (공통) - 전체 스크롤 방지 및 flex 컨테이너 설정 */
 #mobileModal {
   display: none;
   position: fixed;
@@ -124,27 +114,46 @@ button {
   border-top-right-radius: 20px;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
   z-index: 1000;
-  overflow-y: auto;
+  /* overflow-y: auto;  -> 제거 또는 hidden으로 변경하여 내용이 스크롤되도록 함 */
+  overflow-y: hidden;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  /* 애니메이션 적용을 위해 transform 초기값 제거 (JS에서 처리) */
-  /* transform: translateY(100%); <- 이 부분 제거 */
+  /* ✅ 추가: flex로 설정하여 handle과 content를 수직 배치 */
+  /* display: flex; */
+  flex-direction: column;
 }
 
-/* handle 표시 */
+/* ✅ 수정: handle 표시 - Sticky로 상단 고정 및 배경 설정 */
 #modalHandle {
   width: 60px;
   height: 10px;
-  background: #ccc;
-  border-radius: 10px;
-  margin: 10px auto 25px auto;
+  /* margin: 10px auto 25px auto; -> sticky 사용 시 마진 조정 */
+  margin: 10px auto 10px auto; 
+  
   cursor: grab;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   user-select: none;
   
-  position: relative;
-  z-index: 9999;
+  /* ✅ 수정: Sticky로 고정 */
+  position: sticky;
+  top: 0;
+  background: #fff; /* 스크롤 시 핸들 뒤의 내용이 보이지 않도록 배경을 흰색으로 설정 */
+  padding-top: 10px;
+  padding-bottom: 5px; /* 여백 확보 */
+  z-index: 1001; /* 다른 요소 위에 위치 */
   pointer-events: auto;
+  
+  background: #ccc; /* 기존 배경색 유지 */
+  border-radius: 10px; /* 기존 border-radius 유지 */
+}
+
+/* ✅ 추가: modalContent - 스크롤 영역 설정 */
+#modalContent {
+    flex-grow: 1; /* 남은 공간 모두 차지 */
+    overflow-y: auto; /* 이 영역만 스크롤되도록 설정 */
+    -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 */
+    padding-bottom: 30px; /* 하단 여백 추가 */
+    box-sizing: border-box;
 }
 
 /* 결과 카드 레이아웃 */
@@ -156,6 +165,7 @@ button {
 }
 
 .result-card {
+  /* ... (기존 스타일 유지) ... */
   background: #fafafa;
   border-radius: 16px;
   padding: 20px 25px;
@@ -166,23 +176,27 @@ button {
 }
 
 .result-card h3 {
+  /* ... (기존 스타일 유지) ... */
   margin-top: 0;
   color: #333;
   font-size: 28px;
 }
 
 .result-card ul {
+  /* ... (기존 스타일 유지) ... */
   list-style: none;
   padding-left: 0;
 }
 
 .result-card li {
+  /* ... (기존 스타일 유지) ... */
   font-size: 24px;
   margin: 8px 0;
   color: #555;
 }
 
 .result-card img {
+  /* ... (기존 스타일 유지) ... */
   display: block;
   width: 65%;
   margin: 0 auto 12px auto;
@@ -191,8 +205,8 @@ button {
 }
 
 .guide-card {
+  /* ... (기존 스타일 유지) ... */
   background: #e8f5e9;
-  /* border-left: 6px solid #4caf50; */
   padding: 18px 25px;
   border-radius: 12px;
   width: 90%;
@@ -201,12 +215,14 @@ button {
 }
 
 .guide-card h3 {
+  /* ... (기존 스타일 유지) ... */
   margin-top: 0;
   color: #2e7d32;
   font-size: 28px;
 }
 
 .guide-card p {
+  /* ... (기존 스타일 유지) ... */
   font-size: 24px;
   margin: 10px 0;
   color: #333;
@@ -214,6 +230,7 @@ button {
 
 .result-card-img img,
 .guide-card img {
+    /* ... (기존 스타일 유지) ... */
     display: block;
     width: 224px;
     height: 224px;
@@ -233,7 +250,6 @@ button {
   to { transform: translateY(100%); }
 }
 
-/* 수정: opacity 관련 속성은 JS에서 처리하거나 제거했습니다. */
 .slide-up {
   animation: slideUp 0.4s ease-out forwards;
 }
@@ -241,11 +257,83 @@ button {
   animation: slideDown 0.4s ease-in forwards;
 }
 
+
+/* -------------------------------------------- */
+/* -------------------------------------------- */
+/* HTML: <div class="loader"></div> */
+/* https://css-loaders.com/classic/ 참조함 */
+.loader-overlay {
+  display: none; /* ✅ 초기에는 숨김 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7); /* 반투명 흰색 배경 */
+  z-index: 2000; /* 모달(z-index: 1000)보다 위에 위치 */
+  
+  /* 로더를 정중앙에 배치하기 위한 Flexbox 설정 */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 기존 로더 스타일 (중앙 배치 관련 스타일 제거) */
+/* .loader {
+  width: 60px;
+  aspect-ratio: 1;
+  color: #000;
+  border: 10px solid;
+  box-sizing: border-box;
+  border-radius: 50%;
+  animation: l6 2s infinite linear;
+  position: relative;
+} */
+
+
+
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: fit-content;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 30px;
+  background:linear-gradient(90deg,#000 50%,#0000 0) right/200% 100%;
+  animation: l21 2s infinite linear;
+}
+.loader::before {
+  content :"Loading...";
+  color: #0000;
+  padding: 0 5px;
+  background: inherit;
+  background-image: linear-gradient(90deg,#fff 50%,#000 0);
+  -webkit-background-clip:text;
+          background-clip:text;
+}
+
+@keyframes l21{
+  100%{background-position: left}
+}
+
+
+
+
+
+
+
+/* -------------------------------------------- */
+/* -------------------------------------------- */
+
+
+
+
+
+
 /* 모바일 전용 */
 @media (max-width: 768px) {
-  #mobileModal { max-height: 85vh; }
-  /* .result-card, .guide-card { width: 94%;}  */
-/* 리스트 카드 여백 및 디자인 조정 */
+  /* ✅ 수정: 모바일 모달 최대 높이 설정 */
+  #mobileModal { max-height: 70vh; } 
+  /* ... (기존 모바일 스타일 유지) ... */
   .result-card,
   .guide-card {
     width: 95%;
@@ -277,7 +365,7 @@ button {
   }
 
   #drop-area p { font-size: 24px; }
-  #drop-area img { width: 300px; height: 300px; }
+  /* #drop-area img { width: 300px; height: 300px; } */
 
   #buttonWrapper {
     padding: 10px 0 16px 0;
@@ -357,11 +445,9 @@ button {
   }
 }
 
-
-
-
 /* 스크롤바 숨김 */
 #mobileModal::-webkit-scrollbar { display: none; }
+#modalContent::-webkit-scrollbar { display: none; } /* ✅ 추가: 내용 스크롤바 숨김 */
 
 /* 모달 열릴 때 배경 스크롤 방지 */
 body.modal-open { overflow: hidden; }
@@ -370,7 +456,10 @@ body.modal-open { overflow: hidden; }
 <body>
 
 <h1>쓰레기 이미지 업로드 / 촬영</h1>
-
+<!-- 진행바 -->
+<div class="loader-overlay" id="loaderOverlay">
+    <div class="loader"></div>
+</div>
 <form id="uploadForm" enctype="multipart/form-data">
   {% csrf_token %}
   <div id="drop-area">
@@ -385,6 +474,9 @@ body.modal-open { overflow: hidden; }
   </div>
 </form>
 
+
+
+
 <div id="modalOverlay"></div>
 <div id="mobileModal">
   <div id="modalHandle"></div>
@@ -392,6 +484,24 @@ body.modal-open { overflow: hidden; }
 </div>
 
 <script>
+
+
+// JavaScript 상단에 로더 오버레이 변수 추가
+const loaderOverlay = document.getElementById("loaderOverlay");
+
+// 로더 표시 함수
+function showLoader() {
+    loaderOverlay.style.display = "flex";
+}
+
+// 로더 숨김 함수
+function hideLoader() {
+    loaderOverlay.style.display = "none";
+}
+
+
+
+
 const dropArea = document.getElementById("drop-area");
 const fileInputAlbum = document.getElementById("fileElemAlbum");
 const fileInputCamera = document.getElementById("fileElemCamera");
@@ -406,11 +516,7 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 
 //####################################################//
-const img = document.querySelector(".result-card-img img");
-const right = document.querySelector(".result-right");
-//img.style.height = right.offsetHeight + "px";
-
-
+// 기존 높이 조정 로직 유지
 function adjustDropAreaHeight() {
   const btnHeight = document.getElementById('buttonWrapper').offsetHeight;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -436,47 +542,53 @@ if(!isMobile) cameraButton.textContent = "파일선택";
 cameraButton.addEventListener("click", () => { fileInputAlbum.click(); });
 fileInputCamera.addEventListener("change", () => { if(fileInputCamera.files[0]) showPreview(fileInputCamera.files[0]); });
 
-// 미리보기
+// ✅ 수정: 미리보기 로직 개선 (기존 이미지 삭제 후 추가)
 function showPreview(file){
   const reader = new FileReader();
   reader.onload = (e) => {
+    // 1. 기존 이미지 삭제 (갱신)
+    let existingImg = dropArea.querySelector("img");
+    if(existingImg) { 
+        dropArea.removeChild(existingImg); 
+    }
+    
+    // 2. 메시지 숨기기
     dropMessage.style.display = "none";
-    let img = dropArea.querySelector("img");
-    if(!img){ img = document.createElement("img"); dropArea.appendChild(img); }
-    img.src = e.target.result;
+
+    // 3. 새로운 이미지 요소 생성 및 속성 설정
+    const newImg = document.createElement("img");
+    newImg.src = e.target.result;
+
+    // 4. 이미지 추가
+    dropArea.appendChild(newImg);
   }
   reader.readAsDataURL(file);
 }
 
 // Modal 열기/닫기 (수정됨)
 function openModal() {
-  // 열기 전 slide-down 클래스 제거
   modal.classList.remove("slide-down");
   
-  modal.style.display = "block";
+  // ✅ 추가: 모달이 열릴 때 flex 속성 부여
+  modal.style.display = "flex";
   overlay.style.display = "block";
   document.body.classList.add("modal-open");
   
-  // slideUp 애니메이션 클래스 추가
   modal.classList.add("slide-up");
 }
 
 function closeModal() {
-  // 닫기 전 slide-up 클래스 제거
   modal.classList.remove("slide-up");
 
-  // slideDown 애니메이션 클래스 추가
   modal.classList.add("slide-down");
   
   modal.addEventListener("animationend", function handleAnimationEnd() {
-    // 애니메이션이 끝나면 실행될 내용
     if (modal.classList.contains("slide-down")) {
       modal.style.display = "none";
       overlay.style.display = "none";
       modal.classList.remove("slide-down");
       document.body.classList.remove("modal-open");
     }
-    // 이벤트 리스너 제거 (한 번만 실행되도록)
     modal.removeEventListener("animationend", handleAnimationEnd);
   });
 }
@@ -485,16 +597,35 @@ function closeModal() {
 const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
+  
+  // ✅ 추가: 파일 선택 여부 확인
+  const fileToUpload = fileInputAlbum.files[0];
+  if (!fileToUpload) {
+      alert("이미지를 선택하거나 드래그하여 넣어주세요.");
+      return;
+  }
+  // ✅ 1. 요청 직전 로더 표시
+  showLoader();
   const formData = new FormData(form);
-  // URL은 Django 템플릿 태그로 처리되므로 그대로 둡니다.
-  const response = await fetch("{% url 'api_predict' %}",{
-    method:"POST",
-    headers:{"X-CSRFToken":form.querySelector('[name=csrfmiddlewaretoken]').value},
-    body: formData
-  });
-  const data = await response.json();
-  renderResult(data);
-  openModal();
+  try {
+    // URL은 Django 템플릿 태그로 처리되므로 그대로 둡니다.
+    const response = await fetch("{% url 'api_predict' %}",{
+      method:"POST",
+      headers:{"X-CSRFToken":form.querySelector('[name=csrfmiddlewaretoken]').value},
+      body: formData
+    });
+    console.log("=========")
+    const data = await response.json();
+    renderResult(data);
+    openModal();
+  }catch(error) {
+    console.error("서버 요청 오류:", error);
+    alert("예측 요청 중 오류가 발생했습니다.");
+    
+  } finally {
+    // ✅ 2. 응답을 받거나 오류가 발생하면 로더 숨김
+    hideLoader(); 
+  }
 });
 
 // 결과 렌더링 (PC/모바일 자동 적용)
@@ -526,35 +657,44 @@ function renderResult(data){
 
 // Modal 닫기 이벤트 리스너 (중복 제거 및 정리)
 overlay.addEventListener("click", closeModal);
-// modalHandle 클릭/터치 이벤트는 드래그 로직에 통합되어야 자연스러우나,
-// 별도의 닫기 기능으로도 유지할 수 있습니다. 여기서는 드래그 로직 외부에 추가합니다.
 
-// 드래그 내리기 (기존 로직 유지 + closeModal 호출)
+// 드래그 내리기 (기존 로직 유지)
 let startY = 0, isDragging = false;
-modalHandle.addEventListener("mousedown", e => { isDragging=true; startY=e.clientY; e.preventDefault(); });
-document.addEventListener("mousemove", e => { // document에서 이벤트를 받아야 모달 밖으로 벗어나도 인식
+modalHandle.addEventListener("mousedown", e => { 
+  isDragging=true; 
+  startY=e.clientY; 
+  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
+  e.preventDefault(); 
+});
+document.addEventListener("mousemove", e => { 
   if(!isDragging) return; 
   const moveY=e.clientY-startY; 
   if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
 });
-document.addEventListener("mouseup", e => { // document에서 이벤트를 받아야 모달 밖으로 벗어나도 인식
+document.addEventListener("mouseup", e => { 
   if(!isDragging) return; 
   isDragging=false; 
   const moveY=e.clientY-startY; 
+  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
   if(moveY>100){ closeModal(); } 
   // 닫히지 않았으면 제자리로 복귀
   else { modal.style.transform="translateY(0)"; }
 });
-modalHandle.addEventListener("touchstart", e => { isDragging=true; startY=e.touches[0].clientY; });
-document.addEventListener("touchmove", e => { // document에서 이벤트를 받아야 모달 밖으로 벗어나도 인식
+modalHandle.addEventListener("touchstart", e => { 
+  isDragging=true; 
+  startY=e.touches[0].clientY; 
+  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
+});
+document.addEventListener("touchmove", e => { 
   if(!isDragging) return; 
   const moveY=e.touches[0].clientY-startY; 
   if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
 });
-document.addEventListener("touchend", e => { // document에서 이벤트를 받아야 모달 밖으로 벗어나도 인식
+document.addEventListener("touchend", e => { 
   if(!isDragging) return;
   isDragging=false; 
   const moveY=e.changedTouches[0].clientY-startY; 
+  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
   if(moveY>100){ closeModal(); } 
   // 닫히지 않았으면 제자리로 복귀
   else { modal.style.transform="translateY(0)"; }
@@ -562,7 +702,12 @@ document.addEventListener("touchend", e => { // document에서 이벤트를 받�
 
 // 드래그 닫기 외에, 탭/클릭으로도 닫을 수 있게 추가
 modalHandle.addEventListener("click", closeModal);
-modalHandle.addEventListener("touchend", closeModal);
+modalHandle.addEventListener("touchend", (e) => {
+    const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
+    if (Math.abs(moveY) < 5) { // 드래그 이동 거리가 작을 때만 탭으로 간주
+        closeModal();
+    }
+});
 
 </script>
 
