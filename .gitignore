@@ -35,5 +35,3 @@ data/
 # Static / Media (선택: 필요하면 관리 제외)
 # staticfiles/
 # media/
-
-*.keras
