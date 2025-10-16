@@ -9,9 +9,9 @@ body {
 /* 🟢 1. 독립적인 햄버거 버튼 컨테이너 (오른쪽 상단 고정) */
 #navbar {
     position: fixed;
-    top: 0;
-    right: 0; /* 오른쪽 정렬 */
-    z-index: 1010; /* 사이드바보다 위에 오도록 높은 z-index 설정 */
+    top: 70px;
+    right: 100px; 오른쪽 정렬
+    z-index: 1000; /* 사이드바보다 위에 오도록 높은 z-index 설정 */
     padding: 10px 20px;
 }
 
@@ -158,7 +158,7 @@ body {
     }
 }
 
-/* ★★★ 모바일 환경(앱 환경) 글자 및 사이드바 요소 크기 조정 (768px 이하) ★★★ */
+/*  모바일 환경(앱 환경) 글자 및 사이드바 요소 크기 조정 (768px 이하)  */
 @media screen and (max-width: 768px) {
     
     /* 1. 기본 텍스트 크기 증가 */
@@ -192,5 +192,17 @@ body {
     .description-text {
         font-size: 1.1em;
     }
+    /* 7. 햄버거 버튼 컨테이너 위치 및 크기 조정 */
+    #navbar {
+        top: 20px; /* 상단 고정 위치를 70px에서 20px로 줄여 공간 확보 */
+        transform: translateX(65px); /* 버튼이 사이드바(닫힌 너비 60px) 옆에 붙도록 조정 */
+        padding: 5px 10px; /* 패딩도 줄여줍니다. */
+    }
+
+    /* 8. 햄버거 버튼 자체 크기 조정 */
+    .togglebtn {
+        font-size: 20px; /* 아이콘 크기 약간 축소 */
+        padding: 6px 10px; /* 버튼 내부 패딩 축소 */
+    }
 }
-/* ★★★ 수정 끝 ★★★ */
+

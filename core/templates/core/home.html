@@ -1,72 +1,338 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block page_title %}홈 | 내 프로젝트{% endblock %}
+{% block page_title %}BLOOD COFFEE{% endblock %}
 
 {% block extra_head %}
     <style>
-        /* ================================================= */
-        /* test.html 고유 스타일 (헤더, 서치바) */
-        /* ================================================= */
-
-        /* 공통 헤더 스타일 */
-        .page-header {
-            padding: 10px 20px;
-            background-color: #f0f0f0;
-            border-bottom: 1px solid #ddd;
-        }
-        .page-header h1 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 20px;
-        }
-        .page-header nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-        }
-        .page-header nav ul li {
-            margin-right: 15px;
-        }
-        .page-header nav ul li a {
-            text-decoration: none;
+        /* 폰트 및 기본 설정 */
+        body {
+            font-family: 'Inter', sans-serif;
             color: #333;
-            font-weight: bold;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7; /* 배경색 */
+        }
+
+        /* 메인 컨테이너 설정 (사이드바 공간 제외) */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            min-height: 100vh;
+        }
+
+        /* 1. 상단 헤더 (검색/로그인 등) */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .top-menu a {
+            margin-left: 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .search-area {
+            display: flex;
+            align-items: center;
+        }
+        .search-area input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            width: 150px;
+            margin-right: 5px;
+        }
+
+        /* 메인 로고 영역 */
+        .main-logo-area {
+            text-align: center;
+            padding: 30px 0 10px;
+        }
+        .main-logo-area h1 {
+            font-size: 40px;
+            font-weight: 400;
+            letter-spacing: 5px;
+            margin: 0;
         }
         
-        /* Search Bar Styles */
-        .search-container {
-            display: flex; justify-content: center; width: 100%; padding: 20px 0;
+        /* 2. 메인 카테고리 네비게이션 */
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
         }
-        .search-wrapper {
-            width: 90%; max-width: 800px; height: 40px; border: 1px solid #aaa;
-            background-color: #fff; border-radius: 8px; display: flex; align-items: center;
-            padding: 0 15px; cursor: pointer; transition: box-shadow 0.2s;
+        .main-nav a {
+            padding: 15px 25px;
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
         }
-        .search-wrapper:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .search-icon { font-size: 18px; margin-right: 10px; }
-        .search-text { color: #888; font-size: 18px; user-select: none; }
+        .main-nav a:hover {
+            color: #000;
+            background-color: #f9f9f9;
+        }
+        
+        /* 3. 메인 콘텐츠 및 사이드 정보 레이아웃 */
+        .content-layout {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 50px;
+        }
+        .main-content {
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+        .cs-sidebar {
+            width: 250px; /* 오른쪽 CS 정보 영역 고정 폭 */
+            padding-left: 20px;
+            border-left: 1px solid #eee;
+        }
+
+        /* 4. 프로모션 영역 (디카페인 섹션) */
+        .promotion-section {
+            display: flex;
+            background-color: #f7ffef;
+            border: 1px solid #f0f0f0;
+            padding: 50px 0;
+            align-items: center;
+        }
+        .promo-text-area {
+            flex: 1;
+            padding: 0 40px;
+            text-align: left;
+        }
+        .promo-text-area h2 {
+            font-size: 40px;
+            font-weight: 700;
+            margin: 0 0 10px;
+        }
+        .promo-text-area p {
+            color: #555;
+            line-height: 1.6;
+        }
+        .view-button {
+            display: inline-block;
+            padding: 10px 30px;
+            background-color: #008080;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .promo-image-area {
+            width: 600px; 
+            height: 450px; 
+            margin-right: 40px;
+            position: relative;
+        }
+
+        /* 5. CS 사이드바 스타일 */
+        .cs-sidebar > div {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cs-sidebar h3 {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 0;
+            color: #555;
+        }
+        .cs-sidebar p, .cs-sidebar .cs-detail {
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+        .cs-sidebar strong {
+            display: block;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .btn-up-down {
+            text-align: center;
+            padding-top: 15px;
+        }
+        .btn-up-down button {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px 15px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        /* ------------------------------------------- */
+        /* ✨ 모바일 반응형 스타일 (768px 이하) */
+        /* ------------------------------------------- */
+        @media screen and (max-width: 768px) {
+            
+            /* 1. 메인 컨테이너 폭 최대화 및 패딩 조정 */
+            .main-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                /* ✨ 상단 패딩 추가: 햄버거 버튼(top: 70px) 아래에 컨텐츠가 시작되도록 충분한 여백 확보 */
+                padding: 90px 20px 0 20px; /* 기존 padding: 0 20px; 였음 */
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+                min-height: 100vh;
+            }
+
+            /* 2. 상단 헤더 (가로 정렬 유지, 글자 크기 조정) */
+            .top-header {
+                padding: 10px 0;
+            }
+            .top-menu a {
+                margin-left: 10px;
+                font-size: 11px; /* 글자 크기 축소 */
+            }
+
+            /* 3. 로고 영역 크기 조정 */
+            .main-logo-area h1 {
+                font-size: 28px;
+                letter-spacing: 3px;
+                padding: 20px 0 5px;
+            }
+
+            /* 4. 메인 네비게이션 (스크롤 또는 세로 정렬 선택 가능하나, 여기서는 수평 스크롤) */
+            .main-nav {
+                overflow-x: auto; /* 가로 스크롤 허용 */
+                justify-content: flex-start; /* 왼쪽 정렬 */
+                white-space: nowrap; /* 항목이 줄 바꿈되지 않도록 */
+                margin-bottom: 20px;
+            }
+            .main-nav a {
+                padding: 10px 15px;
+                font-size: 13px;
+                display: inline-block;
+            }
+            
+            /* 5. 콘텐츠 레이아웃: 메인과 사이드바를 세로로 쌓기 */
+            .content-layout {
+                flex-direction: column; /* 세로 정렬로 변경 */
+                padding-bottom: 20px;
+            }
+            
+            /* 6. 메인 콘텐츠 */
+            .main-content {
+                margin-right: 0; /* 우측 마진 제거 */
+            }
+
+            /* 7. 프로모션 섹션: 이미지와 텍스트를 세로로 쌓기 */
+            .promotion-section {
+                flex-direction: column; /* 세로 정렬로 변경 */
+                padding: 30px 0;
+                border: none; /* 모바일에서 테두리 제거 */
+            }
+            .promo-text-area {
+                padding: 0 10px 20px 10px; /* 패딩 조정 */
+                text-align: center; /* 텍스트 중앙 정렬 */
+            }
+            .promo-text-area h2 {
+                font-size: 28px;
+            }
+            
+            /* 8. 이미지 영역 크기 조정 및 위치 변경 */
+            .promo-image-area {
+                width: 95%; /* 화면 너비에 맞춤 */
+                height: 300px; /* 높이 조정 */
+                margin: 0 auto; /* 중앙 정렬 */
+            }
+
+            /* 9. CS 사이드바: 메인 콘텐츠 아래로 이동 후 너비 최대화 */
+            .cs-sidebar {
+                width: 100%; /* 너비 최대화 */
+                padding-left: 0; 
+                border-left: none; /* 좌측 테두리 제거 */
+                margin-top: 30px; /* 위쪽 간격 추가 */
+            }
+            .cs-sidebar > div {
+                border: 1px solid #eee;
+                margin-bottom: 10px;
+                padding: 15px 10px;
+                background-color: #fff;
+            }
+            .cs-sidebar h3 {
+                font-size: 16px;
+                color: #333;
+            }
+            .cs-sidebar strong {
+                font-size: 20px;
+            }
+            .cs-sidebar p, .cs-sidebar .cs-detail {
+                font-size: 13px;
+            }
+        }
+
     </style>
 {% endblock extra_head %}
 
 {% block content %}
-    
-    <div class="page-header">
-        <h1>공통 헤더</h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'core:home' %}">홈</a></li>
-                <li><a href="{% url 'core:about' %}">소개</a></li>
-                <li><a href="{% url 'core:contact' %}">연락처</a></li>
-            </ul>
-        </nav>
-    </div>
+<div class="main-container">
 
-    <div class="search-container">
-        <div class="search-wrapper" onclick="goToSearchPage()">
-            <span class="search-icon">🔍</span>
-            <span class="search-text">search</span>
+    <div class="top-header">
+        <div class="search-area">
+            <!-- <a href="#" style="margin-right: 15px; color: #666; text-decoration: none; font-size: 13px;">즐겨찾기</a>
+            <a href="#" style="margin-right: 15px; color: #666; text-decoration: none; font-size: 13px;">배송조회</a> -->
+
+        </div>
+        <div class="top-menu">
+            <a href="#">홈 화면</a>
+            <a href="#">내 프로젝트 </a>
+
         </div>
     </div>
-    
-    {% endblock content %}
+
+    <div class="main-logo-area">
+        <h1>Team name</h1>
+    </div>
+
+    <div class="main-nav">
+        <a href="#">name1</a>
+        <a href="#">name2</a>
+        <a href="#">name3</a>
+        <a href="#">name4</a>
+        <a href="#">name</a>
+    </div>
+
+    <div class="content-layout">
+        <div class="main-content">
+            
+            <div class="promotion-section">
+                <div class="promo-text-area">
+                    <h2>Recycling and Coffee</h2>
+
+                </div>
+            <div class="promo-image-area">
+                <img src="{% static 'images/main.png' %}" 
+                    alt="Decaffeinated Coffee Promotion" 
+                    style="
+                        /* ✨ 이미지 크기 설정 강화 */
+                        position: absolute; /* 부모 영역 기준 위치 설정 */
+                        top: 0;
+                        left: 0;
+                        width: 100%; 
+                        height: 100%; 
+                        object-fit: contain; /* ✨ 이미지가 잘리지 않고 전체 보이도록 강제 */
+                        display: block;
+                    ">
+            </div>
+            </div>
+            </div>
+            </div>
+        
+        <div class="cs-sidebar">  
+            <div class="delivery-info">
+                <h3></h3>
+            </div>
+            
+        </div>
+        </div>
+    </div>
+{% endblock content %}
