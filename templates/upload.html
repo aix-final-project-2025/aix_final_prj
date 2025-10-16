@@ -54,7 +54,7 @@ input[type="file"] { display: none; }
   display: flex;
   justify-content: center;
   gap: 60px;
-  padding: 35px 0 35px 0;
+  padding: 25px 0 25px 0;
   background: #f5f7fa;
   position: fixed;
   bottom: 0px;
@@ -316,18 +316,8 @@ button {
 }
 
 
-
-
-
-
-
 /* -------------------------------------------- */
 /* -------------------------------------------- */
-
-
-
-
-
 
 /* 모바일 전용 */
 @media (max-width: 768px) {
@@ -365,17 +355,17 @@ button {
   }
 
   #drop-area p { font-size: 24px; }
-  /* #drop-area img { width: 300px; height: 300px; } */
+  #drop-area img { width: 300px; height: 300px; }
 
   #buttonWrapper {
-    padding: 10px 0 16px 0;
+    padding: 15px 0 20px 0;
     bottom: 5px;
-    gap: 8px;
+    gap: 15px;
   }
 
   button {
     font-size: 24px;
-    padding: 5px 6px;
+    padding: 18px 18px;
   }
 } 
 
@@ -469,7 +459,7 @@ body.modal-open { overflow: hidden; }
   </div>
 
   <div id="buttonWrapper">
-    <button id="cameraButton" type="button">📷 카메라로 촬영하기</button>
+    <button id="cameraButton" type="button">📷 카메라촬영</button>
     <button id="submitButton" type="submit">업로드 및 예측</button>
   </div>
 </form>

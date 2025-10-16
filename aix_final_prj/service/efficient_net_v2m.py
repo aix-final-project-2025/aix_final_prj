@@ -1,16 +1,20 @@
 import os
 import json
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 import tensorflow as tf
 from django.conf import settings
-from aix_final_prj.service.keras_utils import WarmUpCosine
+from aix_final_prj.service.keras_utils import WarmUpCosine,pil_to_base64,fix_image_orientation
+import base64
+from io import BytesIO
+from django.http import JsonResponse
 
 # ====== 설정 ======
 MODEL_PATH = getattr(settings, "TRASH_MODEL_PATH", "trash_classifier_efficientnetv2_best_final.keras")
 CLASS_NAMES_PATH = getattr(settings, "TRASH_CLASS_NAMES_PATH", "class_names.json")
 IMAGE_SIZE = (224, 224)
-THRESHOLD_DEFAULT = 0.9
+# THRESHOLD_DEFAULT = 0.9
+THRESHOLD_DEFAULT = 0.7
 
 # ====== 분리수거 가이드 (모든 클래스 매핑) ======
 TRASH_GUIDE_MAP = {
@@ -99,7 +103,12 @@ def set_class_names(class_names):
 def preprocess_image(image: Image.Image, target_size=IMAGE_SIZE):
     if image.mode != "RGB":
         image = image.convert("RGB")
-    image = image.resize(target_size, Image.BILINEAR)
+    # image = image.resize(target_size, Image.BILINEAR)
+    # arr = np.array(image).astype(np.float32)
+    # arr = np.expand_dims(arr, axis=0)
+    # arr = tf.keras.applications.efficientnet_v2.preprocess_input(arr)
+
+    image = ImageOps.pad(image, target_size, method=Image.BILINEAR, color=(0,0,0))
     arr = np.array(image).astype(np.float32)
     arr = np.expand_dims(arr, axis=0)
     arr = tf.keras.applications.efficientnet_v2.preprocess_input(arr)
@@ -153,6 +162,8 @@ def classify_image(model, image_path, classes, threshold=0.5):
     else:
         return classes[class_id], float(confidence)
 
+
+
 # ver 1
 def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     """
@@ -163,30 +174,42 @@ def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     if _MODEL is None or _CLASS_NAMES is None:
         raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
 
+    image = fix_image_orientation(image)
     
     x = preprocess_image(image)
     print(x)
-    preds = _MODEL.predict(x, verbose=1)[0]
+    # preds = _MODEL.predict(x, verbose=1)[0]
+    preds = _MODEL.predict(x, verbose=0)[0]
 
     max_idx = int(np.argmax(preds))
     print(max_idx)
-    print(f"====={_CLASS_NAMES[max_idx]}=")    
+    print(f"=<{_CLASS_NAMES[max_idx]}>=")    
   
     max_prob = float(preds[max_idx])
     predicted_class = _CLASS_NAMES[max_idx]
     
-    print(" 111111111111 ---")
     if max_prob >= threshold:
         result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
         confidence_level = "높음"
     else:
         result_message = f"🟡 [불확실]: {predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
         confidence_level = "낮음"
-    print(" 22222222222222 ")
     top3_idx = np.argsort(preds)[::-1][:3]
     top_3 = [( _CLASS_NAMES[int(i)], float(preds[int(i)]) ) for i in top3_idx]
 
     guide = get_recycling_guidance(predicted_class)
+
+    # ---------------------------
+    # 4. 결과 이미지 생성 (레이블 표시)
+    # ---------------------------
+    result_img = image.copy()
+    draw = ImageDraw.Draw(result_img)
+    try:
+        font = ImageFont.truetype("arial.ttf", 24)
+    except:
+        font = ImageFont.load_default()
+    text = f"{predicted_class} ({max_prob*100:.1f}%)"
+    draw.text((10,10), text, fill="red", font=font)
 
     return {
         "predicted_class": predicted_class,
@@ -194,66 +217,67 @@ def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
         "result_message": result_message,
         "confidence_level": confidence_level,
         "top_3": top_3,
-        "recycling_guide": guide
+        "recycling_guide": guide,
+        "result_image": result_img  # 원본 비율 유지, 레이블 추가 이미지
     }
 
 
-def predict_from_pil_v2(image: Image.Image, threshold=THRESHOLD_DEFAULT):
-    """
-    PIL 이미지 → 예측 수행 → 결과 반환
-    """
-    global _MODEL, _CLASS_NAMES
-    if _MODEL is None or _CLASS_NAMES is None:
-        raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
+# def predict_from_pil_v2(image: Image.Image, threshold=THRESHOLD_DEFAULT):
+#     """
+#     PIL 이미지 → 예측 수행 → 결과 반환
+#     """
+#     global _MODEL, _CLASS_NAMES
+#     if _MODEL is None or _CLASS_NAMES is None:
+#         raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
 
-    # x = preprocess_image(image)
-    # print(x)
-    # preds = _MODEL.predict(x, verbose=1)[0]
+#     # x = preprocess_image(image)
+#     # print(x)
+#     # preds = _MODEL.predict(x, verbose=1)[0]
 
-    # ✅ 이미 PIL.Image 객체이므로 open() 불필요
-    img = image.convert('RGB').resize((224, 224))
+#     # ✅ 이미 PIL.Image 객체이므로 open() 불필요
+#     img = image.convert('RGB').resize((224, 224))
 
-    # ✅ 올바른 전처리
-    x = tf.keras.preprocessing.image.img_to_array(img) / 255.0
-    x = np.expand_dims(x, axis=0)
+#     # ✅ 올바른 전처리
+#     x = tf.keras.preprocessing.image.img_to_array(img) / 255.0
+#     x = np.expand_dims(x, axis=0)
 
-    preds = _MODEL.predict(x)
-    class_idx = np.argmax(preds, axis=1)[0]
-
-
-    max_idx = int(np.argmax(preds))
-    print(max_idx)
-    print(f"====={_CLASS_NAMES[max_idx]}=")    
-
-    max_prob = float(preds[max_idx])
-    predicted_class = _CLASS_NAMES[max_idx]
+#     preds = _MODEL.predict(x)
+#     class_idx = np.argmax(preds, axis=1)[0]
 
 
+#     max_idx = int(np.argmax(preds))
+#     print(max_idx)
+#     print(f"====={_CLASS_NAMES[max_idx]}=")    
 
-    if class_idx in TRASH_GUIDE_MAP:
-        label = "♻️ 재활용 가능 쓰레기"
-    else:
-        label = "🚮 일반 쓰레기"
-    confidence = float(np.max(preds))
+#     max_prob = float(preds[max_idx])
+#     predicted_class = _CLASS_NAMES[max_idx]
 
-    if max_prob >= threshold:
-        result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
-        confidence_level = "높음"
-    else:
-        result_message = f"🟡 [불확실]: {predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
-        confidence_level = "낮음"
+
+
+#     if class_idx in TRASH_GUIDE_MAP:
+#         label = "♻️ 재활용 가능 쓰레기"
+#     else:
+#         label = "🚮 일반 쓰레기"
+#     confidence = float(np.max(preds))
+
+#     if max_prob >= threshold:
+#         result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
+#         confidence_level = "높음"
+#     else:
+#         result_message = f"🟡 [불확실]: {predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
+#         confidence_level = "낮음"
   
 
-    top3_idx = np.argsort(preds)[::-1][:3]
-    top_3 = [( _CLASS_NAMES[int(i)], float(preds[int(i)]) ) for i in top3_idx]
+#     top3_idx = np.argsort(preds)[::-1][:3]
+#     top_3 = [( _CLASS_NAMES[int(i)], float(preds[int(i)]) ) for i in top3_idx]
 
-    guide = get_recycling_guidance(predicted_class)
+#     guide = get_recycling_guidance(predicted_class)
 
-    return {
-        "predicted_class": predicted_class,
-        "confidence": max_prob,
-        "result_message": result_message,
-        "confidence_level": confidence_level,
-        "top_3": top_3,
-        "recycling_guide": guide
-    }
+#     return {
+#         "predicted_class": predicted_class,
+#         "confidence": max_prob,
+#         "result_message": result_message,
+#         "confidence_level": confidence_level,
+#         "top_3": top_3,
+#         "recycling_guide": guide
+#     }

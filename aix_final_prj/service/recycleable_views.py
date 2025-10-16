@@ -6,12 +6,12 @@ from django.shortcuts import render
 from django.conf import settings
 from django.views import View
 from django.http import JsonResponse
-from PIL import Image
 import io
-
+from PIL import Image
 import base64
 from io import BytesIO
 
+from aix_final_prj.service.keras_utils import pil_to_base64,fix_image_orientation
 from .efficient_net_v2m import predict_from_pil
 
 # 간단 업로드 폼
@@ -34,35 +34,34 @@ class UploadView(FormView):
         return self.render_to_response(context)
     
 
+
+# ver 1 #############################
 class PredictApiView(View):
     def post(self, request, *args, **kwargs):
-        print('call FILEs OK ======== ')
         if 'image' not in request.FILES:
             return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
 
         file = request.FILES['image']
-        print('FILEs OK ======== ')
         # 파일을 PIL 이미지로 로드 및 base64 변환
         try:
             image = Image.open(file).convert("RGB")
-
+            image = fix_image_orientation(image)
             buffered = BytesIO()
             image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode()
             image_data_uri = f"data:image/png;base64,{img_str}"
-            print('FILEs 1 OK ======== ')
         except Exception as e:
             return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
 
         # predict 호출
         try:
-            print('FILEs 2 OK ======== ')
             res = predict_from_pil(image)
-            print('FILEs 3 OK ======== ')
+            res["result_image"] = pil_to_base64(res["result_image"])
+            res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
         except Exception as e:
             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
 
-        # JSON에 base64 이미지 포함
-        res["image_data_uri"] = image_data_uri
+        # # JSON에 base64 이미지 포함
+        # res["image_data_uri"] = image_data_uri
 
         return JsonResponse(res)
