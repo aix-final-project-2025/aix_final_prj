@@ -1,0 +1,12 @@
+# ===========================
+# 🧠 AIX Final Project
+# Hugging Face Space Configuration
+# ===========================
+
+title: AIX Final Project
+emoji: 🧠
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
