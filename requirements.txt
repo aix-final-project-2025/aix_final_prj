@@ -1,0 +1,7 @@
+Django==5.2.7
+numpy==2.3.4
+pandas==2.3.3
+Pillow==12.0.0
+pydub==0.25.1
+tensorflow==2.20.0
+django-cors-headers==4.9.0

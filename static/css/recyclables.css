@@ -1,0 +1,214 @@
+/* ------------------------------------------- */
+/* 1. 앨범 그리드 레이아웃 스타일 */
+/* ------------------------------------------- */
+.recycling-album-container {
+    max-width: 1240px;
+    margin: 0 auto;    
+    padding: 20px;
+}
+
+
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px; /* 카드 사이의 간격 */
+    max-width: 100%;
+    margin: 0 auto;   /* 왼쪽 마진 자동 */
+}
+
+
+
+/* 카드가 1개일 때: 2열에 배치 (가운데 정렬) */
+.album-grid .album-card:nth-child(1):nth-last-child(1) {
+    grid-column: 2 / 3;
+}
+
+/* 카드가 2개일 때: 1열을 비우고 2열과 3열에 배치 (중앙에 가까운 정렬) */
+.album-grid .album-card:nth-child(1):nth-last-child(2) {
+    /* 첫 번째 카드를 2열에 배치 */
+    grid-column: 2 / 3;
+}
+/* 두 번째 카드는 기본적으로 3열에 배치되므로, 추가 설정은 불필요합니다. */
+
+/* ------------------------------------------- */
+/* 2. 개별 앨범 카드 스타일 (position: relative 중요) */
+/* ------------------------------------------- */
+.album-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff; /* 카드 배경 흰색 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    position: relative; /* 자식 드롭다운 메뉴의 기준점 */
+}
+
+.album-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-image-wrapper {
+    width: 100%;
+}
+
+.card-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.card-caption {
+    padding: 10px;
+    text-align: center;
+}
+
+.description-text {
+    margin: 0;
+    font-size: 0.9em;
+    color: #555;
+}
+
+
+/* ------------------------------------------- */
+/* 3. 제목 및 업로드 버튼 영역 스타일 */
+/* ------------------------------------------- */
+.content-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-bottom: 30px; 
+    padding: 20px 0 10px 0;
+}
+
+/* ------------------------------------------- */
+/* 4. 제목 (h2.page-title) 스타일링 (고급스럽고 깔끔하게) */
+/* ------------------------------------------- */
+.page-title {
+    color: #1e3a8a; /* 짙은 네이비 */
+    font-size: 2em; 
+    font-weight: 800;
+    margin-top: 0;
+    margin-bottom: 20px; 
+    
+    border-bottom: 3px solid #3b82f6; 
+    padding-bottom: 8px;
+    letter-spacing: 1.5px;
+}
+
+/* ------------------------------------------- */
+/* 5. 업로드 버튼 스타일 (파란색 블록) */
+/* ------------------------------------------- */
+.upload-btn {
+    background-color: #3b82f6; /* 파란색 블록 */
+    color: white; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); 
+    border: none;
+    
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none; 
+    display: inline-block;
+    
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #1d4ed8; 
+    transform: translateY(-2px); 
+}
+
+
+/* ------------------------------------------- */
+/* 6. 드롭다운 메뉴 스타일 (이미지 오버레이) */
+/* ------------------------------------------- */
+
+.card-dropdown-menu {
+    position: absolute;
+    top: 5px; 
+    right: 5px; 
+    z-index: 10; 
+    
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.8;
+}
+
+.dropdown-toggle .material-symbols-outlined {
+    font-size: 24px;
+    color: #333;
+}
+
+/* 드롭다운 내용물 (삭제 메뉴) */
+.menu-content {
+    position: absolute;
+    top: 100%; 
+    right: 0;
+    min-width: 120px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    text-align: left;
+}
+
+.menu-content.hidden {
+    display: none;
+}
+
+.delete-action {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: #ef4444; 
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.delete-action:hover {
+    background-color: #fde8e8;
+}
+
+.delete-icon {
+    font-size: 18px;
+    margin-right: 8px;
+    color: #ef4444; /* 아이콘 색상 유지 */
+}
+
+/* ------------------------------------------- */
+/* 7. 반응형 설정 (모바일 최적화) */
+/* ------------------------------------------- */
+
+/* 768px 이하: 한 행에 2개 */
+@media screen and (max-width: 768px) {
+    .album-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+
+/* 600px 이하: 모바일 1열 레이아웃 및 중앙 정렬 해제 */
+@media screen and (max-width: 600px) {
+    /* 기존 모바일 설정 유지 */
+    .album-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* 단일/2개 중앙 정렬 설정 해제 */
+    .album-grid .album-card:nth-child(1):nth-last-child(1) { grid-column: auto; }
+    .album-grid .album-card:nth-child(1):nth-last-child(2) { grid-column: auto; }
+}
+

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block page_title %}홈 | 내 프로젝트{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* ================================================= */
+        /* test.html 고유 스타일 (헤더, 서치바) */
+        /* ================================================= */
+
+        /* 공통 헤더 스타일 */
+        .page-header {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+        .page-header h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .page-header nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        .page-header nav ul li {
+            margin-right: 15px;
+        }
+        .page-header nav ul li a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        /* Search Bar Styles */
+        .search-container {
+            display: flex; justify-content: center; width: 100%; padding: 20px 0;
+        }
+        .search-wrapper {
+            width: 90%; max-width: 800px; height: 40px; border: 1px solid #aaa;
+            background-color: #fff; border-radius: 8px; display: flex; align-items: center;
+            padding: 0 15px; cursor: pointer; transition: box-shadow 0.2s;
+        }
+        .search-wrapper:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .search-icon { font-size: 18px; margin-right: 10px; }
+        .search-text { color: #888; font-size: 18px; user-select: none; }
+    </style>
+{% endblock extra_head %}
+
+{% block content %}
+    
+    <div class="page-header">
+        <h1>공통 헤더</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'core:home' %}">홈</a></li>
+                <li><a href="{% url 'core:about' %}">소개</a></li>
+                <li><a href="{% url 'core:contact' %}">연락처</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="search-container">
+        <div class="search-wrapper" onclick="goToSearchPage()">
+            <span class="search-icon">🔍</span>
+            <span class="search-text">search</span>
+        </div>
+    </div>
+    
+    {% endblock content %}

@@ -1,0 +1,85 @@
+# ===============================
+# 🚀 AIX Final Project — Production .gitignore
+# ===============================
+
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 🧠 Virtual Environments
+venv/
+.v_env/
+.v_env*/
+env/
+ENV/
+venvs/
+
+# ⚙️ Django & Database
+*.log
+*.pot
+*.sqlite3
+db.sqlite3
+*.mo
+*.db
+
+# 🔒 Environment & Config
+.env
+*.env
+*.json
+
+# 🧠 Model / Checkpoints
+# keras/  👈❌ (주석 처리 — 모델 폴더 Hugging Face 업로드용으로 포함)
+*.h5
+*.keras
+*.ckpt
+*.onnx
+*.pth
+*.pt
+*.pkl
+*.sav
+
+# 🧱 Docker / Build / Archive
+# Dockerfile  👈❌ (주석 처리 또는 삭제 — Hugging Face 빌드에 필요)
+.dockerignore
+docker-compose.yml
+*.tar
+*.zip
+*.gz
+*.tgz
+build_logs/
+logs/
+tmp_build/
+
+# 🧩 Node / Frontend (for sehee branch or react-linked)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# 🖼️ Media & Uploads
+media/
+uploads/
+staticfiles/
+collectstatic/
+
+# 🧪 Temp / Tests / Experiments
+test.txt
+main-test.txt
+tmp/
+*.bak
+*.tmp
+*.test
+__MACOSX/
+
+# 🧰 IDE / Editor
+.idea/
+.vscode/
+
+# 🪄 OS / System
+.DS_Store
+Thumbs.db
+desktop.ini
+.cache/

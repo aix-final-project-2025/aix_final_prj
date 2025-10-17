@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block content %}
+<article aria-labelledby="article-title">
+    <h2 id="article-title">{{ article.title }}</h2>
+    <p>{{ article.content }}</p>
+    <p><small>작성일: {{ article.created_at|date:"Y년 m월 d일 H:i" }}</small></p>
+</article>
+
+<a href="{% url 'article_list' %}" aria-label="기사 목록으로 돌아가기">목록으로 돌아가기</a>
+{% endblock %}

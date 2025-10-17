@@ -1,0 +1,52 @@
+# ===============================
+# 🚀 AIX Final Project — .gitattributes
+# ===============================
+# 🔤 기본 텍스트 인코딩
+* text=auto eol=lf
+# 🐍 Python 코드: diff 표시 최적화
+*.py diff=python
+*.ipynb linguist-language=Jupyter Notebook
+# 🧱 Django & HTML 템플릿
+*.html text diff=html
+*.css text diff=css
+*.js text diff=javascript
+# 🧠 AI 모델 / 바이너리 파일
+*.h5 binary
+*.keras binary
+*.pkl binary
+*.onnx binary
+*.pt binary
+*.pth binary
+*.ckpt binary
+*.tflite binary
+# 🖼️ 이미지 / 영상 / 압축파일
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.webp binary
+*.svg binary
+*.mp4 binary
+*.mov binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+# 🪣 대용량 파일 (LFS 추적)
+*.keras filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
+# 📝 문서 파일
+*.md text diff=markdown
+*.txt text
+*.json text
+*.yml text
+*.yaml text
+# 🧰 시스템/설정
+*.env text eol=lf
+*.ini text
+*.conf text
+# 🪄 GitHub 언어 통계 보정 (코드 비율 정확하게)
+*.ipynb linguist-documentation=false
+*.html linguist-documentation=false

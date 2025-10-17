@@ -1,0 +1,487 @@
+
+{% extends 'base.html' %}
+
+{% block page_title %}재활용 분류기 - 이미지 업로드{% endblock %}
+
+{% block extra_head %}
+    <style>     
+        /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #drop-area {
+            border: 3px dashed #4caf50;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #fff;
+            transition: background 0.3s, border-color 0.3s;
+            cursor: pointer;
+        }
+        #drop-area.dragover {
+            background: #e8f5e9;
+            border-color: #2e7d32;
+        }
+        #drop-area p {
+            font-size: 16px;
+            margin: 0;
+        }
+        #fileElem {
+            display: none;
+        }
+        #cameraButton {
+            display: block;
+            margin: 15px auto;
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        #cameraButton:hover {
+            background: #1565c0;
+        }
+        #fileButton {
+            display: block; /* 이 속성이 버튼을 한 줄에 하나씩 배치하고 블럭 크기를 만듭니다 */
+            margin: 15px auto;
+            padding: 10px 20px;
+            background: #1976d2; /* 또는 다른 색상으로 변경 가능 */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        #fileButton:hover {
+            background: #1565c0;
+        }
+        button[type="submit"] {
+            display: inline-block;
+            margin: 20px 0 0 0;
+            padding: 10px 20px;
+            background: #4caf50;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background: #43a047;
+        }
+        #drop-area img {
+            max-width: 320px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-top: 10px;
+        }
+        #result {
+            margin-top: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 반응형 (base.html의 main 영역 스타일과 통합될 수 있으니 주의) */
+        @media (max-width: 600px) {
+            /* body { margin: 20px; } */ /* base.html의 .main 스타일을 따름 */
+            #drop-area img {
+                max-width: 100%;
+            }
+        }
+    </style>
+{% endblock extra_head %}
+
+{% block content %}
+    <h1>쓰레기 이미지 업로드 / 촬영</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="drop-area">
+            <p id="drop-message">여기에 이미지를 드래그하거나 클릭하여 선택하세요</p>
+            <input type="file" id="fileElem" name="image" accept="image/*" capture="environment" required>
+        </div>
+
+        <button id="cameraButton" type="button">📷 카메라 호출</button>
+        <button id="fileButton" type="button">📁 파일 선택</button>
+        <button type="submit">업로드 및 예측</button>
+    </form>
+
+    <div id="result"></div>
+    
+    <button id="openAppSettings" type="button" style="background:#2196f3; color:white; border:none; padding:10px 20px; border-radius:8px; margin-top:10px;">
+        ⚙️ 앱 서버 설정
+    </button>
+    
+{% endblock content %}
+
+{% block extra_script %}
+    <script>
+        const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("fileElem");
+        const dropMessage = document.getElementById("drop-message");
+        const cameraButton = document.getElementById("cameraButton");
+        const fileButton = document.getElementById("fileButton"); // 세희 추가
+        const openAppSettingsButton = document.getElementById("openAppSettings"); // 세희 추가
+
+        // 📱 모바일/PC 구분
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // 드롭 영역 클릭 시 파일 선택
+        dropArea.addEventListener("click", () => fileInput.click());
+
+        // 드래그 오버
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("dragover");
+        });
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("dragover");
+        });
+
+        // 파일 드롭
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("dragover");
+            const file = e.dataTransfer.files[0];
+            fileInput.files = e.dataTransfer.files;
+            showPreview(file);
+        });
+
+        // 파일 선택 시 미리보기
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+            if (file) showPreview(file);
+        });
+
+// 🆕 환경에 따라 버튼 표시/숨김 및 기능 연결 로직 (수정된 올바른 구조)
+if (isMobile) {
+    // 모바일 환경
+    if (fileButton) fileButton.style.display = 'none'; // 파일 선택 숨김
+    
+    // 모바일: 카메라 촬영 유도 기능 연결
+    if (cameraButton) {
+        cameraButton.addEventListener("click", () => {
+            fileInput.setAttribute("capture", "environment");
+            fileInput.click();
+        });
+    }
+} else {
+    // 웹(PC) 환경
+    if (cameraButton) cameraButton.style.display = 'none'; // 카메라 호출 숨김
+    
+    // PC에서 '파일 선택' 버튼 클릭 시 숨겨진 파일 입력창 실행
+    if (fileButton) {
+        fileButton.addEventListener("click", () => {
+            fileInput.removeAttribute("capture");
+            fileInput.click();
+        });
+    }
+}
+
+    // 드롭 영역 클릭 시 파일 선택 (모바일/PC 공통)
+  dropArea.addEventListener("click", () => fileInput.click());
+
+        // 미리보기
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                dropMessage.style.display = "none";
+                dropArea.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                dropArea.appendChild(fileInput);
+                fileInput.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 업로드
+        const form = document.getElementById("uploadForm");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            const response = await fetch("{% url 'core:api_predict' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": form.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            const resultDiv = document.getElementById("result");
+            if (data.error) {
+                resultDiv.innerHTML = `<p style="color:red">${data.error}</p>`;
+            } else {
+                let html = `<p><b>${data.result_message}</b></p>`;
+                html += `<p>신뢰도: ${(data.confidence*100).toFixed(2)}%</p>`;
+                html += "<h3>Top 3</h3><ul>";
+                data.top_3.forEach(item => {
+                    html += `<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`;
+                });
+                html += "</ul>";
+                if (data.recycling_guide) {
+                    html += `<h3>분리수거 가이드</h3>`;
+                    html += `<p>카테고리: ${data.recycling_guide.category}</p>`;
+                    html += `<p>방법: ${data.recycling_guide.action}</p>`;
+                }
+                if (data.image_data_uri) {
+                    html += `<img src="${data.image_data_uri}" style="max-width:320px; margin-top:15px;">`;
+                }
+                resultDiv.innerHTML = html;
+            }
+        });
+        
+        // ⚙️ 앱 서버 설정 버튼 스크립트 통합
+        if (openAppSettingsButton) {
+            openAppSettingsButton.addEventListener("click", () => {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+                if (isAndroid) {
+                    window.location.href = "myapp://settings";  // Android 앱 URI
+                } else if (isIOS) {
+                    window.location.href = "myapp://settings";  // iOS 앱 URI
+                } else {
+                    alert("앱이 설치된 모바일 기기에서만 설정을 열 수 있습니다.");
+                }
+            });
+        }
+    </script>
+{% endblock extra_script %}
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>쓰레기 분류기</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    #drop-area {
+      border: 3px dashed #4caf50;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      background: #fff;
+      transition: background 0.3s, border-color 0.3s;
+      cursor: pointer;
+    }
+    #drop-area.dragover {
+      background: #e8f5e9;
+      border-color: #2e7d32;
+    }
+    #drop-area p {
+      font-size: 16px;
+      margin: 0;
+    }
+    #fileElem {
+      display: none;
+    }
+    #cameraButton {
+      display: block;
+      margin: 15px auto;
+      padding: 10px 20px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    #cameraButton:hover {
+      background: #1565c0;
+    }
+    button[type="submit"] {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #4caf50;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button[type="submit"]:hover {
+      background: #43a047;
+    }
+    #drop-area img {
+      max-width: 320px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-top: 10px;
+    }
+    #result {
+      margin-top: 30px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* 반응형 */
+    @media (max-width: 600px) {
+      body {
+        margin: 20px;
+      }
+      #drop-area img {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>쓰레기 이미지 업로드 / 촬영</h1>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div id="drop-area">
+      <p id="drop-message">여기에 이미지를 드래그하거나 클릭하여 선택하세요</p>
+      <input type="file" id="fileElem" name="image" accept="image/*" capture="environment" required>
+    </div>
+
+    <button id="cameraButton" type="button">📷 카메라로 촬영하기</button>
+    <button type="submit">업로드 및 예측</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const dropArea = document.getElementById("drop-area");
+    const fileInput = document.getElementById("fileElem");
+    const dropMessage = document.getElementById("drop-message");
+    const cameraButton = document.getElementById("cameraButton");
+
+    // 📱 모바일/PC 구분
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // 드롭 영역 클릭 시 파일 선택
+    dropArea.addEventListener("click", () => fileInput.click());
+
+    // 드래그 오버
+    dropArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropArea.classList.add("dragover");
+    });
+    dropArea.addEventListener("dragleave", () => {
+      dropArea.classList.remove("dragover");
+    });
+
+    // 파일 드롭
+    dropArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropArea.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      fileInput.files = e.dataTransfer.files;
+      showPreview(file);
+    });
+
+    // 파일 선택 시 미리보기
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (file) showPreview(file);
+    });
+
+    // ✅ 카메라 버튼 (iOS / Android 전용)
+    cameraButton.addEventListener("click", () => {
+      if (isMobile) {
+        // 모바일: 카메라 촬영 유도
+        fileInput.setAttribute("capture", "environment");
+        fileInput.click();
+      } else {
+        // 데스크톱: 파일 선택만 허용
+        alert("카메라는 모바일 기기에서만 동작합니다.");
+        fileInput.removeAttribute("capture");
+        fileInput.click();
+      }
+    });
+
+    // 미리보기
+    function showPreview(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        dropMessage.style.display = "none";
+        dropArea.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        dropArea.appendChild(fileInput);
+        fileInput.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 업로드
+    const form = document.getElementById("uploadForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      const response = await fetch("{% url 'api_predict' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": form.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      const resultDiv = document.getElementById("result");
+      if (data.error) {
+        resultDiv.innerHTML = `<p style="color:red">${data.error}</p>`;
+      } else {
+        let html = `<p><b>${data.result_message}</b></p>`;
+        html += `<p>신뢰도: ${(data.confidence*100).toFixed(2)}%</p>`;
+        html += "<h3>Top 3</h3><ul>";
+        data.top_3.forEach(item => {
+          html += `<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`;
+        });
+        html += "</ul>";
+        if (data.recycling_guide) {
+          html += `<h3>분리수거 가이드</h3>`;
+          html += `<p>카테고리: ${data.recycling_guide.category}</p>`;
+          html += `<p>방법: ${data.recycling_guide.action}</p>`;
+        }
+        if (data.image_data_uri) {
+          html += `<img src="${data.image_data_uri}" style="max-width:320px; margin-top:15px;">`;
+        }
+        resultDiv.innerHTML = html;
+      }
+    });
+  </script>
+  <!-- 기존 코드 일부에 추가 -->
+<button id="openAppSettings" type="button" style="background:#2196f3; color:white; border:none; padding:10px 20px; border-radius:8px; margin-top:10px;">
+  ⚙️ 앱 서버 설정
+</button>
+
+<script>
+document.getElementById("openAppSettings").addEventListener("click", () => {
+  // 사용자 기기 감지
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isAndroid) {
+    window.location.href = "myapp://settings";  // Android 앱 URI
+  } else if (isIOS) {
+    window.location.href = "myapp://settings";  // iOS 앱 URI
+  } else {
+    alert("앱이 설치된 모바일 기기에서만 설정을 열 수 있습니다.");
+  }
+});
+</script>
+</body>
+</html>
+

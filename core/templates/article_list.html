@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}기사 목록{% endblock %}
+{% block content %}
+<ul>
+    {% for article in articles %}
+    <li>
+        <a href="{% url 'article_detail' article.pk %}"
+           aria-label="기사 '{{ article.title }}' 상세보기">
+            {{ article.title }}
+        </a>
+    </li>
+    {% empty %}
+    <li>등록된 기사가 없습니다.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

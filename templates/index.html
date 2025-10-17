@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>아이콘 전개 반응형 사이드바</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* 폰트 적용 */
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f8f8; /* 배경색은 유지하고, 메인 콘텐츠에 흰색 적용 */
+      color: #333;
+    }
+
+    /* Sidebar styles (기존 스타일 유지) */
+    .sidebar {
+      height: 100%;
+      /* 기본 (접힌) 상태: 아이콘만 보이도록 폭 설정 */
+      width: 60px; 
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      background-color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+      overflow-x: hidden;
+      transition: width 0.3s; /* 폭 애니메이션 */
+    }
+    
+    /* 사이드바가 펼쳐진 상태 */
+    .sidebar.expanded {
+      width: 250px;
+    }
+
+    /* 사이드바 최상단: 햄버거 버튼을 위한 60px 공간 */
+    .sidebar-header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* 좌측 정렬 */
+      padding: 0 10px; /* 햄버거 버튼의 좌우 패딩 */
+    }
+
+    .sidebar a {
+      /* 기존 패딩 유지 (아이콘 크기 고려하여 조정) */
+      padding: 12px 18px; 
+      text-decoration: none;
+      font-size: 18px;
+      color: #333;
+      display: flex; /* 아이콘과 텍스트를 한 줄에 정렬 */
+      align-items: center;
+      transition: background-color 0.2s;
+      white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    }
+
+    .sidebar a:hover {
+      background-color: #f0f0f0;
+      cursor: pointer; /* 마우스 커서 스타일 유지 */
+    }
+
+    .sidebar a .icon {
+      font-size: 20px;
+      margin-right: 15px; /* 아이콘과 글자 사이 간격 */
+      width: 25px; /* 아이콘 영역 너비 고정 */
+      text-align: center;
+    }
+
+    .sidebar a .text {
+      /* 기본 (접힌) 상태: 텍스트 숨기기 */
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity 0.3s, transform 0.3s;
+      flex-grow: 1;
+    }
+
+    /* 사이드바가 펼쳐진 상태: 텍스트 보이기 */
+    .sidebar.expanded a .text {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* 닫기 버튼 (사용하지 않으므로 숨김 유지) */
+    .sidebar .closebtn {
+      display: none; 
+    }
+
+    /* Main content (배경색 흰색 추가 및 기존 스타일 유지) */
+    .main {
+      /* 기본 (접힌) 상태: 사이드바 폭만큼 밀기 */
+      transition: margin-left 0.3s;
+      padding: 20px;
+      margin-left: 60px; /* 초기 60px 이동 */
+      background-color: #fff; /* 새로 추가: 메뉴바 없는 부분 배경 흰색 */
+      min-height: 100vh; /* 흰색 배경이 전체 화면 높이를 덮도록 설정 */
+    }
+    
+    /* 사이드바가 펼쳐진 상태: 마진 확장 */
+    .main.expanded {
+      margin-left: 250px;
+    }
+
+    /* 햄버거 버튼 스타일 (기존 스타일 유지) */
+    .togglebtn {
+      font-size: 24px; 
+      line-height: 1;
+      cursor: pointer;
+      background-color: #2196F3;
+      color: white;
+      padding: 8px 12px; 
+      border: none;
+      border-radius: 4px;
+      display: block; 
+      transition: background-color 0.2s;
+    }
+
+    .togglebtn:hover {
+      background-color: #0b7dda;
+    }
+    
+    /* ================================================= */
+    /* 새로 추가된 Main Content 요소 스타일 */
+    /* ================================================= */
+
+    /* Search Bar Container: 중앙 정렬을 위한 래퍼 */
+    .search-container {
+        display: flex;
+        justify-content: center; /* 중앙 정렬 */
+        width: 100%;
+        padding: 20px 0; /* 상하 패딩으로 여백 확보 */
+    }
+
+    /* Search Wrapper: 실제 검색 영역 및 클릭 영역 */
+    .search-wrapper {
+        width: 90%; /* 중앙에 길게 */
+        max-width: 800px; /* 데스크톱 최대 폭 제한 */
+        height: 40px; /* 적당한 높이 */
+        border: 1px solid #aaa; /* 회색 테두리 */
+        background-color: #fff; /* 흰색 배경 */
+        border-radius: 8px; /* 둥근 모서리 */
+        display: flex;
+        align-items: center;
+        padding: 0 15px; /* 내부 패딩 */
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+    }
+
+    .search-wrapper:hover {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .search-icon {
+        font-size: 18px;
+        margin-right: 10px;
+    }
+
+    .search-text {
+        color: #888; /* 회색 글씨 */
+        font-size: 18px;
+        user-select: none; /* 텍스트 선택 방지 */
+    }
+
+    /* 제목의 반응성을 위한 새로운 래퍼 스타일 (Search Container와 동일한 중앙 정렬 효과) */
+    .title-align-wrapper {
+        display: flex;
+        justify-content: center; /* 중앙 정렬 */
+        width: 100%;
+    }
+
+    /* Main Title Styles */
+    .main-title {
+        /* 메뉴 글자(18px)보다 1.3배 큼 (약 23.4px) */
+        font-size: 24px; 
+        font-weight: bold;
+        color: #000;
+        /* 서치바와의 간격 (서치바 높이 1.5배 아래 위치) */
+        margin-top: 60px; 
+        
+        /* === 수정된 부분: 반응성을 위해 width, max-width, margin-left/right를 적용 === */
+        /* 제목의 폭과 최대 폭을 Search Wrapper와 동일하게 설정 (90% 폭 확보) */
+        width: 90%; 
+        max-width: 800px; 
+        /* 제목의 좌우 마진을 auto로 설정하여 5% 반응형 여백 확보 */
+        margin-left: auto;
+        margin-right: auto;
+        /* 제목의 시작점을 Search Text와 맞추기 위한 좌측 패딩 15px 추가 (Search Wrapper의 내부 패딩과 동일) */
+        padding-left: 15px; 
+        padding-right: 0; 
+        /* ============================================== */
+    }
+
+
+    /* Responsive */
+    @media screen and (max-width: 600px) {
+      .sidebar {
+        width: 50px;
+      }
+      .sidebar.expanded {
+        width: 70%; 
+      }
+      .main {
+        margin-left: 50px;
+        padding: 15px; /* 모바일에서 .main 패딩 15px */
+      }
+      .main.expanded {
+        margin-left: 70%;
+      }
+      .sidebar a {
+        font-size: 16px;
+      }
+      .sidebar-header {
+        height: 50px; 
+      }
+      .search-wrapper {
+        width: 95%; /* 모바일에서 서치 래퍼 95% */
+        height: 35px;
+        padding: 0 10px; /* 모바일에서 서치 래퍼 내부 패딩 10px */
+      }
+      .main-title {
+        font-size: 20px; 
+        margin-top: 40px;
+        
+        /* === 반응성 수정을 위한 스타일 변경 (모바일) === */
+        width: 95%; /* 모바일에서 서치 래퍼와 동일한 95% 폭 */
+        /* margin-left: auto; margin-right: auto는 그대로 유지됨 */
+        padding-left: 10px; /* 모바일 서치 래퍼의 내부 패딩과 동일한 10px 추가 */
+        padding-right: 0; 
+        /* ============================================== */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar: 기본 60px (접힌 상태) -->
+  <!-- 마우스 오버(expandNav) 및 아웃(collapseNav) 이벤트 추가 -->
+  <div id="mySidebar" class="sidebar" onmouseover="expandNav()" onmouseout="collapseNav()">
+    
+    <!-- 1. 햄버거 버튼 영역 (Sidebar Header) -->
+    <div class="sidebar-header">
+        <!-- 햄버거 버튼: 이제는 호버 기능의 일부로만 시각적으로 존재 -->
+        <button class="togglebtn">&#9776;</button>
+    </div>
+    
+    <!-- 2. 메뉴 항목 및 이모티콘 -->
+    <a href="{% url 'upload' %}" target="_parent"><span class="icon">🏠</span> <span class="text">Home</span></a>
+    <a href="#"><span class="icon">🏆</span> <span class="text">Competitions</span></a>
+    <a href="#"><span class="icon">💾</span> <span class="text">Datasets</span></a>
+    <a href="#"><span class="icon">🤖</span> <span class="text">Models</span></a>
+    <a href="#"><span class="icon">📊</span> <span class="text">Benchmarks</span></a>
+    <a href="#"><span class="icon">💻</span> <span class="text">Code</span></a>
+    <a href="#"><span class="icon">💬</span> <span class="text">Discussions</span></a>
+    <a href="#"><span class="icon">📚</span> <span class="text">Learn</span></a>
+    <a href="#"><span class="icon">💡</span> <span class="text">More</span></a>
+    <a href="#"><span class="icon">📢</span> <span class="text">View Active Events</span></a>
+  </div>
+
+  <!-- Main Content: 기본 margin-left: 60px -->
+  <div class="main" id="mainContent">
+    
+    <!-- 1. 중앙 정렬된 검색 바 -->
+    <div class="search-container">
+        <!-- 클릭 시 함수 실행 -->
+        <div class="search-wrapper" onclick="goToSearchPage()">
+            <span class="search-icon">🔍</span>
+            <span class="search-text">search</span>
+        </div>
+    </div>
+    
+    <!-- 2. 제목을 중앙 정렬하는 래퍼 추가 -->
+    <!-- 이 래퍼가 Search Container와 동일하게 90% 폭 요소의 중앙 정렬 역할을 합니다. -->
+    <div class="title-align-wrapper">
+        <h2 class="main-title">Responsive Sidebar Example</h2>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("mySidebar");
+    const main = document.getElementById("mainContent");
+    
+    /* 메뉴바 확장 함수 (마우스 오버 시) */
+    function expandNav() {
+      // expanded 클래스 추가: CSS에 정의된 폭(250px)과 마진(250px)이 적용됨
+      sidebar.classList.add('expanded');
+      //main.classList.add('expanded');
+    }
+
+    /* 메뉴바 축소 함수 (마우스 아웃 시) */
+    function collapseNav() {
+      // expanded 클래스 제거: CSS에 정의된 기본 폭(60px)과 마진(60px)이 적용됨
+      sidebar.classList.remove('expanded');
+      //main.classList.remove('expanded');
+    }
+    
+    /* 검색 바 클릭 시 동작 함수 (다른 페이지로 넘어가는 것을 시뮬레이션) */
+    function goToSearchPage() {
+        console.log("검색 바가 클릭되었습니다. 검색 페이지로 이동합니다.");
+        // 실제 웹 환경에서는 window.location.href = "/search"; 등으로 연결할 수 있습니다.
+        alert("검색 페이지로 이동하는 동작이 실행되었습니다!");
+    }
+  </script>
+</body>
+</html>
