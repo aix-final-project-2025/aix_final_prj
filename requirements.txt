@@ -6,3 +6,4 @@ pydub==0.25.1
 tensorflow==2.20.0
 django-cors-headers==4.9.0
 gunicorn
+whitenoise

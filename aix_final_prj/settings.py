@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 
 ]
 
@@ -147,15 +148,14 @@ REST_FRAMEWORK = {
 #############################################
 
 STATIC_URL = "static/"
-
-# ✅ 개발 단계에서는 여러 static 폴더에서 파일 읽기
 STATICFILES_DIRS = [
-    BASE_DIR / "static",          # 전역 static 폴더
-    BASE_DIR / "core" / "static", # 앱 단위 static 폴더
+    BASE_DIR / "static",
+    BASE_DIR / "core" / "static",
 ]
-
-# ✅ 배포 단계에서 collectstatic이 파일을 모아둘 위치
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# ✅ 정적 파일 압축 & 캐싱 설정
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
