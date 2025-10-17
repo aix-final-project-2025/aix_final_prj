@@ -10,3 +10,4 @@ colorTo: purple
 sdk: docker
 app_port: 7860
 pinned: false
+entrypoint: python app.py
