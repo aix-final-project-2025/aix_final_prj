@@ -33,4 +33,4 @@ ENV DJANGO_SETTINGS_MODULE=aix_final_prj.settings
 EXPOSE 8000
 
 # 8️⃣ 실행 명령 (migrate → runserver)
-CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:$PORT"]
+CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:10000"]
