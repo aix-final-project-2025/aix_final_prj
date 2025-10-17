@@ -13,6 +13,7 @@ from io import BytesIO
 
 from aix_final_prj.service.keras_utils import pil_to_base64,fix_image_orientation
 from .efficient_net_v2m import predict_from_pil
+from .tts_utils import translate_and_tts
 
 # 간단 업로드 폼
 class ImageUploadForm(forms.Form):
@@ -64,4 +65,5 @@ class PredictApiView(View):
         # # JSON에 base64 이미지 포함
         # res["image_data_uri"] = image_data_uri
 
+        translate_and_tts('"en": 원문 자연스럽게 다듬기')
         return JsonResponse(res)
