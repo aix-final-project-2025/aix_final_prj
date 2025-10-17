@@ -45,4 +45,4 @@ EXPOSE 7860
 # ---------------------------------
 # 🚀 실행 명령 (manage.py 기준 실행)
 # ---------------------------------
-CMD ["bash", "-c", "python manage.py migrate --noinput && python app.py"]
+CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:7860"]
