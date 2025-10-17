@@ -1,0 +1,69 @@
+/* ------------------------------------------- */
+/* 4. 프로모션 영역 */
+/* ------------------------------------------- */
+.promotion-section {
+    display: flex;
+    background-color: #f7ffef;
+    border: 1px solid #f0f0f0;
+    padding: 50px 0;
+    align-items: center;
+    /* ❌ height: 60%; (퍼센트 높이는 부모에 따라 달라지므로 고정 높이 제거) */
+    /* 🟢 height 속성을 제거하여 콘텐츠에 따라 자연스럽게 높이가 결정되도록 합니다. */
+}
+.promo-text-area {
+    flex: 1;
+    padding: 0 40px;
+    text-align: left;
+}
+.promo-image-area {
+    width: 50%; /* 이미지 영역 너비를 50%로 고정 */
+    max-width: 600px; 
+    margin-right: 5%;
+    /* ❌ position: relative; (absolute를 사용하지 않으므로 제거) */
+    /* 🟢 height: auto; 유지 (단, 이미지 자체가 높이를 가짐) */
+    height: auto; 
+}
+
+/* 🟢 이미지 크기 설정 (Position 제거 및 display: block) */
+.promo-image-area img {
+    /* ❌ position: absolute; 속성을 제거합니다. */
+    /* ❌ top: 0; left: 0%; 속성을 제거합니다. */
+    width: 100%; 
+    height: auto; /* 🟢 높이를 자동으로 설정하여 이미지 비율 유지 */
+    object-fit: contain; 
+    display: block;
+}
+
+
+/* ------------------------------------------- */
+/* ✨ 모바일 반응형 스타일 (768px 이하) */
+/* ------------------------------------------- */
+@media screen and (max-width: 768px) {
+    /* 7. 프로모션 섹션: 이미지와 텍스트를 세로로 쌓기 */
+    .promotion-section {
+        flex-direction: column; 
+        padding: 30px 0;
+        border: none;
+    }
+    .promo-text-area {
+        padding: 0 10px 20px 10px;
+        text-align: center; 
+        font-size: 28px;
+    }
+    
+    /* 8. 이미지 영역 크기 조정 및 위치 변경 (모바일 비율 유지) */
+    .promo-image-area {
+        width: 100%; 
+        /* ❌ height: 0; padding-bottom: 75%; (aspect-ratio 트릭을 사용하지 않고 height: auto로 변경) */
+        height: auto; 
+        padding-bottom: 0; /* padding-bottom 제거 */
+        margin: 0 auto; 
+        overflow: hidden;
+    }
+
+    /* 모바일에서 이미지 크기를 100%로 확실히 보장 */
+    .promo-image-area img {
+        width: 100%;
+        height: auto;
+    }
+}

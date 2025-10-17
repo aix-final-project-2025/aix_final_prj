@@ -6,14 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import RecyclingItem  # 세희
 
-def home(request):
-    return render(request, 'core/home.html')
-
-def about(request):
-    return render(request, 'core/about.html')
-
-def contact(request):
-    return render(request, 'core/contact.html')
+def home(request):    #세희
+    return render(request, 'home.html')    
 
 def upload_view(request):     # 세희
     return render(request, 'upload.html') 
@@ -21,8 +15,11 @@ def upload_view(request):     # 세희
 def recyclables_view(request):    # 세희
     return render(request, 'recyclables.html')
 
+def coffee_view(request):    # 세희
+    return render(request, 'coffee.html', {})
+
 class ArticleListView(ListView):
-    #model = Article/
+    #model = Article
     template_name = 'article_list.html'
     context_object_name = 'articles'
 

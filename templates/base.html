@@ -2,92 +2,110 @@
 <!DOCTYPE html>
 <html lang="ko">
 
-  <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-      <title>{% block page_title %}아이콘 전개 반응형 사이드바 예제{% endblock %}</title>
-  
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+      <title>{% block page_title %}아이콘 전개 반응형 사이드바 예제{% endblock %}</title>
+  
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
 
-      {% block extra_head %}{% endblock %}
-  </head>
+      {% block extra_head %}{% endblock %}
+  </head>
 
-  <body>  
-    <div id="navbar">
-        <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
-      </div>
-    
-    <div id="mySidebar" class="sidebar">
-        <div class="sidebar-header">
-        </div>
-        
-        <a href="{% url 'core:home' %}"><span class="icon">🏠</span> <span class="text">Home</span></a>
-        
-        <a href="{% url 'recyclables' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
-                    alt="recyclables icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">recyclables</span>
-        </a>
-        
-        <a href="#">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">coffee</span>
-        </a>
-        <a href="#">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" 
-                    alt="News icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">News</span>
-        </a>
-        
-        <a href="#">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" 
-                    alt="Settings icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">settings</span>
-        </a>
+  <body>  
+    <div id="navbar">
+        <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
+      </div>
+    
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+        </div>
+        <a href="{% url 'recyclables' %}">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
+                    alt="recyclables icon" 
+                    style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">recyclables</span>
+        </a>
+        
+        <a href="{% url 'core:coffee' %}">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
+                    alt="coffee icon" 
+                    style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">coffee</span>
+        </a>
+        <a href="#">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" 
+                    alt="News icon" 
+                    style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">News</span>
+        </a>
+        
+        <a href="#">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" 
+                    alt="Settings icon" 
+                    style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">settings</span>
+        </a>
 
-    </div>
-    
-        {% block content %}{% endblock %}
-    </div>
+    </div>
+    
+    <div id="mainContent"> 
+        <div class="main-container">
 
-    <script>
-        const sidebar = document.getElementById("mySidebar");
-        const main = document.getElementById("mainContent");
-        const toggleButton = document.querySelector('.togglebtn');
+            <div class="top-header">
+                <div class="search-area">
+                </div>
+                <div class="top-menu">
+                    <a href="#">Engilsh </a>
+                    <a href="#">한국어</a>
+                    <a href="#">Español </a>
+            </div>
+            </div>
 
-        /* 메뉴바 확장/축소 토글 함수 (클릭 시 작동) */
-        function toggleNav() {
-            // expanded 클래스가 있으면 제거 (닫기), 없으면 추가 (열기)
-            const isExpanded = sidebar.classList.toggle('expanded');
-            
-            // 햄버거 버튼 모양 변경 (선택 사항)
-            toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;'; // X 또는 햄버거 아이콘
-        } 
+            <div class="main-logo-area">
+                <h1>Recycling and Coffee</h1>
+            </div>
 
-        /* 검색 바 클릭 시 동작 함수 (기존 로직 유지) */
-        function goToSearchPage() {
-            console.log("검색 바가 클릭되었습니다. 검색 페이지로 이동합니다.");
-            alert("검색 페이지로 이동하는 동작이 실행되었습니다!");
-        }
-    </script>
-    <script src="{% static 'js/core_script.js' %}"></script>
-    {% block extra_script %}{% endblock %}
+            <div class="main-nav">
+                <a href="#">name1</a>
+                <a href="#">name2</a>
+                <a href="#">name3</a>
+                <a href="#">name4</a>
+                <a ">name</a>
+            </div>
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById("mySidebar");
+        const main = document.getElementById("mainContent"); // mainContent ID를 사용하도록 수정
+        const toggleButton = document.querySelector('.togglebtn');
+
+        /* 메뉴바 확장/축소 토글 함수 (클릭 시 작동) */
+        function toggleNav() {
+            // expanded 클래스가 있으면 제거 (닫기), 없으면 추가 (열기)
+            const isExpanded = sidebar.classList.toggle('expanded');
+            
+            // 햄버거 버튼 모양 변경 (선택 사항)
+            toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;'; // X 또는 햄버거 아이콘
+        } 
+
+    </script>
+
+    {% block extra_script %}{% endblock %}
 </body>
 
 </html>
