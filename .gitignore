@@ -27,7 +27,7 @@ db.sqlite3
 # 🔒 Environment & Config
 .env
 *.env
-*.json
+# *.json  👈❌ (주석 처리 — class_names.json 포함 필요)
 
 # 🧠 Model / Checkpoints
 # keras/  👈❌ (주석 처리 — 모델 폴더 Hugging Face 업로드용으로 포함)

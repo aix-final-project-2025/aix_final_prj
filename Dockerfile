@@ -1,3 +1,8 @@
+# ===============================
+# 🧠 AIX Final Project — Dockerfile
+# Hugging Face Spaces optimized
+# ===============================
+
 # 1️⃣ Python 환경 (HF 권장 3.11)
 FROM python:3.11-slim
 
@@ -19,12 +24,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5️⃣ 소스 코드 복사
 COPY . .
 
-# 6️⃣ 환경 변수 설정
+# ✅ 6️⃣ 모델 및 클래스 JSON 명시적으로 복사 (HF 캐시 누락 방지)
+COPY ./aix_final_prj/keras/trash_classifier_efficientnetv2_best_final.keras /app/aix_final_prj/keras/
+COPY ./aix_final_prj/keras/class_names.json /app/aix_final_prj/keras/
+
+# 7️⃣ 환경 변수 설정
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=aix_final_prj.settings
 
-# ✅ 7️⃣ Hugging Face 기본 포트 설정
+# ✅ 8️⃣ Hugging Face 기본 포트 설정
 EXPOSE 7860
 
-# ✅ 8️⃣ runserver 포트를 7860으로 변경
+# ✅ 9️⃣ Django runserver (포트 고정)
 CMD ["python", "-u", "manage.py", "runserver", "0.0.0.0:7860"]
