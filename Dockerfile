@@ -1,6 +1,6 @@
 # ===============================
 # 🧠 AIX Final Project — Dockerfile
-# Hugging Face Spaces optimized (fixed COPY order)
+# Hugging Face Spaces optimized (fixed COPY order & relative paths)
 # ===============================
 
 # 1️⃣ Python 환경 (HF 권장 3.11)
@@ -18,8 +18,9 @@ RUN apt update && apt install -y \
 WORKDIR /app
 
 # ✅ 4️⃣ 모델 및 클래스 JSON 파일 먼저 복사 (캐시 누락 방지)
-COPY ./aix_final_prj/keras/trash_classifier_efficientnetv2_best_final.keras /app/aix_final_prj/keras/
-COPY ./aix_final_prj/keras/class_names.json /app/aix_final_prj/keras/
+# ⚠️ 절대경로 대신 상대경로로 지정 (Hugging Face 컨텍스트 기준)
+COPY aix_final_prj/keras/trash_classifier_efficientnetv2_best_final.keras aix_final_prj/keras/
+COPY aix_final_prj/keras/class_names.json aix_final_prj/keras/
 
 # 5️⃣ 의존성 설치
 COPY requirements.txt .
