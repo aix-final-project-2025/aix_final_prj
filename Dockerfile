@@ -33,5 +33,5 @@ ENV PORT=10000
 # 7️⃣ Render에서 감지할 포트
 EXPOSE 10000
 
-# 8️⃣ 실행 명령 (DB 마이그레이션 → 서버 실행)
-CMD ["bash", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:$PORT"]
+# 8️⃣ 실행 명령 
+CMD ["bash", "-c", "python manage.py migrate --noinput && gunicorn aix_final_prj.wsgi:application --bind 0.0.0.0:$PORT"]
