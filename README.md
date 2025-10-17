@@ -4,7 +4,7 @@ emoji: 🧠
 colorFrom: blue
 colorTo: purple
 sdk: docker
-app_file: manage.py
+app_port: 7860
 pinned: false
 ---
 
@@ -41,7 +41,7 @@ TensorFlow + Django를 이용해 백엔드와 프론트엔드를 통합했습니
 - 모델 경로:  
   `aix_final_prj/keras/trash_classifier_efficientnetv2_best_final.keras`
 
-- 클래스 이름 파일 (선택):  
+- 클래스 이름 파일:  
   `aix_final_prj/keras/class_names.json`  
   (없을 경우 인덱스 기반 자동 분류)
 
@@ -68,3 +68,4 @@ core/
 Dockerfile
 requirements.txt
 manage.py
+
