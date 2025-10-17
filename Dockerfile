@@ -35,5 +35,5 @@ ENV DJANGO_SETTINGS_MODULE=aix_final_prj.settings
 # ✅ 8️⃣ Hugging Face 기본 포트 설정
 EXPOSE 7860
 
-# ✅ 9️⃣ Django runserver (포트 고정)
-CMD ["python", "-u", "manage.py", "runserver", "0.0.0.0:7860"]
+# ✅ 9️⃣ Hugging Face용 진입점 (app.py 프록시 실행)
+CMD ["python", "app.py"]
