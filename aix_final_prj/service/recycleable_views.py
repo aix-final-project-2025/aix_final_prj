@@ -14,6 +14,8 @@ from io import BytesIO
 from aix_final_prj.service.keras_utils import pil_to_base64,fix_image_orientation
 from .efficient_net_v2m import predict_from_pil
 from .tts_utils import translate_and_tts
+from .models import RecyclableResult, GroupCode
+
 
 # 간단 업로드 폼
 class ImageUploadForm(forms.Form):
@@ -62,8 +64,40 @@ class PredictApiView(View):
         except Exception as e:
             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
 
-        # # JSON에 base64 이미지 포함
-        # res["image_data_uri"] = image_data_uri
+        # 3️⃣ DB에 결과 등록
+        try:
+            # 예측 결과에서 group_code_name 가져오기 (예: "steel_can1")
+            predicted_class = res.get("predicted_class")  # predict_from_pil에서 반환되도록 수정 필요
+            # predicted_code_name = res.get("predicted_code")  # predict_from_pil에서 반환되도록 수정 필요
+            group_code = None
+            if predicted_class:
+                group_code = GroupCode.objects.filter(code=predicted_class).first()
+                if group_code:
+                   numeric_code = group_code.numeric_code  # numeric_code 가져오기
+
+            print(f"predicted_class {res.get('predicted_class', '')}")
+            print(f"confidence {res.get('confidence', '')}")
+            print(f"confidence_level {res.get('confidence_level', '')}")
+            print(f"result_message {res.get('result_message', '')}")
+            print(f"top3 {res.get('top3', '')}")
+            print(f"category {res.get('category', '')}")
+            print(f"recycling_guide {group_code}")
+            # RecyclableResult 저장
+            RecyclableResult.objects.create(
+                PREDICTED_CLASS=res.get("predicted_class", ""),
+                CONFIDENCE=res.get("confidence", 0.0),
+                CONFIDENCE_LEVEL=res.get("confidence_level", ""),
+                RESULT_MESSAGE=res.get("result_message", ""),
+                TOP_3=res.get("top3", ""),
+                RECYCLING_GUIDE=res.get("recycling_guide", ""),
+                RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
+                group_code_id=group_code
+            )
+        except Exception as e:
+            # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
+            print("DB save error:", e)
+
+        # 4️⃣ JSON 반환
 
         translate_and_tts('"en": 원문 자연스럽게 다듬기')
         return JsonResponse(res)
