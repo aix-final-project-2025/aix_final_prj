@@ -5,6 +5,7 @@
 <title>쓰레기 분류기</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+  
 html, body {
   margin: 15;
   padding: 0;
@@ -173,6 +174,11 @@ button {
   width: 90%;
   max-width: 600px;
   margin-bottom: 14px;
+
+  /* 추가 조정 */
+  min-height: 90px;      /* 카드 최소 높이 */
+  font-size: 16px;        /* 전체 텍스트 기본 폰트 크기 */
+  line-height: 1.0;       /* 글자 줄 간격 조절 */
 }
 
 .result-card h3 {
@@ -257,13 +263,35 @@ button {
   animation: slideDown 0.4s ease-in forwards;
 }
 
+/* 분리처리 안내 카드 */
+.processing-card {
+  width: 96%;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #fff4e5;
+  border: 1px solid #ffcc80;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.processing-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.processing-card p {
+  margin: 0;
+  font-size: 14px;
+}
+
 
 /* -------------------------------------------- */
 /* -------------------------------------------- */
 /* HTML: <div class="loader"></div> */
 /* https://css-loaders.com/classic/ 참조함 */
 .loader-overlay {
-  display: none; /* ✅ 초기에는 숨김 */
+  display: none; /* 초기에는 숨김 */
   position: fixed;
   top: 0;
   left: 0;
@@ -276,21 +304,6 @@ button {
   align-items: center;
   justify-content: center;
 }
-
-/* 기존 로더 스타일 (중앙 배치 관련 스타일 제거) */
-/* .loader {
-  width: 60px;
-  aspect-ratio: 1;
-  color: #000;
-  border: 10px solid;
-  box-sizing: border-box;
-  border-radius: 50%;
-  animation: l6 2s infinite linear;
-  position: relative;
-} */
-
-
-
 
 /* HTML: <div class="loader"></div> */
 .loader {
@@ -322,7 +335,12 @@ button {
 /* 모바일 전용 */
 @media (max-width: 768px) {
   /* ✅ 수정: 모바일 모달 최대 높이 설정 */
-  #mobileModal { max-height: 70vh; } 
+  #mobileModal { max-height: 54vh; } 
+  .processing-card {
+    font-size: 14px;
+    padding: 10px;
+  }
+
   /* ... (기존 모바일 스타일 유지) ... */
   .result-card,
   .guide-card {
@@ -346,16 +364,16 @@ button {
   h1 {
     text-align: center;
     margin: 20px 0;
-    font-size:28px;
+    font-size:24px;
   }
   #drop-area {
     width: 95%;
     margin: 0 auto;
     padding: 20px;
   }
-
+/* 
   #drop-area p { font-size: 24px; }
-  #drop-area img { width: 300px; height: 300px; }
+  #drop-area img { width: 300px; height: 300px; } */
 
   #buttonWrapper {
     padding: 15px 0 20px 0;
@@ -372,8 +390,15 @@ button {
 /* PC 전용 (이미지 왼쪽, 리스트 오른쪽) */
 @media (min-width: 769px) {
 
-  #drop-area p { font-size: 24px; }
-  #drop-area >img { width: 90%; height: 90%; }
+  /* #drop-area p { font-size: 24px; } */
+  /* #drop-area >img { width: 90%; height: 90%; } */
+
+  #mobileModal { max-height: 66vh; } 
+  .processing-card {
+    font-size: 15px;
+    padding: 12px;
+  }
+
   .result-container {
     display: flex;
     flex-direction: row;
@@ -409,9 +434,9 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    width: 380px;      /* 이미지와 동일 폭 */
+    width: 400px;      /* 이미지와 동일 폭 */
     height: 430px;     /* 이미지 높이에 맞춤 */
-    gap: 14px;
+    gap: 8px;
   }
 
   /* 리스트 카드 여백 및 디자인 조정 */
@@ -437,7 +462,7 @@ button {
 
 /* 스크롤바 숨김 */
 #mobileModal::-webkit-scrollbar { display: none; }
-#modalContent::-webkit-scrollbar { display: none; } /* ✅ 추가: 내용 스크롤바 숨김 */
+#modalContent::-webkit-scrollbar { display: none; } /* 추가: 내용 스크롤바 숨김 */
 
 /* 모달 열릴 때 배경 스크롤 방지 */
 body.modal-open { overflow: hidden; }
@@ -464,9 +489,6 @@ body.modal-open { overflow: hidden; }
   </div>
 </form>
 
-
-
-
 <div id="modalOverlay"></div>
 <div id="mobileModal">
   <div id="modalHandle"></div>
@@ -475,6 +497,18 @@ body.modal-open { overflow: hidden; }
 
 <script>
 
+
+async function playTTS(url) {
+    
+     if (url) {
+        // 서버에서 생성된 mp3 URL
+        const audio = new Audio(url);
+        audio.play();
+    } else {
+        console.error("TTS 생성 실패", data);
+    }
+}
+//playTTS('/media/tts_ko.mp3');
 
 // JavaScript 상단에 로더 오버레이 변수 추가
 const loaderOverlay = document.getElementById("loaderOverlay");
@@ -489,9 +523,6 @@ function hideLoader() {
     loaderOverlay.style.display = "none";
 }
 
-
-
-
 const dropArea = document.getElementById("drop-area");
 const fileInputAlbum = document.getElementById("fileElemAlbum");
 const fileInputCamera = document.getElementById("fileElemCamera");
@@ -503,7 +534,6 @@ const cameraButton = document.getElementById("cameraButton");
 const modalContent = document.getElementById("modalContent");
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
 
 //####################################################//
 // 기존 높이 조정 로직 유지
@@ -556,15 +586,18 @@ function showPreview(file){
 }
 
 // Modal 열기/닫기 (수정됨)
-function openModal() {
+function openModal(data) {
   modal.classList.remove("slide-down");
   
-  // ✅ 추가: 모달이 열릴 때 flex 속성 부여
+  // 추가: 모달이 열릴 때 flex 속성 부여
   modal.style.display = "flex";
   overlay.style.display = "block";
   document.body.classList.add("modal-open");
   
   modal.classList.add("slide-up");
+  if (data.tts_able == 1){
+    playTTS(data.tts_url);
+  }
 }
 
 function closeModal() {
@@ -588,13 +621,13 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
   
-  // ✅ 추가: 파일 선택 여부 확인
+  // 추가: 파일 선택 여부 확인
   const fileToUpload = fileInputAlbum.files[0];
   if (!fileToUpload) {
       alert("이미지를 선택하거나 드래그하여 넣어주세요.");
       return;
   }
-  // ✅ 1. 요청 직전 로더 표시
+  // 1. 요청 직전 로더 표시
   showLoader();
   const formData = new FormData(form);
   try {
@@ -604,10 +637,10 @@ form.addEventListener("submit", async (e)=>{
       headers:{"X-CSRFToken":form.querySelector('[name=csrfmiddlewaretoken]').value},
       body: formData
     });
-    console.log("=========")
     const data = await response.json();
     renderResult(data);
-    openModal();
+    openModal(data);
+    
   }catch(error) {
     console.error("서버 요청 오류:", error);
     alert("예측 요청 중 오류가 발생했습니다.");
@@ -626,7 +659,12 @@ function renderResult(data){
       <div class="result-card-img">
         <img src="${data.image_data_uri}">
       </div>
+
       <div class="result-right">
+        <div class="processing-card">
+          <h3>📌 분리처리 안내</h3>
+          <p>${data.result_message}</p>
+        </div>
         <div class="result-card">
           <h3>Top 3 예측결과</h3>
           <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>

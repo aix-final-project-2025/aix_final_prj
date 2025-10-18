@@ -1,20 +1,31 @@
 # langchain_tts_utils.py
-# =========================
-# 한글 입력 → 다국어 번역 → TTS 생성/재생
-# gTTS + LangChain(OpenAI) 통합 공통 모듈
+# ==========================================
+# 기존 기능 유지 + 문자내용/국가/성별 옵션 추가
 # 설치: pip install langchain openai gTTS pydub python-dotenv playsound
 
 import os
 import json
 import re
 from typing import Dict, Optional
+from django.conf import settings
 from dotenv import load_dotenv
 from gtts import gTTS
-from playsound import playsound
+# from playsound import playsound
 from pydub import AudioSegment
 from pydub.playback import play
 from langchain import LLMChain, PromptTemplate
 from langchain_openai import OpenAI
+import platform
+
+
+# 플랫폼별로 playsound import
+try:
+    if platform.system() in ["Darwin", "Linux"]:
+        from playsound2 import playsound
+    else:
+        from playsound import playsound
+except ImportError:
+    playsound = None  # fallback
 
 # ------------------------
 # 1. OpenAI API Key 로드
@@ -70,7 +81,17 @@ def fallback_parse(s: str) -> Dict[str, str]:
 
 def get_translations(input_text: str) -> Dict[str, str]:
     """LLMChain으로 한국어, 영어, 스페인어 번역 결과를 JSON으로 반환"""
-    resp = chain.run({'input_text': input_text})
+    resp = chain.invoke({'input_text': input_text})
+    
+    # LangChain 응답이 문자열이 아닐 경우 문자열로 변환
+    if not isinstance(resp, str):
+        if hasattr(resp, "content"):  # ChatMessage 유형
+            resp = resp.content
+        elif isinstance(resp, dict) and "text" in resp:
+            resp = resp["text"]
+        else:
+            resp = str(resp)
+
     try:
         parsed = json.loads(extract_json_substring(resp))
     except Exception:
@@ -80,63 +101,81 @@ def get_translations(input_text: str) -> Dict[str, str]:
 # ------------------------
 # 4. TTS 유틸
 # ------------------------
-def tts_generate_play(
-    text: str,
-    lang_code: str,
-    filename: Optional[str] = None,
-    use_pydub: bool = False
-) -> str:
-    """
-    text: 읽을 텍스트
-    lang_code: 'ko','en','es' 등 ISO 639-1 코드
-    filename: 저장 파일명. 미지정 시 tts_{lang_code}.mp3 자동 생성
-    use_pydub: True -> pydub 재생, False -> playsound 재생
-    """
+def tts_generate_play(text, lang_code, filename=None, use_pydub=False):
     if not filename:
-        filename = f'tts_{lang_code}.mp3'
+        filename = f"tts_{lang_code}.mp3"
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filename)
-    
     try:
-        if use_pydub:
-            sound = AudioSegment.from_file(filename, format='mp3')
+        if use_pydub or not playsound:
+            sound = AudioSegment.from_file(filename, format="mp3")
             play(sound)
         else:
             playsound(filename)
     except Exception as e:
-        print(f'[TTS 재생 오류] lang={lang_code}, file={filename}, error={e}')
+        print(f"[TTS 재생 오류] {e}")
     
     return filename
 
-# ------------------------
-# 5. 전체 프로세스 (입력 → 번역 → TTS)
-# ------------------------
-def translate_and_tts(input_text: str, use_pydub: bool = False) -> Dict[str, str]:
-    """
-    input_text: 한국어 입력
-    use_pydub: TTS 재생 방식
-    return: 언어별 생성 파일명 dict
-    """
-    translations = get_translations(input_text)
-    files = {}
-    for lang_code, text in translations.items():
-        if not text:
-            text = input_text  # fallback
-        fname = f'tts_{lang_code}.mp3'
-        tts_generate_play(text, lang_code, filename=fname, use_pydub=use_pydub)
-        files[lang_code] = fname
-    return files
 
 # ------------------------
-# 단독 실행 테스트
+# 4. TTS 유틸
+# ------------------------
+def tts_generate_save(text, lang_code, filename=None, use_pydub=False):
+    if not filename:
+        filename = f"tts_{lang_code}.mp3"
+    tts = gTTS(text=text, lang=lang_code)
+    filepath = os.path.join(settings.MEDIA_ROOT, filename)
+    tts.save(filepath)
+  
+    return filename
+
+# ------------------------
+# 5. 번역 + TTS (옵션 기반)
+# ------------------------
+def translate_and_tts(
+    text: str,               # 문자내용
+    country: str = "ko",     # 국가 (언어코드)
+    gender: str = "female",  # 성별
+    translate_first: bool = True,
+    use_pydub: bool = False
+) -> Dict[str, str]:
+    """
+    문자내용, 국가, 성별 옵션으로 TTS 수행
+    - text: 읽을 문장
+    - country: 언어코드 ('ko', 'en', 'es', 'ja' 등)
+    - gender: female/male (현재 gTTS는 female만 지원)
+    - translate_first: True 시 LLMChain 번역 수행, False 시 원문 그대로
+    """
+    print(f"[INFO] translate_and_tts 실행 (country={country}, gender={gender})")
+
+    # ✅ 번역 여부에 따라 문장 선택
+    if translate_first:
+        translations = get_translations(text)
+        text_to_read = translations.get(country, text)
+    else:
+        text_to_read = text
+
+    # ✅ 파일 이름 지정
+    fname = f"tts_{country}_{gender}.mp3"
+
+    # ✅ TTS 생성
+    # tts_generate_play(text_to_read, lang_code=country, filename=fname, use_pydub=use_pydub)
+    tts_name = tts_generate_save(text_to_read, lang_code=country, filename=fname, use_pydub=use_pydub)
+    print(f"tts_url save {tts_name}")
+    return {country: fname,"tts_name":tts_name}
+
+# ------------------------
+# 테스트 실행
 # ------------------------
 if __name__ == "__main__":
-    user_input = input("한글 문장 입력: ").strip()
-    if not user_input:
-        print("문장이 비어있습니다. 종료합니다.")
+    msg = input("문자 입력: ").strip()
+    if not msg:
+        print("문장이 비어 있습니다. 종료합니다.")
         exit()
-    
-    print("\n== 번역 + TTS 생성 중 ==")
-    files = translate_and_tts(user_input)
-    print("\n생성 완료:")
-    print(files)
+
+    country = input("언어코드 (ko/en/es): ").strip() or "ko"
+    gender = input("성별 (female/male): ").strip() or "female"
+    tf = input("번역 먼저 할까요? (y/n): ").strip().lower() != 'n'
+
+    translate_and_tts(msg, country=country, gender=gender, translate_first=tf)
