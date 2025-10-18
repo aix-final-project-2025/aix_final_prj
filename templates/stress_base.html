@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>데이터 분석 대시보드</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    section { margin-bottom: 40px; }
+    pre { background-color: #f8f8f8; padding: 15px; white-space: pre-wrap; }
+    img { max-width: 100%; height: auto; }
+    button { padding: 8px 16px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>분석 플랫폼</h1>
+    <p> 분류 · 딥러닝 결과</p>
+    <hr>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

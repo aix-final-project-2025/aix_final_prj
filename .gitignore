@@ -36,3 +36,5 @@ data/
 # staticfiles/
 # media/
 
+uploads/
+*.mp3

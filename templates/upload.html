@@ -1,0 +1,705 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>쓰레기 분류기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html, body {
+  margin: 15;
+  padding: 0;
+  height: 98%;
+  font-family: 'Arial', sans-serif;
+  font-size: 26px;
+  background: #f5f7fa;
+}
+
+h1 {
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* 드래그 영역 */
+#drop-area {
+  border: 3px dashed #4caf50;
+  border-radius: 12px;
+  width: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+   margin: 0 auto; /* 수평 중앙 정렬 */
+   /* ✅ 추가: 최소 높이 설정 (JS로 높이를 설정해도, 혹시 모를 경우를 대비) */
+   min-height: 300px; 
+   overflow: hidden; /* 이미지가 영역을 벗어나지 않도록 */
+}
+
+#drop-area.dragover {
+  background: #e8f5e9;
+  border-color: #2e7d32;
+}
+
+#drop-message {
+  text-align: center;
+  pointer-events: none;
+  font-size: 32px;
+}
+
+input[type="file"] { display: none; }
+
+/* 버튼 영역 */
+#buttonWrapper {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  padding: 25px 0 25px 0;
+  background: #f5f7fa;
+  position: fixed;
+  bottom: 0px;
+  left: 0;
+  height: 100px;
+  width: 100%;
+  z-index: 100;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 12px 120px;
+}
+
+#cameraButton { background: #1976d2; color: #fff; }
+#cameraButton:hover { background: #1565c0; }
+#submitButton { background: #4caf50; color: #fff; }
+#submitButton:hover { background: #43a047; }
+
+/* ✅ 수정: 드래그 영역 이미지 - 이미지가 컨테이너 내에서 잘 보이도록 속성 조정 */
+#drop-area img {
+  margin: 0; 
+  max-width: 100%; 
+  max-height: 100%; 
+  height: auto; 
+  width: auto; 
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  object-fit: contain; 
+}
+
+
+/* Modal Sheet */
+#modalOverlay {
+  display: none;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+/* ✅ 수정: Modal Sheet (공통) - 전체 스크롤 방지 및 flex 컨테이너 설정 */
+#mobileModal {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  z-index: 1000;
+  /* overflow-y: auto;  -> 제거 또는 hidden으로 변경하여 내용이 스크롤되도록 함 */
+  overflow-y: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  /* ✅ 추가: flex로 설정하여 handle과 content를 수직 배치 */
+  /* display: flex; */
+  flex-direction: column;
+}
+
+/* ✅ 수정: handle 표시 - Sticky로 상단 고정 및 배경 설정 */
+#modalHandle {
+  width: 60px;
+  height: 10px;
+  /* margin: 10px auto 25px auto; -> sticky 사용 시 마진 조정 */
+  margin: 10px auto 10px auto; 
+  
+  cursor: grab;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  user-select: none;
+  
+  /* ✅ 수정: Sticky로 고정 */
+  position: sticky;
+  top: 0;
+  background: #fff; /* 스크롤 시 핸들 뒤의 내용이 보이지 않도록 배경을 흰색으로 설정 */
+  padding-top: 10px;
+  padding-bottom: 5px; /* 여백 확보 */
+  z-index: 1001; /* 다른 요소 위에 위치 */
+  pointer-events: auto;
+  
+  background: #ccc; /* 기존 배경색 유지 */
+  border-radius: 10px; /* 기존 border-radius 유지 */
+}
+
+/* ✅ 추가: modalContent - 스크롤 영역 설정 */
+#modalContent {
+    flex-grow: 1; /* 남은 공간 모두 차지 */
+    overflow-y: auto; /* 이 영역만 스크롤되도록 설정 */
+    -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 */
+    padding-bottom: 30px; /* 하단 여백 추가 */
+    box-sizing: border-box;
+}
+
+/* 결과 카드 레이아웃 */
+.result-container {
+  padding: 0 25px 25px 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.result-card {
+  /* ... (기존 스타일 유지) ... */
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 20px 25px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  width: 90%;
+  max-width: 600px;
+  margin-bottom: 14px;
+}
+
+.result-card h3 {
+  /* ... (기존 스타일 유지) ... */
+  margin-top: 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.result-card ul {
+  /* ... (기존 스타일 유지) ... */
+  list-style: none;
+  padding-left: 0;
+}
+
+.result-card li {
+  /* ... (기존 스타일 유지) ... */
+  font-size: 24px;
+  margin: 8px 0;
+  color: #555;
+}
+
+.result-card img {
+  /* ... (기존 스타일 유지) ... */
+  display: block;
+  width: 65%;
+  margin: 0 auto 12px auto;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  border-radius: 12px;
+}
+
+.guide-card {
+  /* ... (기존 스타일 유지) ... */
+  background: #e8f5e9;
+  padding: 18px 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.guide-card h3 {
+  /* ... (기존 스타일 유지) ... */
+  margin-top: 0;
+  color: #2e7d32;
+  font-size: 28px;
+}
+
+.guide-card p {
+  /* ... (기존 스타일 유지) ... */
+  font-size: 24px;
+  margin: 10px 0;
+  color: #333;
+}
+
+.result-card-img img,
+.guide-card img {
+    /* ... (기존 스타일 유지) ... */
+    display: block;
+    width: 224px;
+    height: 224px;
+    object-fit: cover;
+    margin: 0 auto 12px auto;
+    border-radius: 12px;
+    box-shadow: 0 9px 10px rgba(0,0,0,0.15);
+}
+
+/* 애니메이션 */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+}
+.slide-down {
+  animation: slideDown 0.4s ease-in forwards;
+}
+
+
+/* -------------------------------------------- */
+/* -------------------------------------------- */
+/* HTML: <div class="loader"></div> */
+/* https://css-loaders.com/classic/ 참조함 */
+.loader-overlay {
+  display: none; /* ✅ 초기에는 숨김 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7); /* 반투명 흰색 배경 */
+  z-index: 2000; /* 모달(z-index: 1000)보다 위에 위치 */
+  
+  /* 로더를 정중앙에 배치하기 위한 Flexbox 설정 */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 기존 로더 스타일 (중앙 배치 관련 스타일 제거) */
+/* .loader {
+  width: 60px;
+  aspect-ratio: 1;
+  color: #000;
+  border: 10px solid;
+  box-sizing: border-box;
+  border-radius: 50%;
+  animation: l6 2s infinite linear;
+  position: relative;
+} */
+
+
+
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: fit-content;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 30px;
+  background:linear-gradient(90deg,#000 50%,#0000 0) right/200% 100%;
+  animation: l21 2s infinite linear;
+}
+.loader::before {
+  content :"Loading...";
+  color: #0000;
+  padding: 0 5px;
+  background: inherit;
+  background-image: linear-gradient(90deg,#fff 50%,#000 0);
+  -webkit-background-clip:text;
+          background-clip:text;
+}
+
+@keyframes l21{
+  100%{background-position: left}
+}
+
+
+/* -------------------------------------------- */
+/* -------------------------------------------- */
+
+/* 모바일 전용 */
+@media (max-width: 768px) {
+  /* ✅ 수정: 모바일 모달 최대 높이 설정 */
+  #mobileModal { max-height: 70vh; } 
+  /* ... (기존 모바일 스타일 유지) ... */
+  .result-card,
+  .guide-card {
+    width: 95%;
+    padding: 12px 12px;
+    border-radius: 10px;
+    overflow-y: auto;
+  }
+
+  /* 예측 결과 리스트 */
+  .result-card ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .result-card li {
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 20px 0;
+    font-size:28px;
+  }
+  #drop-area {
+    width: 95%;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  #drop-area p { font-size: 24px; }
+  #drop-area img { width: 300px; height: 300px; }
+
+  #buttonWrapper {
+    padding: 15px 0 20px 0;
+    bottom: 5px;
+    gap: 15px;
+  }
+
+  button {
+    font-size: 24px;
+    padding: 18px 18px;
+  }
+} 
+
+/* PC 전용 (이미지 왼쪽, 리스트 오른쪽) */
+@media (min-width: 769px) {
+
+  #drop-area p { font-size: 24px; }
+  #drop-area >img { width: 90%; height: 90%; }
+  .result-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 32px;
+    padding: 30px;
+  }
+
+  /* 왼쪽 이미지 래퍼 */
+  .result-card-img {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 380px;     /* 고정 폭 */
+    height: 430px;    /* 고정 높이 */
+    overflow: hidden;
+    border-radius: 12px;
+    background: #f5f5f5; /* 이미지 없는 경우 대비용 배경 */
+  }
+
+  /* 이미지 본체 */
+  .result-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* 비율 유지하며 영역 채움 */
+    border-radius: 12px;
+  }
+
+  /* 오른쪽 리스트 컨테이너 */
+  .result-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 380px;      /* 이미지와 동일 폭 */
+    height: 430px;     /* 이미지 높이에 맞춤 */
+    gap: 14px;
+  }
+
+  /* 리스트 카드 여백 및 디자인 조정 */
+  .result-card,
+  .guide-card {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 10px;
+    overflow-y: auto;
+  }
+
+  /* 예측 결과 리스트 */
+  .result-card ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .result-card li {
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+}
+
+/* 스크롤바 숨김 */
+#mobileModal::-webkit-scrollbar { display: none; }
+#modalContent::-webkit-scrollbar { display: none; } /* ✅ 추가: 내용 스크롤바 숨김 */
+
+/* 모달 열릴 때 배경 스크롤 방지 */
+body.modal-open { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<h1>쓰레기 이미지 업로드 / 촬영</h1>
+<!-- 진행바 -->
+<div class="loader-overlay" id="loaderOverlay">
+    <div class="loader"></div>
+</div>
+<form id="uploadForm" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div id="drop-area">
+    <p id="drop-message">여기에 이미지를 드래그하거나 클릭하여 선택하세요</p>
+    <input type="file" id="fileElemAlbum" name="image" accept="image/*" multiple>
+    <input type="file" id="fileElemCamera" name="image" accept="image/*" capture="environment">
+  </div>
+
+  <div id="buttonWrapper">
+    <button id="cameraButton" type="button">📷 카메라촬영</button>
+    <button id="submitButton" type="submit">업로드 및 예측</button>
+  </div>
+</form>
+
+
+
+
+<div id="modalOverlay"></div>
+<div id="mobileModal">
+  <div id="modalHandle"></div>
+  <div id="modalContent"></div>
+</div>
+
+<script>
+
+
+// JavaScript 상단에 로더 오버레이 변수 추가
+const loaderOverlay = document.getElementById("loaderOverlay");
+
+// 로더 표시 함수
+function showLoader() {
+    loaderOverlay.style.display = "flex";
+}
+
+// 로더 숨김 함수
+function hideLoader() {
+    loaderOverlay.style.display = "none";
+}
+
+
+
+
+const dropArea = document.getElementById("drop-area");
+const fileInputAlbum = document.getElementById("fileElemAlbum");
+const fileInputCamera = document.getElementById("fileElemCamera");
+const dropMessage = document.getElementById("drop-message");
+const modal = document.getElementById("mobileModal");
+const overlay = document.getElementById("modalOverlay");
+const modalHandle = document.getElementById("modalHandle");
+const cameraButton = document.getElementById("cameraButton");
+const modalContent = document.getElementById("modalContent");
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+
+//####################################################//
+// 기존 높이 조정 로직 유지
+function adjustDropAreaHeight() {
+  const btnHeight = document.getElementById('buttonWrapper').offsetHeight;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const extraMargin = isMobile ? 450 : 140;
+  dropArea.style.height = `${window.innerHeight - btnHeight - extraMargin}px`;
+}
+window.addEventListener('load', adjustDropAreaHeight);
+window.addEventListener('resize', adjustDropAreaHeight);
+
+// 파일 선택 이벤트
+dropArea.addEventListener("click", () => { fileInputAlbum.click(); });
+dropArea.addEventListener("dragover", e => { e.preventDefault(); dropArea.classList.add("dragover"); });
+dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+dropArea.addEventListener("drop", e => {
+  e.preventDefault();
+  dropArea.classList.remove("dragover");
+  const files = e.dataTransfer.files;
+  showPreview(files[0]);
+  fileInputAlbum.files = files;
+});
+fileInputAlbum.addEventListener("change", () => { if(fileInputAlbum.files[0]) showPreview(fileInputAlbum.files[0]); });
+if(!isMobile) cameraButton.textContent = "파일선택";
+cameraButton.addEventListener("click", () => { fileInputAlbum.click(); });
+fileInputCamera.addEventListener("change", () => { if(fileInputCamera.files[0]) showPreview(fileInputCamera.files[0]); });
+
+// ✅ 수정: 미리보기 로직 개선 (기존 이미지 삭제 후 추가)
+function showPreview(file){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // 1. 기존 이미지 삭제 (갱신)
+    let existingImg = dropArea.querySelector("img");
+    if(existingImg) { 
+        dropArea.removeChild(existingImg); 
+    }
+    
+    // 2. 메시지 숨기기
+    dropMessage.style.display = "none";
+
+    // 3. 새로운 이미지 요소 생성 및 속성 설정
+    const newImg = document.createElement("img");
+    newImg.src = e.target.result;
+
+    // 4. 이미지 추가
+    dropArea.appendChild(newImg);
+  }
+  reader.readAsDataURL(file);
+}
+
+// Modal 열기/닫기 (수정됨)
+function openModal() {
+  modal.classList.remove("slide-down");
+  
+  // ✅ 추가: 모달이 열릴 때 flex 속성 부여
+  modal.style.display = "flex";
+  overlay.style.display = "block";
+  document.body.classList.add("modal-open");
+  
+  modal.classList.add("slide-up");
+}
+
+function closeModal() {
+  modal.classList.remove("slide-up");
+
+  modal.classList.add("slide-down");
+  
+  modal.addEventListener("animationend", function handleAnimationEnd() {
+    if (modal.classList.contains("slide-down")) {
+      modal.style.display = "none";
+      overlay.style.display = "none";
+      modal.classList.remove("slide-down");
+      document.body.classList.remove("modal-open");
+    }
+    modal.removeEventListener("animationend", handleAnimationEnd);
+  });
+}
+
+// 예측 요청
+const form = document.getElementById("uploadForm");
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  
+  // ✅ 추가: 파일 선택 여부 확인
+  const fileToUpload = fileInputAlbum.files[0];
+  if (!fileToUpload) {
+      alert("이미지를 선택하거나 드래그하여 넣어주세요.");
+      return;
+  }
+  // ✅ 1. 요청 직전 로더 표시
+  showLoader();
+  const formData = new FormData(form);
+  try {
+    // URL은 Django 템플릿 태그로 처리되므로 그대로 둡니다.
+    const response = await fetch("{% url 'api_predict' %}",{
+      method:"POST",
+      headers:{"X-CSRFToken":form.querySelector('[name=csrfmiddlewaretoken]').value},
+      body: formData
+    });
+    console.log("=========")
+    const data = await response.json();
+    renderResult(data);
+    openModal();
+  }catch(error) {
+    console.error("서버 요청 오류:", error);
+    alert("예측 요청 중 오류가 발생했습니다.");
+    
+  } finally {
+    // ✅ 2. 응답을 받거나 오류가 발생하면 로더 숨김
+    hideLoader(); 
+  }
+});
+
+// 결과 렌더링 (PC/모바일 자동 적용)
+function renderResult(data){
+  let html = '<div class="result-container">';
+  if(data.image_data_uri){
+    html += `
+      <div class="result-card-img">
+        <img src="${data.image_data_uri}">
+      </div>
+      <div class="result-right">
+        <div class="result-card">
+          <h3>Top 3 예측결과</h3>
+          <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>
+        </div>`;
+    if(data.recycling_guide){
+      html += `
+        <div class="guide-card">
+          <h3>♻️ 분리수거 가이드</h3>
+          <p><strong>카테고리:</strong> ${data.recycling_guide.category}</p>
+          <p><strong>방법:</strong> ${data.recycling_guide.action}</p>
+        </div>`;
+    }
+    html += `</div>`; // result-right 닫기
+  }
+  html += '</div>'; // result-container 닫기
+  modalContent.innerHTML = html;
+}
+
+// Modal 닫기 이벤트 리스너 (중복 제거 및 정리)
+overlay.addEventListener("click", closeModal);
+
+// 드래그 내리기 (기존 로직 유지)
+let startY = 0, isDragging = false;
+modalHandle.addEventListener("mousedown", e => { 
+  isDragging=true; 
+  startY=e.clientY; 
+  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
+  e.preventDefault(); 
+});
+document.addEventListener("mousemove", e => { 
+  if(!isDragging) return; 
+  const moveY=e.clientY-startY; 
+  if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
+});
+document.addEventListener("mouseup", e => { 
+  if(!isDragging) return; 
+  isDragging=false; 
+  const moveY=e.clientY-startY; 
+  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
+  if(moveY>100){ closeModal(); } 
+  // 닫히지 않았으면 제자리로 복귀
+  else { modal.style.transform="translateY(0)"; }
+});
+modalHandle.addEventListener("touchstart", e => { 
+  isDragging=true; 
+  startY=e.touches[0].clientY; 
+  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
+});
+document.addEventListener("touchmove", e => { 
+  if(!isDragging) return; 
+  const moveY=e.touches[0].clientY-startY; 
+  if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
+});
+document.addEventListener("touchend", e => { 
+  if(!isDragging) return;
+  isDragging=false; 
+  const moveY=e.changedTouches[0].clientY-startY; 
+  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
+  if(moveY>100){ closeModal(); } 
+  // 닫히지 않았으면 제자리로 복귀
+  else { modal.style.transform="translateY(0)"; }
+});
+
+// 드래그 닫기 외에, 탭/클릭으로도 닫을 수 있게 추가
+modalHandle.addEventListener("click", closeModal);
+modalHandle.addEventListener("touchend", (e) => {
+    const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
+    if (Math.abs(moveY) < 5) { // 드래그 이동 거리가 작을 때만 탭으로 간주
+        closeModal();
+    }
+});
+
+</script>
+
+</body>
+</html>

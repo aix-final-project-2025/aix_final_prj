@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}스트레스 분석{% endblock %}
+
+{% block extra_head %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django 기반 분석 대시보드</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
+        .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
+        .loader { display: none; text-align: center; padding: 20px; font-size: 18px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    </style>
+</head>
+
+<div class="container">
+    <h1>Django 기반 스트레스 레벨 데이터 분석 대시보드</h1>
+    <div class="section">
+        <h2>1. 분류 모델 분석 (Stress Level)</h2>
+        <button id="run-classification">분류 모델링 실행</button>
+        <div class="loader" id="classification-loader">분석 중...</div>
+        <div class="results" id="classification-results"></div>
+    </div>
+    <div class="section">
+        <h2>2. 딥러닝(PyTorch)을 이용한 Stress 레벨 예측</h2>
+        <form id="dl-form">
+            <div class="form-grid">
+                <div><label for="age">Age:</label><input type="number" id="age" value="45" required></div>
+                
+                <div><label for="coffee_intake">Coffee Intake (0-8):</label><input type="number" id="coffee_intake" value="2" min="0" max="8" required></div>
+                <div><label for="bmi">BMI:</label><input type="number" id="bmi" value="25" required></div>
+                <div><label for="sleep_hours">Sleep Hours</label><input type="number" id="sleep_hours" value="6" required></div>
+                <div><label for="activity">Physical Activity (시간/주):</label><input type="number" id="activity" value="2" required></div>
+                <div>
+                    <label for="smoking">Smoking</label>
+                    <select id="smoking" required>
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="alcohol">Alcohol</label>
+                    <select id="alcohol" required>
+                        <option value="0" selected>No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="gender">Gender</label>
+                    <select id="gender" required>
+                        <option value="0" selected>Female</option>
+                        <option value="1">Male</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="country">Country:</label>
+                    <select id="country" required>
+                        <option value="0">Australia</option>
+                        <option value="1">Belgium</option>
+                        <option value="2">Brazil</option>
+                        <option value="3">Canada</option>
+                        <option value="4">China</option>
+                        <option value="5">Finland</option>
+                        <option value="6">France</option>
+                        <option value="7">Germany</option>
+                        <option value="8">India</option>
+                        <option value="9">Italy</option>
+                        <option value="10">Japan</option>
+                        <option value="11">Mexico</option>
+                        <option value="12">Netherlands</option>
+                        <option value="13">Norway</option>
+                        <option value="14" selected>South Korea</option>
+                        <option value="15">Spain</option>
+                        <option value="16">Sweden</option>
+                        <option value="17">Switzerland</option>
+                        <option value="18">UK</option>
+                        <option value="19">USA</option>
+                    </select>
+                </div> 
+                <div>
+                    <label for="occupation">Occupation</label>
+                    <select id="occupation" required>
+                        <option value="0">Healthcare</option>
+                        <option value="1" selected>Office</option>
+                        <option value="2">Other</option>
+                        <option value="3">Service</option>
+                        <option value="4">Student</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit">예측 실행</button>
+        </form>
+        <div class="loader" id="dl-loader">분석 중...</div>
+        <div class="results" id="dl-results"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // URL을 동적으로 생성하도록 수정
+    const CLASSIFICATION_URL = "{% url 'run_classification_st' %}";
+    const DL_PREDICT_URL = "{% url 'predict_dl_st' %}";
+
+    // fetch API 호출 부분을 Django URL로 변경
+    // 예: document.getElementById('run-regression').addEventListener...
+    // fetch(`${API_BASE_URL}/run-regression`, ... ) -> fetch(REGRESSION_URL, ...)
+
+    // 군집 분석 이미지 경로 수정
+    // html += `<img src="${API_BASE_URL}${data.plot_path}" ...>` 
+    // -> html += `<img src="{% static '' %}${data.plot_filename}" ...>`
+    // (JavaScript에서 Django static 태그를 직접 사용하기 어려우므로, 경로를 조합)
+
+    // 아래는 전체 수정된 JavaScript 코드
+    
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+    function showResults(id, content) { document.getElementById(id).innerHTML = content; }
+
+    
+    // 1. 분류 모델 실행
+    document.getElementById('run-classification').addEventListener('click', () => {
+        showLoader('classification-loader');
+        showResults('classification-results', '');
+        fetch(CLASSIFICATION_URL, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                let html = '<h3>분류 모델 성능 비교</h3>' + '<table><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th></tr>';
+                for (const modelName in data.results) {
+                    const res = data.results[modelName];
+                    html += `<tr><td>${modelName}</td><td>${res.accuracy}</td><td>${res.precision}</td><td>${res.recall}</td><td>${res.f1_score}</td></tr>`;
+                }
+                html += '</table>';
+                showResults('classification-results', html);
+            })
+            .catch(error => showResults('classification-results', '<p style="color:red;">분석 중 오류가 발생했습니다.</p>'))
+            .finally(() => hideLoader('classification-loader'));
+    });
+
+   
+
+    // 2. 딥러닝 예측 실행
+    document.getElementById('dl-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        showLoader('dl-loader');
+        showResults('dl-results', '');
+
+        const inputData = {
+            Age: parseInt(document.getElementById('age').value),
+            Country: parseInt(document.getElementById('country').value),
+            Coffee_Intake: parseInt(document.getElementById('coffee_intake').value),
+            BMI: parseInt(document.getElementById('bmi').value),            
+            Sleep_Hours: parseInt(document.getElementById('sleep_hours').value),
+            Physical_Activity_Hours: parseInt(document.getElementById('activity').value),
+            Smoking: parseInt(document.getElementById('smoking').value),
+            Alcohol_Consumption: parseInt(document.getElementById('alcohol').value),
+            Gender_Male: parseInt(document.getElementById('gender').value),
+            Occupation: parseInt(document.getElementById('occupation').value)
+        };
+
+        fetch(DL_PREDICT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(inputData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            let html = `<h3>예측 결과</h3>`;
+            html += `<p style="font-size: 1.2em;"><strong>예상 Stress Level: ${data.predicted_class}</strong></p>`;
+            html += `<h4>카테고리별 확률</h4>` + '<table><tr><th>카테고리</th><th>확률</th></tr>';
+            for (const category in data.probabilities) {
+                html += `<tr><td>${category}</td><td>${data.probabilities[category]}</td></tr>`;
+            }
+            html += '</table>';
+            showResults('dl-results', html);
+        })
+        .catch(error => showResults('dl-results', '<p style="color:red;">예측 중 오류가 발생했습니다.</p>'))
+        .finally(() => hideLoader('dl-loader'));
+    });
+    </script>
+    {% endblock %}
