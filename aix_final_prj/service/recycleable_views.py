@@ -132,11 +132,12 @@ class PredictListView(View):
 
         items = [
             {
-                "id": w.group_code.id,
+                "id": w.id,
                 "image_url": w.RESULT_IMAGE.url if w.RESULT_IMAGE else "",
                 "predicted_result": w.RESULT_MESSAGE or "",
                 "predicted_class": w.PREDICTED_CLASS or "",
-                "recycling_guide": w.RECYCLING_GUIDE or ""
+                "recycling_guide": w.RECYCLING_GUIDE or "",
+                "group_code_id": w.group_code_id or ""
             }
             for w in qs
         ]
@@ -169,6 +170,7 @@ class ClassChange(View):
             
             record_id = int(request.GET.get("id", 1))
             group_code_id = int(request.GET.get("group_code_id", 1))
+            print(f" request group_code_id ={group_code_id} ")
             print("===========ClassChange=============")
             # 전체 목록 조회
             try:
@@ -200,5 +202,5 @@ class ClassChange(View):
                 "category_id": record.PREDICTED_CLASS or "",
                 "guide": record.RECYCLING_GUIDE or ""
             }
-
+            print(f" response group_code_id ={updated_item['group_code_id']} ")
             return JsonResponse({"success": True, "updated_item": updated_item})
