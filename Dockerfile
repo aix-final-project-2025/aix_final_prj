@@ -30,6 +30,7 @@ ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=aix_final_prj.settings
 
 # 7️⃣ Cloud Run용 포트 노출 ($PORT 자동 제공됨, 기본 8080)
+ENV PORT=8080
 EXPOSE 8080
 
 # 8️⃣ Gunicorn 서버 실행 (Cloud Run 전용)
