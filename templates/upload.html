@@ -7,12 +7,14 @@
 <style>
   
 html, body {
-  margin: 15;
+  margin: 0;
   padding: 0;
-  height: 98%;
+  height: 100%;
   font-family: 'Arial', sans-serif;
-  font-size: 26px;
+  font-size: 16px;
   background: #f5f7fa;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 
 h1 {
@@ -24,45 +26,40 @@ h1 {
 #drop-area {
   border: 3px dashed #4caf50;
   border-radius: 12px;
-  width: 90%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  cursor: pointer;
-  box-sizing: border-box;
-   margin: 0 auto; /* 수평 중앙 정렬 */
-   /* ✅ 추가: 최소 높이 설정 (JS로 높이를 설정해도, 혹시 모를 경우를 대비) */
-   min-height: 300px; 
-   overflow: hidden; /* 이미지가 영역을 벗어나지 않도록 */
+  width: 92%;
+  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  cursor:pointer;
+  box-sizing:border-box;
+  min-height:280px;
+  overflow:hidden;
+  background:#fff;
+  padding:18px;
 }
+#drop-area.dragover { background:#e8f5e9; border-color:#2e7d32; }
+#drop-message { text-align:center; pointer-events:none; font-size:18px; color:#333; }
 
-#drop-area.dragover {
-  background: #e8f5e9;
-  border-color: #2e7d32;
-}
-
-#drop-message {
-  text-align: center;
-  pointer-events: none;
-  font-size: 32px;
-}
 
 input[type="file"] { display: none; }
 
 /* 버튼 영역 */
 #buttonWrapper {
-  display: flex;
-  justify-content: center;
-  gap: 60px;
-  padding: 25px 0 25px 0;
-  background: #f5f7fa;
-  position: fixed;
-  bottom: 0px;
-  left: 0;
-  height: 100px;
-  width: 100%;
-  z-index: 100;
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  padding:14px 12px;
+  background:transparent;
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:84px;
+  align-items:center;
+  z-index:100;
+  box-sizing:border-box;
 }
 
 button {
@@ -72,24 +69,33 @@ button {
   cursor: pointer;
   padding: 12px 120px;
 }
+button {
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  padding:10px 28px;
+}
+#cameraButton { background:#1976d2; color:#fff; }
+#submitButton { background:#4caf50; color:#fff; }
 
-#cameraButton { background: #1976d2; color: #fff; }
-#cameraButton:hover { background: #1565c0; }
-#submitButton { background: #4caf50; color: #fff; }
-#submitButton:hover { background: #43a047; }
 
-/* ✅ 수정: 드래그 영역 이미지 - 이미지가 컨테이너 내에서 잘 보이도록 속성 조정 */
 #drop-area img {
-  margin: 0; 
-  max-width: 100%; 
-  max-height: 100%; 
-  height: auto; 
-  width: auto; 
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  object-fit: contain; 
+  margin:0;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  border-radius:8px;
 }
 
+/* Modal Overlay */
+#modalOverlay {
+  display:none;
+  position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.45);
+  z-index:999;
+}
 
 /* Modal Sheet */
 #modalOverlay {
@@ -115,12 +121,9 @@ button {
   border-top-right-radius: 20px;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
   z-index: 1000;
-  /* overflow-y: auto;  -> 제거 또는 hidden으로 변경하여 내용이 스크롤되도록 함 */
   overflow-y: hidden;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  /* ✅ 추가: flex로 설정하여 handle과 content를 수직 배치 */
-  /* display: flex; */
   flex-direction: column;
 }
 
@@ -265,7 +268,7 @@ button {
 
 /* 분리처리 안내 카드 */
 .processing-card {
-  width: 96%;
+  width: 99%;
   padding: 12px;
   border-radius: 10px;
   background-color: #fff4e5;
@@ -337,9 +340,13 @@ button {
   /* ✅ 수정: 모바일 모달 최대 높이 설정 */
   #mobileModal { max-height: 54vh; } 
   .processing-card {
+     width: 96%;
     font-size: 14px;
     padding: 10px;
   }
+
+
+
 
   /* ... (기존 모바일 스타일 유지) ... */
   .result-card,
