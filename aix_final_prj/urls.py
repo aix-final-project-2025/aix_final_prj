@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from core import views # 세희추가
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),  # core 앱의 URL 포함
     path("dev/", include("aix_final_prj.dev.urls1")),  # 개발자 1
     path("dev/", include("aix_final_prj.dev.urls2")),  # 개발자 2
+    path('', include('core.urls')), # 세희
+    path('recyclables/', views.recyclables_view, name='recyclables'), # 세희
 ]
 
 if settings.DEBUG:

@@ -14,12 +14,13 @@ from playsound import playsound
 from pydub import AudioSegment
 from pydub.playback import play
 from langchain import LLMChain, PromptTemplate
-from langchain_openai import OpenAI
+from langchain.chat_models import ChatOpenAI
 
 # ------------------------
 # 1. OpenAI API Key 로드
 # ------------------------
 load_dotenv()
+
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
     raise ValueError('OPENAI_API_KEY가 설정되어 있지 않습니다. .env 파일 또는 환경변수 필요')
