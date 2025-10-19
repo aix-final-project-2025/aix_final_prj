@@ -103,7 +103,7 @@ body.modal-open .container { pointer-events:none; user-select:none; }
       <h4>쓰레기 분류</h4>
       <div class="select-button-group" id="modal-category-buttons"></div>
     </div>
-    <button id="modal-update-btn">수정</button>
+    <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button>
   </div>
 </div>
 
@@ -186,41 +186,59 @@ async function loadData(){
 function scrollHandler(){ if((window.innerHeight+window.scrollY)>=document.body.offsetHeight-300) loadData();}
 window.addEventListener('scroll',scrollHandler);
 
-/** 모달 열기 */
-document.getElementById('waste-container').addEventListener('click',function(e){
-  const card=e.target.closest('.card');
+
+// 모달 열기
+document.getElementById('waste-container').addEventListener('click', function(e){
+  const card = e.target.closest('.card');
   if(!card) return;
-  if(window.innerWidth<768){
-    const imgSrc=card.querySelector('img').src;
-    const predicted=card.querySelector('.content-box strong').nextSibling.textContent;
-    const guide=card.querySelectorAll('.content-box')[1].textContent;
-    const top3=card.querySelectorAll('.content-box')[2].textContent;
-    const categoryId=parseInt(card.querySelector('select')?.value||0);
-    selectedCategoryId=categoryId;
+  if(window.innerWidth < 768){
+    const imgSrc = card.querySelector('img').src;
+    const predicted = card.querySelector('.content-box strong').nextSibling.textContent;
+    const guide = card.querySelectorAll('.content-box')[1].textContent;
+    const top3 = card.querySelectorAll('.content-box')[2].textContent;
+    const categoryId = parseInt(card.querySelector('select')?.value || 0);
+    selectedCategoryId = categoryId;
 
-    document.getElementById('modal-image').src=imgSrc;
-    document.getElementById('modal-predicted').innerText=predicted;
-    document.getElementById('modal-guide').innerText=guide;
-    document.getElementById('modal-top3').innerText=top3;
+    document.getElementById('modal-image').src = imgSrc;
+    document.getElementById('modal-predicted').innerText = predicted;
+    document.getElementById('modal-guide').innerText = guide;
+    document.getElementById('modal-top3').innerText = top3;
 
-    const buttonGroup=document.getElementById('modal-category-buttons');
-    buttonGroup.innerHTML='';
+    const buttonGroup = document.getElementById('modal-category-buttons');
+    buttonGroup.innerHTML = '';
     categories.forEach(c=>{
-      const btn=document.createElement('button');
-      btn.innerText=c.name;
-      btn.className=(c.id===categoryId?'active':'');
-      btn.addEventListener('click',()=>{selectedCategoryId=c.id; Array.from(buttonGroup.children).forEach(b=>b.classList.remove('active')); btn.classList.add('active');});
+      const btn = document.createElement('button');
+      btn.innerText = c.name;      // 버튼에 표시될 이름
+      btn.dataset.codeId = c.id;   // 코드값 저장
+      btn.className = (c.id === categoryId ? 'active' : '');
+      btn.addEventListener('click', ()=>{
+        selectedCategoryId = c.id; 
+        Array.from(buttonGroup.children).forEach(b => b.classList.remove('active')); 
+        btn.classList.add('active');
+      });
       buttonGroup.appendChild(btn);
     });
 
     document.getElementById('modal-sheet').classList.add('show');
-    document.body.style.overflow='hidden';
+    document.body.style.overflow = 'hidden';
     document.body.classList.add('modal-open');
   }
 });
 
+
+// 수정 버튼 클릭 시
+document.getElementById('modal-update-btn').addEventListener('click', ()=>{
+  if(selectedCategoryId === null) {
+    alert("항목을 선택해주세요.");
+    return;
+  }
+  // 서버로 선택한 코드값 전송
+  predicChange(selectedCategoryId);
+});
+
 /** 모달 닫기 */
 document.querySelector('.modal-close').addEventListener('click',()=>{
+  console.log(" close modal =======")
   const modal=document.getElementById('modal-sheet');
   modal.classList.remove('show');
   document.body.style.overflow='';
