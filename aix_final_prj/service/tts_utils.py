@@ -15,6 +15,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 from langchain import LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
+import openai
+from langchain.llms import OpenAI
 
 # ------------------------
 # 1. OpenAI API Key 로드
