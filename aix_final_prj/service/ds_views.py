@@ -91,8 +91,8 @@ def coffee_analysis_view(request):
         })
 
     # Age group analysis
-    df['Age_Group'] = pd.cut(df['Age'], bins=[0, 25, 35, 45, 55, 100],
-                            labels=['18-25세', '26-35세', '36-45세', '46-55세', '55세 이상'])
+    df['Age_Group'] = pd.cut(df['Age'], bins=[0, 20, 30, 40, 50, 60, 100],
+                            labels=['18-20세', '21-30세', '31-40세', '41-50세', '51-60세','61세 이상'])
     age_group_stats = df.groupby('Age_Group')['Coffee_Intake'].agg(['mean', 'std', 'count']).round(2)
     age_summary = [
         {'age_group': age_group, 'mean': stats['mean'], 'std': stats['std'], 'count': stats['count']}
