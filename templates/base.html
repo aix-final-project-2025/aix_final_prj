@@ -24,8 +24,7 @@
         <div class="sidebar-header">
         </div>
         
-        <a href="{% url 'core:home' %}"><span class="icon">🏠</span> <span class="text">Home</span></a>
-        
+
         <a href="{% url 'upload' %}">
             <span class="icon">
                 <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
@@ -33,6 +32,14 @@
                     style="width: 30px; height: 30px;">
             </span>
             <span class="text">recyclables</span>
+        </a>
+        <a href="{% url 'predict_request' %}">
+            <span class="icon">
+                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
+                    alt="recyclables icon" 
+                    style="width: 30px; height: 30px;">
+            </span>
+            <span class="text">recycle data</span>
         </a>
         
         <a href="{% url 'ds' %}">

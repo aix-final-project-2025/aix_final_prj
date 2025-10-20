@@ -1,6 +1,9 @@
-<!doctype html>
-<html>
-<head>
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}쓰레기 분류기{% endblock %}
+
+{% block extra_head %}
 <meta charset="utf-8">
 <title>쓰레기 분류기</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -472,7 +475,9 @@ body.modal-open { overflow: hidden; }
   <div id="modalHandle"></div>
   <div id="modalContent"></div>
 </div>
+{% endblock %}
 
+{% block extra_script %}
 <script>
 
 
@@ -700,6 +705,4 @@ modalHandle.addEventListener("touchend", (e) => {
 });
 
 </script>
-
-</body>
-</html>
+{% endblock %}

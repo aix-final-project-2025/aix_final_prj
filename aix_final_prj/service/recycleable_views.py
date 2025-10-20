@@ -64,7 +64,7 @@ class PredictApiView(View):
         except Exception as e:
             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
 
-        # 3️⃣ DB에 결과 등록
+        #DB에 결과 등록
         try:
             # 예측 결과에서 group_code_name 가져오기 (예: "steel_can1")
             predicted_class = res.get("predicted_class")  # predict_from_pil에서 반환되도록 수정 필요
@@ -72,32 +72,135 @@ class PredictApiView(View):
             group_code = None
             if predicted_class:
                 group_code = GroupCode.objects.filter(code=predicted_class).first()
-                if group_code:
-                   numeric_code = group_code.numeric_code  # numeric_code 가져오기
+                # if group_code:
+                #    numeric_code = group_code.id  # numeric_code 가져오기
 
+
+            result_message = res.get('result_message', '')
             print(f"predicted_class {res.get('predicted_class', '')}")
             print(f"confidence {res.get('confidence', '')}")
             print(f"confidence_level {res.get('confidence_level', '')}")
-            print(f"result_message {res.get('result_message', '')}")
+            print(f"result_message {result_message}")
             print(f"top3 {res.get('top3', '')}")
             print(f"category {res.get('category', '')}")
-            print(f"recycling_guide {group_code}")
+            print(f"recycling_guide {group_code.id}")
             # RecyclableResult 저장
             RecyclableResult.objects.create(
                 PREDICTED_CLASS=res.get("predicted_class", ""),
                 CONFIDENCE=res.get("confidence", 0.0),
                 CONFIDENCE_LEVEL=res.get("confidence_level", ""),
-                RESULT_MESSAGE=res.get("result_message", ""),
+                RESULT_MESSAGE=result_message,
                 TOP_3=res.get("top3", ""),
                 RECYCLING_GUIDE=res.get("recycling_guide", ""),
                 RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
-                group_code_id=group_code
+                group_code_id=group_code.id
             )
         except Exception as e:
             # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
             print("DB save error:", e)
 
-        # 4️⃣ JSON 반환
-
-        translate_and_tts('"en": 원문 자연스럽게 다듬기')
+        enable = os.getenv('ENABLE')
+        res["tts_able"] = enable
+        if(enable == 1):
+            #JSON 반환
+            tts_name = translate_and_tts(f'{result_message}','en')
+            host = request.scheme + "://" + request.get_host()
+            res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
+     
         return JsonResponse(res)
+
+"""
+생활쓰레기 리스트화면 호출
+"""    
+class PredictListPageView(TemplateView):
+    print('PredictListView called')
+    template_name = "predict_list.html"
+
+
+"""
+생활쓰레기 리스트조회
+"""
+class PredictListView(View):
+    def get(self, request):
+        page = int(request.GET.get("page", 1))
+        per_page = 20
+        start = (page - 1) * per_page
+        end = page * per_page
+
+        # QuerySet 슬라이싱
+        qs = RecyclableResult.objects.order_by('-id')[start:end]
+
+        items = [
+            {
+                "id": w.id,
+                "image_url": w.RESULT_IMAGE.url if w.RESULT_IMAGE else "",
+                "predicted_result": w.RESULT_MESSAGE or "",
+                "predicted_class": w.PREDICTED_CLASS or "",
+                "recycling_guide": w.RECYCLING_GUIDE or "",
+                "group_code_id": w.group_code_id or ""
+            }
+            for w in qs
+        ]
+
+        has_more = RecyclableResult.objects.count() > end
+
+        return JsonResponse({"items": items, "has_more": has_more})
+
+
+"""
+코드목록 가져오기
+"""
+class CodeList(View):   
+    def get(self, request):
+            print("===========CodeList=============")
+            # 전체 목록 조회
+            qs = GroupCode.objects.order_by('-id')
+            print(qs.first().__dict__)  # 첫 번째 객체의 내부 dict 확인
+            # JSON으로 변환
+            items = [
+                {"id": w.id, "name": w.name}  # 실제 존재하는 필드로 수정
+                for w in qs
+            ]
+
+            return JsonResponse({"codelist": items})
+    
+
+class ClassChange(View):   
+    def get(self, request):
+            
+            record_id = int(request.GET.get("id", 1))
+            group_code_id = int(request.GET.get("group_code_id", 1))
+            print(f" request group_code_id ={group_code_id} ")
+            print("===========ClassChange=============")
+            # 전체 목록 조회
+            try:
+                print(f" record_id {record_id}")
+                record = RecyclableResult.objects.get(id=record_id)
+                print(f" record {record}")
+            except RecyclableResult.DoesNotExist:
+                return JsonResponse({"success": False, "error": "해당 레코드를 찾을 수 없습니다."})
+
+            # 새로운 group_code 존재 여부 확인
+            try:
+                print(f" group_code_id {group_code_id}")
+                new_group_code = GroupCode.objects.get(id=group_code_id)
+                print(f" new_group_code {new_group_code}")
+            except GroupCode.DoesNotExist:
+                return JsonResponse({"success": False, "error": "해당 GroupCode가 존재하지 않습니다."})
+
+            print(" 1 change class. =========================")
+            # group_code 변경 후 저장
+            record.group_code = new_group_code
+            record.save()
+
+            print(" 2 change class. =========================")
+            updated_item = {
+                "id": record.id,
+                "group_code_id": record.group_code.id,
+                "group_code_name": record.group_code.name,
+                "predicted_result": record.RESULT_MESSAGE or "",
+                "category_id": record.PREDICTED_CLASS or "",
+                "guide": record.RECYCLING_GUIDE or ""
+            }
+            print(f" response group_code_id ={updated_item['group_code_id']} ")
+            return JsonResponse({"success": True, "updated_item": updated_item})
