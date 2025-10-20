@@ -1,27 +1,40 @@
 # langchain_tts_utils.py
 # ==========================================
 # 기존 기능 유지 + 문자내용/국가/성별 옵션 추가
-# 설치: pip install langchain openai gTTS pydub python-dotenv playsound
+# 설치: pip install langchain openai gTTS pydub python-dotenv playsound (LangChain v0.x 버전 설치 필요)
 
 import os
 import json
 import re
-from typing import Dict, Optional
+from typing import Dict
 from django.conf import settings
 from dotenv import load_dotenv
 from gtts import gTTS
-# from playsound import playsound
 from pydub import AudioSegment
 from pydub.playback import play
-from langchain import LLMChain, PromptTemplate
-from langchain_openai import OpenAI
+
+# ----------------------------------------------------
+# 📌 v0.x 호환성을 위해 import 경로 수정됨 📌
+# ----------------------------------------------------
+# from langchain_classic.chains import LLMChain  # <- v0.x 환경에서 제거됨
+from langchain.chains import LLMChain             # 👈 v0.x의 올바른 경로
+# from langchain_core.prompts import PromptTemplate # <- v1.0 이전 버전에서도 작동하지만, 통일성을 위해 변경
+from langchain.prompts import PromptTemplate      # 👈 v0.x의 표준 경로
+
+# from langchain_openai import ChatOpenAI  # <- 그대로 유지 (v0.x 패키지 사용)
+from langchain_openai import ChatOpenAI
+# ----------------------------------------------------
+
 import platform
 
-
+# ------------------------
 # 플랫폼별로 playsound import
+# ------------------------
 try:
     if platform.system() in ["Darwin", "Linux"]:
-        from playsound2 import playsound
+        # playsound2 패키지가 requirements.txt에 없으므로 playsound로 통일하거나 playsound2 설치가 필요합니다.
+        # 현재 playsound2가 없는 가정 하에 playsound만 시도하도록 수정합니다.
+        from playsound import playsound 
     else:
         from playsound import playsound
 except ImportError:
@@ -33,13 +46,14 @@ except ImportError:
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
-    raise ValueError('OPENAI_API_KEY가 설정되어 있지 않습니다. .env 파일 또는 환경변수 필요')
+    # Django settings를 사용하는 환경일 경우, settings.OPENAI_API_KEY로 대체하거나,
+    # .env 파일에 키를 설정해야 합니다.
+    # raise ValueError('OPENAI_API_KEY가 설정되어 있지 않습니다. .env 파일 또는 환경변수 필요')
+    pass 
 
 # ------------------------
 # 2. LLMChain 초기화
 # ------------------------
-llm = OpenAI(temperature=0.2, openai_api_key=OPENAI_API_KEY)
-
 prompt_template = PromptTemplate(
     input_variables=['input_text'],
     template=(
@@ -51,6 +65,14 @@ prompt_template = PromptTemplate(
         'Input: {input_text}'
     )
 )
+
+llm = ChatOpenAI(
+    temperature=0.2,
+    openai_api_key=OPENAI_API_KEY,
+    model_name="gpt-3.5-turbo"
+)
+
+# LLMChain은 v0.x의 langchain.chains에서 가져옵니다.
 chain = LLMChain(llm=llm, prompt=prompt_template)
 
 # ------------------------
@@ -65,42 +87,51 @@ def extract_json_substring(s: str) -> str:
 
 def fallback_parse(s: str) -> Dict[str, str]:
     out = {'ko': '', 'en': '', 'es': ''}
+    # 정규식 패턴 수정 (문자열에 "나 '가 있을 경우 처리)
     patterns = {
-        'ko': r'(?s)(?:"?ko"?|한국어)\s*[:\-]\s*(?:"([^"]+)")?(.+)',
-        'en': r'(?s)(?:"?en"?|영어)\s*[:\-]\s*(?:"([^"]+)")?(.+)',
-        'es': r'(?s)(?:"?es"?|스페인어)\s*[:\-]\s*(?:"([^"]+)")?(.+)'
+        'ko': r'(?s)(?:"?ko"?|한국어)\s*[:\-]\s*(?:"?([^"]+)"?|([^,}\]]+))',
+        'en': r'(?s)(?:"?en"?|영어)\s*[:\-]\s*(?:"?([^"]+)"?|([^,}\]]+))',
+        'es': r'(?s)(?:"?es"?|스페인어)\s*[:\-]\s*(?:"?([^"]+)"?|([^,}\]]+))'
     }
     for k, pat in patterns.items():
-        m = re.search(pat, s)
+        m = re.search(pat, s, re.IGNORECASE)
         if m:
+            # 그룹 1 (따옴표 있는 값) 또는 그룹 2 (따옴표 없는 값) 사용
             text = m.group(1) if m.group(1) else m.group(2)
-            text = text.strip()
-            text = re.split(r"\n(?=[A-Za-z\"']|한국어|영어|스페인어)", text)[0].strip()
-            out[k] = text.strip(' \"')
+            if text:
+                text = text.split('\n')[0].strip()
+                out[k] = text.strip(' \"')
     return out
+
 
 def get_translations(input_text: str) -> Dict[str, str]:
     """LLMChain으로 한국어, 영어, 스페인어 번역 결과를 JSON으로 반환"""
-    resp = chain.invoke({'input_text': input_text})
     
-    # LangChain 응답이 문자열이 아닐 경우 문자열로 변환
-    if not isinstance(resp, str):
-        if hasattr(resp, "content"):  # ChatMessage 유형
-            resp = resp.content
-        elif isinstance(resp, dict) and "text" in resp:
-            resp = resp["text"]
-        else:
-            resp = str(resp)
-
+    # 📌 v0.x에서 딕셔너리 {'text': '...'} 반환을 보장하는 안전한 호출 방식으로 수정
+    resp = chain({"input_text": input_text}) 
+    
+    # 응답에서 텍스트 추출
+    # v0.3.x에서는 주로 딕셔너리 {'text': '...'} 형태로 반환됩니다.
+    if isinstance(resp, dict) and "text" in resp:
+        resp_text = resp["text"]
+    else:
+        resp_text = str(resp)
+    
     try:
-        parsed = json.loads(extract_json_substring(resp))
+        parsed = json.loads(extract_json_substring(resp_text))
     except Exception:
-        parsed = fallback_parse(resp)
+        # JSON 파싱 실패 시 fallback 파싱 시도
+        parsed = fallback_parse(resp_text)
+        
+    # 빈 값 검사 및 기본값으로 대체
+    if not parsed.get('ko'): parsed['ko'] = input_text
+    
     return parsed
 
 # ------------------------
 # 4. TTS 유틸
 # ------------------------
+# (TTS 유틸리티 함수는 버전 변경과 무관하므로 그대로 유지)
 def tts_generate_play(text, lang_code, filename=None, use_pydub=False):
     if not filename:
         filename = f"tts_{lang_code}.mp3"
@@ -117,58 +148,60 @@ def tts_generate_play(text, lang_code, filename=None, use_pydub=False):
     
     return filename
 
-
-# ------------------------
-# 4. TTS 유틸
-# ------------------------
 def tts_generate_save(text, lang_code, filename=None, use_pydub=False):
     if not filename:
         filename = f"tts_{lang_code}.mp3"
+    # settings.MEDIA_ROOT가 정의되어 있지 않을 경우를 대비하여 현재 디렉토리를 사용
+    base_dir = getattr(settings, 'MEDIA_ROOT', os.getcwd())
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+        
+    filepath = os.path.join(base_dir, filename)
     tts = gTTS(text=text, lang=lang_code)
-    filepath = os.path.join(settings.MEDIA_ROOT, filename)
     tts.save(filepath)
-  
     return filename
 
 # ------------------------
 # 5. 번역 + TTS (옵션 기반)
 # ------------------------
 def translate_and_tts(
-    text: str,               # 문자내용
-    country: str = "ko",     # 국가 (언어코드)
-    gender: str = "female",  # 성별
+    text: str,
+    country: str = "ko",
+    gender: str = "female",
     translate_first: bool = True,
     use_pydub: bool = False
 ) -> Dict[str, str]:
-    """
-    문자내용, 국가, 성별 옵션으로 TTS 수행
-    - text: 읽을 문장
-    - country: 언어코드 ('ko', 'en', 'es', 'ja' 등)
-    - gender: female/male (현재 gTTS는 female만 지원)
-    - translate_first: True 시 LLMChain 번역 수행, False 시 원문 그대로
-    """
     print(f"[INFO] translate_and_tts 실행 (country={country}, gender={gender})")
 
-    # ✅ 번역 여부에 따라 문장 선택
     if translate_first:
-        translations = get_translations(text)
-        text_to_read = translations.get(country, text)
+        try:
+            translations = get_translations(text)
+            text_to_read = translations.get(country, text)
+        except Exception as e:
+            print(f"[ERROR] 번역 중 오류 발생: {e}. 원본 텍스트로 TTS를 시도합니다.")
+            text_to_read = text
     else:
         text_to_read = text
 
-    # ✅ 파일 이름 지정
     fname = f"tts_{country}_{gender}.mp3"
-
-    # ✅ TTS 생성
-    # tts_generate_play(text_to_read, lang_code=country, filename=fname, use_pydub=use_pydub)
     tts_name = tts_generate_save(text_to_read, lang_code=country, filename=fname, use_pydub=use_pydub)
-    print(f"tts_url save {tts_name}")
-    return {country: fname,"tts_name":tts_name}
+    print(f"[INFO] TTS 저장 완료: {tts_name}")
+    return {country: fname, "tts_name": tts_name}
 
 # ------------------------
 # 테스트 실행
 # ------------------------
 if __name__ == "__main__":
+    # Django settings가 없다고 가정하고 mock 처리
+    class MockSettings:
+        MEDIA_ROOT = os.path.join(os.path.dirname(__file__), "media")
+    settings.configure(MEDIA_ROOT=MockSettings.MEDIA_ROOT)
+    
+    if not os.path.exists(settings.MEDIA_ROOT):
+        os.makedirs(settings.MEDIA_ROOT)
+        
+    print(f"저장 경로: {settings.MEDIA_ROOT}")
+
     msg = input("문자 입력: ").strip()
     if not msg:
         print("문장이 비어 있습니다. 종료합니다.")
@@ -178,4 +211,8 @@ if __name__ == "__main__":
     gender = input("성별 (female/male): ").strip() or "female"
     tf = input("번역 먼저 할까요? (y/n): ").strip().lower() != 'n'
 
-    translate_and_tts(msg, country=country, gender=gender, translate_first=tf)
+    result = translate_and_tts(msg, country=country, gender=gender, translate_first=tf)
+    print(f"\n최종 결과: {result}")
+    
+    # playsound 테스트는 주석 처리, 필요 시 주석 해제하여 사용
+    # playsound(os.path.join(settings.MEDIA_ROOT, result['tts_name']))

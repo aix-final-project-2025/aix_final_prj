@@ -48,9 +48,9 @@ def create_initial_groupcode(apps, schema_editor):
             if not GroupCode.objects.filter(numeric_code=numeric_code).exists():
                 break
         GroupCode.objects.get_or_create(
-            name=name,
+            code=code,
             defaults={
-                "code": code,
+                "name": name,
                 "numeric_code": numeric_code,
                 "desc": f"{name}"
             }

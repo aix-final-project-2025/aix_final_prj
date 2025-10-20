@@ -101,8 +101,10 @@ class PredictApiView(View):
 
         enable = os.getenv('ENABLE')
         res["tts_able"] = enable
-        if(enable == 1):
+        print(f"  TTS called ===enable{enable}")
+        if(enable == '1'):
             #JSON 반환
+            print("  TTS called =====================================")
             tts_name = translate_and_tts(f'{result_message}','en')
             host = request.scheme + "://" + request.get_host()
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
