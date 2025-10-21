@@ -18,7 +18,7 @@ class ServiceConfig(AppConfig):
             # class_json = BASE_DIR / "keras" / "class_names.json"
             model_path = str(BASE_DIR / "keras" / "trash_classifier_efficientnetv2_best_final.keras")
             class_json = str(BASE_DIR / "keras" / "class_names.json")
-            # model load
+            # model load 
             try:
                 print(f"model_path=======================")
                 print(f"model_path=={model_path}")
