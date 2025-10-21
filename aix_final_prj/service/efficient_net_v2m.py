@@ -95,6 +95,8 @@ def load_model_and_classes(model_path=MODEL_PATH, class_names_path=CLASS_NAMES_P
     return _MODEL, _CLASS_NAMES
 
 
+
+
 def set_class_names(class_names):
     global _CLASS_NAMES
     _CLASS_NAMES = list(class_names)
@@ -165,7 +167,7 @@ def classify_image(model, image_path, classes, threshold=0.5):
 
 
 # ver 1
-def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
+def predict_from_pil_ver_1(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     """
     PIL 이미지 → 예측 수행 → 결과 반환
     """
@@ -222,62 +224,71 @@ def predict_from_pil(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     }
 
 
-# def predict_from_pil_v2(image: Image.Image, threshold=THRESHOLD_DEFAULT):
-#     """
-#     PIL 이미지 → 예측 수행 → 결과 반환
-#     """
-#     global _MODEL, _CLASS_NAMES
-#     if _MODEL is None or _CLASS_NAMES is None:
-#         raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
 
-#     # x = preprocess_image(image)
-#     # print(x)
-#     # preds = _MODEL.predict(x, verbose=1)[0]
+def predict_from_pil(image: Image.Image, threshold=0.5):
+    """
+    PIL 이미지 → 모델 예측 → 결과 리턴
+    """
+    global _MODEL, _CLASS_NAMES
 
-#     # ✅ 이미 PIL.Image 객체이므로 open() 불필요
-#     img = image.convert('RGB').resize((224, 224))
+    if _MODEL is None or _CLASS_NAMES is None:
+        raise RuntimeError("Model or class names not loaded. Call load_model_and_classes() first.")
 
-#     # ✅ 올바른 전처리
-#     x = tf.keras.preprocessing.image.img_to_array(img) / 255.0
-#     x = np.expand_dims(x, axis=0)
+    # 이미지 전처리 (방향보정 + 224x224 크기)
+    image = fix_image_orientation(image)
+    x = preprocess_image(image)  # (1, 224, 224, 3)
 
-#     preds = _MODEL.predict(x)
-#     class_idx = np.argmax(preds, axis=1)[0]
+    # 예측 수행
+    preds = _MODEL.predict(x, verbose=0)[0]
+    max_idx = int(np.argmax(preds))
+    predicted_class = _CLASS_NAMES[max_idx]
+    max_prob = float(preds[max_idx])
+
+    # 결과 판정
+    if max_prob >= threshold:
+        result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
+        confidence_level = "높음"
+    else:
+        result_message = f"🟡 [불확실]: {predicted_class} (신뢰도 {max_prob*100:.1f}%)"
+        confidence_level = "낮음"
+
+    # 상위 3개 클래스
+    top3_idx = np.argsort(preds)[::-1][:3]
+    top_3 = [(_CLASS_NAMES[i], float(preds[i])) for i in top3_idx]
+
+    # 분리배출 가이드 불러오기
+    guide = get_recycling_guidance(predicted_class)
+
+    # 이미지 위에 예측 텍스트 표시
+    result_img = image.copy()
+    draw = ImageDraw.Draw(result_img)
+    try:
+        font = ImageFont.truetype("arial.ttf", 24)
+    except:
+        font = ImageFont.load_default()
+    draw.text((10, 10), f"{predicted_class} ({max_prob*100:.1f}%)", fill="red", font=font)
+
+    return {
+        "predicted_class": predicted_class,
+        "confidence": max_prob,
+        "result_message": result_message,
+        "confidence_level": confidence_level,
+        "top_3": top_3,
+        "recycling_guide": guide,
+        "result_image": result_img
+    }
 
 
-#     max_idx = int(np.argmax(preds))
-#     print(max_idx)
-#     print(f"====={_CLASS_NAMES[max_idx]}=")    
 
-#     max_prob = float(preds[max_idx])
-#     predicted_class = _CLASS_NAMES[max_idx]
-
-
-
-#     if class_idx in TRASH_GUIDE_MAP:
-#         label = "♻️ 재활용 가능 쓰레기"
-#     else:
-#         label = "🚮 일반 쓰레기"
-#     confidence = float(np.max(preds))
-
-#     if max_prob >= threshold:
-#         result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
-#         confidence_level = "높음"
-#     else:
-#         result_message = f"🟡 [불확실]: {predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
-#         confidence_level = "낮음"
-  
-
-#     top3_idx = np.argsort(preds)[::-1][:3]
-#     top_3 = [( _CLASS_NAMES[int(i)], float(preds[int(i)]) ) for i in top3_idx]
-
-#     guide = get_recycling_guidance(predicted_class)
-
-#     return {
-#         "predicted_class": predicted_class,
-#         "confidence": max_prob,
-#         "result_message": result_message,
-#         "confidence_level": confidence_level,
-#         "top_3": top_3,
-#         "recycling_guide": guide
-#     }
+# ==========================
+# 사용 예시
+# ==========================
+if __name__ == "__main__":
+    model, classes = load_model_and_classes()
+    
+    # 테스트용 이미지
+    test_img_path = "test_image.jpg"
+    if os.path.exists(test_img_path):
+        pil_img = Image.open(test_img_path).convert("RGB")
+        result = predict_image(pil_img)
+        print(result)

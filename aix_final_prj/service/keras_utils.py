@@ -38,7 +38,7 @@ def pil_to_base64(image: Image.Image) -> str:
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return img_str
 
-def fix_image_orientation(image: Image.Image) -> Image.Image:
+def fix_image_orientation_ver_1(image: Image.Image) -> Image.Image:
     try:
         exif = image._getexif()
         
@@ -55,4 +55,28 @@ def fix_image_orientation(image: Image.Image) -> Image.Image:
                     break
     except Exception as e:
         print("EXIF 처리 오류:", e)
+    return image
+
+def fix_image_orientation(image):
+    """
+    EXIF 방향 정보를 이용해 이미지 방향을 바로잡음
+    """
+    try:
+        exif = getattr(image, '_getexif', lambda: None)()
+        if exif is not None:
+            orientation_key = next(
+                (key for key, val in ExifTags.TAGS.items() if val == 'Orientation'), None
+            )
+            if orientation_key and orientation_key in exif:
+                orientation = exif[orientation_key]
+                if orientation == 3:
+                    image = image.rotate(180, expand=True)
+                elif orientation == 6:
+                    image = image.rotate(270, expand=True)
+                elif orientation == 8:
+                    image = image.rotate(90, expand=True)
+    except Exception:
+        # EXIF이 없거나 오류 발생 시 그냥 그대로 반환
+        pass
+
     return image

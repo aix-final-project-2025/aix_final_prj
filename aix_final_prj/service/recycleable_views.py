@@ -63,7 +63,7 @@ class PredictApiView(View):
         # predict 호출
         try:
             res = predict_from_pil(image)
-            
+
             res["result_image"] = pil_to_base64(res["result_image"])
             res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
         except Exception as e:
@@ -114,6 +114,10 @@ class PredictApiView(View):
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
      
         return JsonResponse(res)
+
+
+
+
 
 """
 생활쓰레기 리스트화면 호출
@@ -210,3 +214,6 @@ class ClassChange(View):
             }
             print(f" response group_code_id ={updated_item['group_code_id']} ")
             return JsonResponse({"success": True, "updated_item": updated_item})
+    
+class Settings(TemplateView):
+    template_name = "settings.html"
