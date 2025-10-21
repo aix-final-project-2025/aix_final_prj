@@ -1,5 +1,9 @@
-<!doctype html>
-<html lang="ko">
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}BMI 분석{% endblock %}
+
+{% block extra_head %}
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -169,7 +173,9 @@
       </div>
     </div>
   </div>
+ {% endblock %}
 
+  {% block extra_script %}
 <script>
 /*
   동작 요약:
@@ -359,5 +365,4 @@ renderVoiceList();
 /* Expose settings for console debugging */
 window._appSettings = settings;
 </script>
-</body>
-</html>
+{% endblock %}
