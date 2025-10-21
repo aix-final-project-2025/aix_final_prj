@@ -30,28 +30,10 @@
 <div class="container">
     <h1>Django 기반 수면부족 데이터 분석 대시보드</h1>
     <div class="section">
-        <h2>1. 회귀 모델 분석 (수면 시간 예측)</h2>
-        <button id="run-regression">회귀 모델링 실행</button>
-        <div class="loader" id="regression-loader">분석 중...</div>
-        <div class="results" id="regression-results"></div>
-    </div>
-    <div class="section">
-        <h2>2. 분류 모델 분석 (수면품질 여부 분류)</h2>
-        <button id="run-classification">분류 모델링 실행</button>
-        <div class="loader" id="classification-loader">분석 중...</div>
-        <div class="results" id="classification-results"></div>
-    </div>
-    <div class="section">
-        <h2>3. 군집 모델 분석 (고객 세분화)</h2>
-        <button id="run-clustering">군집 모델링 실행</button>
-        <div class="loader" id="clustering-loader">분석 중...</div>
-        <div class="results" id="clustering-results"></div>
-    </div>
-    <div class="section">
-        <h2>4. 딥러닝(PyTorch)을 이용한 수면품질 예측</h2>
+        <h2>1. 딥러닝(PyTorch)을 이용한 수면품질 예측</h2>
         <form id="dl-form">
             <div class="form-grid">
-                <div><label for="age">Age:</label><input type="number" id="age" value="30" required></div> <div>
+                <div>
                     <label for="country">Country:</label>
                     <select id="country" required>
                         <option value="0">Australia</option>
@@ -75,13 +57,27 @@
                         <option value="18">UK</option>
                         <option value="19">USA</option>
                     </select>
-                </div> <div><label for="intake">Coffee Intake (08):</label><input type="number" id="intake" value="0" min="0" max="8" required></div><div><label for="sleep_hours">Sleep Hours</label><input type="number" id="sleep_hours" value="7" required></div><div><label for="bmi">BMI:</label><input type="number" id="bmi" value="22" required></div><div>
-                    <label for="gender">Gender</label>
-                    <select id="gender" required>
-                        <option value="0" selected>Female</option>
-                        <option value="1">Male</option>
+                </div>
+                <div>
+                        <label for="gender">Gender</label>
+                        <select id="gender" required>
+                            <option value="0" selected>Female</option>
+                            <option value="1">Male</option>
+                        </select>
+                </div>
+
+                <div><label for="age">Age:</label><input type="number" id="age" value="30" required></div>
+                <div><label for="intake">Coffee Intake (08):</label><input type="number" id="intake" value="0" min="0" max="8" required></div><div><label for="sleep_hours">Sleep Hours</label><input type="number" id="sleep_hours" value="7" required></div><div><label for="bmi">BMI:</label><input type="number" id="bmi" value="22" required></div>
+                <div><label for="activity">Physical Activity (시간/주):</label><input type="number" id="activity" value="2" required></div> 
+                <div>
+                    <label for="stress">Stress Level</label>
+                    <select id="stress" required>
+                        <option value="0">Low</option>
+                        <option value="1" selected>Medium</option>
+                        <option value="2">High</option>
                     </select>
-                </div><div>
+                </div>
+                <div>
                     <label for="occupation">Occupation</label>
                     <select id="occupation" required>
                         <option value="0">Healthcare</option>
@@ -90,7 +86,8 @@
                         <option value="3">Service</option>
                         <option value="4">Student</option>
                     </select>
-                </div><div><label for="activity">Physical Activity (시간/주):</label><input type="number" id="activity" value="2" required></div> <div>
+                </div>
+                <div>
                     <label for="smoking">Smoking</label>
                     <select id="smoking" required>
                         <option value="0" selected>No</option>
@@ -103,13 +100,6 @@
                         <option value="0" selected>No</option>
                         <option value="1">Yes</option>
                     </select>
-                </div><div>
-                    <label for="stress">Stress Level</label>
-                    <select id="stress" required>
-                        <option value="0">Low</option>
-                        <option value="1" selected>Medium</option>
-                        <option value="2">High</option>
-                    </select>
                 </div>
             </div>                         
             <button type="submit">예측 실행</button>
@@ -117,6 +107,26 @@
         <div class="loader" id="dl-loader">분석 중...</div>
         <div class="results" id="dl-results"></div>
     </div>
+
+    <div class="section">
+        <h2>1. 회귀 모델 분석 (수면 시간 예측)</h2>
+        <button id="run-regression">회귀 모델링 실행</button>
+        <div class="loader" id="regression-loader">분석 중...</div>
+        <div class="results" id="regression-results"></div>
+    </div>
+    <div class="section">
+        <h2>2. 분류 모델 분석 (수면품질 여부 분류)</h2>
+        <button id="run-classification">분류 모델링 실행</button>
+        <div class="loader" id="classification-loader">분석 중...</div>
+        <div class="results" id="classification-results"></div>
+    </div>
+    <div class="section">
+        <h2>3. 군집 모델 분석 (고객 세분화)</h2>
+        <button id="run-clustering">군집 모델링 실행</button>
+        <div class="loader" id="clustering-loader">분석 중...</div>
+        <div class="results" id="clustering-results"></div>
+    </div>
+    
 </div>
 {% endblock %}
 
