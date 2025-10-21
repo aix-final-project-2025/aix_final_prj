@@ -32,7 +32,7 @@ class UploadView(FormView):
         image   = form.cleaned_data["image"]
         pil_img = Image.open(image).convert("RGB")
         result = predict_from_pil(pil_img)
-
+        print(result)
         context = self.get_context_data(form=form, result=result, image_url=image.url)
         return self.render_to_response(context)
     
@@ -48,17 +48,22 @@ class PredictApiView(View):
         # 파일을 PIL 이미지로 로드 및 base64 변환
         try:
             image = Image.open(file).convert("RGB")
+            
             image = fix_image_orientation(image)
             buffered = BytesIO()
             image.save(buffered, format="PNG")
+            
             img_str = base64.b64encode(buffered.getvalue()).decode()
+            
             image_data_uri = f"data:image/png;base64,{img_str}"
+            
         except Exception as e:
             return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
 
         # predict 호출
         try:
             res = predict_from_pil(image)
+            
             res["result_image"] = pil_to_base64(res["result_image"])
             res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
         except Exception as e:

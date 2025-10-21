@@ -1,5 +1,9 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}재활용 DB{% endblock %}
+
+{% block extra_head %}
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,7 +110,9 @@ body.modal-open .container { pointer-events:none; user-select:none; }
     <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_script %}
 <script>
 let categories = [];
 let page = 1;
@@ -252,5 +258,4 @@ async function init(){
 }
 init();
 </script>
-</body>
-</html>
+{% endblock %}

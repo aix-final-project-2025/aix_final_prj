@@ -41,6 +41,7 @@ def pil_to_base64(image: Image.Image) -> str:
 def fix_image_orientation(image: Image.Image) -> Image.Image:
     try:
         exif = image._getexif()
+        
         if exif is not None:
             for tag, value in exif.items():
                 key = ExifTags.TAGS.get(tag, tag)

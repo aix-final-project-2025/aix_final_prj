@@ -159,7 +159,7 @@ def run_clustering_analysis():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours']
+    clustering_features = ['BMI','Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
