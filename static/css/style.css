@@ -1,0 +1,52 @@
+cssbody {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.button-group {
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+form label {
+    display: inline-block;
+    width: 200px;
+    margin-bottom: 10px;
+}
+
+form input, form select {
+    padding: 5px;
+    width: 200px;
+}
+
+#results {
+    margin-top: 20px;
+}
+
+#result-content {
+    border: 1px solid #ccc;
+    padding: 15px;
+}
+
+img {
+    max-width: 100%;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+.container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
+.section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+h1, h2 { color: #0056b3; }
+button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+button:hover { background-color: #0056b3; }
+.results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
+.loader { display: none; text-align: center; padding: 20px; font-size: 18px; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #007bff; color: white; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+.form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
+.form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }

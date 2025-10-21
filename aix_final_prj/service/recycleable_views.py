@@ -101,7 +101,6 @@ class PredictApiView(View):
 
         enable = os.getenv('ENABLE')
         res["tts_able"] = enable
-        print(f"  TTS called ===enable{enable}")
         if(enable == '1'):
             #JSON 반환
             print("  TTS called =====================================")

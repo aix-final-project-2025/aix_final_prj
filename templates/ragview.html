@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}재활용 앨범{% endblock %}
+
+{% block extra_head %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django 기반 분석 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/base.css">
+
+
+    
+  <style>     
+      /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
+      h1 {
+          text-align: center;
+          margin-bottom: 30px;
+      }
+      #drop-area {
+          border: 3px dashed #4caf50;
+          border-radius: 12px;
+          padding: 30px;
+          text-align: center;
+          background: #fff;
+          transition: background 0.3s, border-color 0.3s;
+          cursor: pointer;
+      }
+      #drop-area.dragover {
+          background: #e8f5e9;
+          border-color: #2e7d32;
+      }
+      #drop-area p {
+          font-size: 16px;
+          margin: 0;
+      }
+      #fileElem {
+          display: none;
+      }
+      #cameraButton {
+          display: block;
+          margin: 15px auto;
+          padding: 10px 20px;
+          background: #1976d2;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 15px;
+      }
+      #cameraButton:hover {
+          background: #1565c0;
+      }
+      #fileButton {
+          display: block; /* 이 속성이 버튼을 한 줄에 하나씩 배치하고 블럭 크기를 만듭니다 */
+          margin: 15px auto;
+          padding: 10px 20px;
+          background: #1976d2; /* 또는 다른 색상으로 변경 가능 */
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 15px;
+      }
+      #fileButton:hover {
+          background: #1565c0;
+      }
+      button[type="submit"] {
+          display: inline-block;
+          margin: 20px 0 0 0;
+          padding: 10px 20px;
+          background: #4caf50;
+          border: none;
+          color: #fff;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+      }
+      button[type="submit"]:hover {
+          background: #43a047;
+      }
+      #drop-area img {
+          max-width: 320px;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          margin-top: 10px;
+      }
+      #result {
+          margin-top: 30px;
+          background: #fff;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+
+      /* 반응형 (base.html의 main 영역 스타일과 통합될 수 있으니 주의) */
+      @media (max-width: 600px) {
+          /* body { margin: 20px; } */ /* base.html의 .main 스타일을 따름 */
+          #drop-area img {
+              max-width: 100%;
+          }
+      }  
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
+        .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
+        .loader { display: none; text-align: center; padding: 20px; font-size: 18px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    </style>
+</head>
+    <div class="container">
+    <h1>PDF를 이용한 RAG 시스템</h1>
+    <h3>(소규모 한글지원 skt/kogpt2-base-v2모델 사용)</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="drop-area">
+            <p id="drop-message">여기에 PDF퍼일 클릭하여 선택하세요</p>
+            <input type="file" name="pdfs" accept=".pdf" multiple required>
+        </div>
+        <button type="submit">PDF 업로드 및 처리</button>
+    </form>
+    <hr>
+    <h3>업로드된 PDF 파일 / tokenize / VectorDB 처리</h3>
+    <ul>
+        {% for filename in uploaded_filenames %}
+            <li><a href="{% static 'uploaded_pdfs/' %}{{ filename }}" target="_blank">{{ filename }}</a></li>
+        {% endfor %}
+    </ul>
+    <hr>
+
+    <h2>질문하기</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="query" placeholder="질문을 입력하세요" style="width: 300px;">
+        <button type="submit">질문</button>
+    </form>
+
+    {% if query and answer %}
+        <hr>
+        <h3>질문: {{ query }}</h3>
+        <p><strong>답변:</strong> {{ answer }}</p>
+    {% endif %}
+
+
+    </div>
+    
+{% endblock %}

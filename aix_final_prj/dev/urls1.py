@@ -16,5 +16,5 @@ urlpatterns = [
     path('api/predict_list_page/', PredictListView.as_view(), name='predict_list'),
     path('api/class_change/', ClassChange.as_view(), name='predict_class_change'),
     path('api/code/', CodeList.as_view(), name='code_list'),
-    
+
 ]

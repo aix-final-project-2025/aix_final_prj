@@ -40,10 +40,12 @@ try:
 except ImportError:
     playsound = None  # fallback
 
+
 # ------------------------
 # 1. OpenAI API Key 로드
 # ------------------------
 load_dotenv()
+
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
     # Django settings를 사용하는 환경일 경우, settings.OPENAI_API_KEY로 대체하거나,
