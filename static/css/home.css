@@ -1,0 +1,147 @@
+/* ================================ */
+/* 🌱 Home Page Stylesheet          */
+/* ================================ */
+
+/* 3. 메인 콘텐츠 및 사이드 정보 레이아웃 */
+.main-content {
+  flex-grow: 1;
+  margin-right: 20px;
+}
+
+.cs-sidebar {
+  width: 250px;
+  padding-left: 20px;
+  border-left: 1px solid #eee;
+}
+
+/* 4. 프로모션 영역 */
+.promotion-section {
+  display: flex;
+  background-color: #e0e1df;
+  border: 1px solid #fdfdfd;
+  padding: 50px 0;
+  align-items: center;
+  height: 60%;
+}
+
+.promo-text-area {
+  flex: 1;
+  padding: 0 40px;
+  text-align: left;
+}
+
+.promo-text-area h2 {
+  font-size: 40px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.promo-image-area {
+  width: 90%;
+  max-width: 600px;
+  aspect-ratio: 3 / 2;
+  margin-right: 5%;
+  position: relative;
+}
+
+/* 5. CS 사이드바 */
+.cs-sidebar > div {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cs-sidebar h3 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 0;
+  color: #555;
+}
+
+.cs-sidebar p,
+.cs-sidebar .cs-detail {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 5px 0;
+}
+
+.cs-sidebar strong {
+  display: block;
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.btn-up-down {
+  text-align: center;
+  padding-top: 15px;
+}
+
+.btn-up-down button {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 5px 15px;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+/* ------------------------------------------- */
+/* ✨ 모바일 반응형 스타일 (768px 이하) */
+/* ------------------------------------------- */
+@media screen and (max-width: 768px) {
+  .content-layout {
+    flex-direction: column;
+    padding-bottom: 20px;
+  }
+
+  .main-content {
+    margin-right: 0;
+  }
+
+  .promotion-section {
+    flex-direction: column;
+    padding: 30px 0;
+    border: none;
+  }
+
+  .promo-text-area {
+    padding: 0 10px 20px 10px;
+    text-align: center;
+    font-size: 28px;
+  }
+
+  .promo-image-area {
+    width: 100%;
+    height: 0;
+    padding-bottom: 75%;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .cs-sidebar {
+    width: 100%;
+    padding-left: 0;
+    border-left: none;
+    margin-top: 30px;
+  }
+
+  .cs-sidebar > div {
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+    padding: 15px 10px;
+    background-color: #fff;
+  }
+
+  .cs-sidebar h3 {
+    font-size: 16px;
+    color: #333;
+  }
+
+  .cs-sidebar strong {
+    font-size: 20px;
+  }
+
+  .cs-sidebar p,
+  .cs-sidebar .cs-detail {
+    font-size: 13px;
+  }
+}

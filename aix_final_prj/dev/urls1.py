@@ -1,20 +1,27 @@
 from django.urls import path
-#from aix_final_prj.service.news_views import NewsPage
-from aix_final_prj.service.recycleable_views import Settings,ClassChange, CodeList, PredictListView, PredictListPageView,UploadView, PredictApiView
 from django.http import JsonResponse
+from aix_final_prj.service.recycleable_views import (
+    Settings, ClassChange, CodeList,
+    PredictListView, PredictListPageView,
+    UploadView, PredictApiView
+)
 
+# 🔹 간단한 테스트 응답 (헬스체크용)
 def dummy_wellknown(_):
-    return JsonResponse({}, status=200)
-# Dev1 개발자용
+    return JsonResponse({"status": "ok"}, status=200)
+
 urlpatterns = [
-    # http://127.0.0.1:8000/dev/news
-    # path('news', NewsPage.as_view(), name='urls1'),
-    path('api/predict/', PredictApiView.as_view(), name='api_predict'),
-    path('api/upload/', UploadView.as_view(), name='upload'),
-    path('.well-known/<path:subpath>', dummy_wellknown),
-    path('api/predict_request_list/', PredictListPageView.as_view(), name='predict_request'),
-    path('api/predict_list_page/', PredictListView.as_view(), name='predict_list'),
-    path('api/class_change/', ClassChange.as_view(), name='predict_class_change'),
-    path('api/code/', CodeList.as_view(), name='code_list'),
-    path('api/settings/', Settings.as_view(), name='settings'),
+    # ♻️ AI 재활용 분류 / 업로드 / 코드 관련
+    path("api/predict/", PredictApiView.as_view(), name="api_predict"),
+    path("api/upload/", UploadView.as_view(), name="api_upload"),
+    path("api/predict_request_list/", PredictListPageView.as_view(), name="api_predict_request_list"),
+    path("api/predict_list_page/", PredictListView.as_view(), name="api_predict_list"),
+
+    # ✅ 여기 이름 통일!
+    path("api/class_change/", ClassChange.as_view(), name="predict_class_change"),
+    path("api/code/", CodeList.as_view(), name="code_list"),
+    path("api/settings/", Settings.as_view(), name="api_settings"),
+
+    # ✅ 헬스체크용 (Cloud Run .well-known)
+    path(".well-known/<path:subpath>", dummy_wellknown),
 ]

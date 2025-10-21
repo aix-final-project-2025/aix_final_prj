@@ -1,32 +1,45 @@
-"""
-URL configuration for aix_final_prj project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
-from core import views # 세희추가
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),  # core 앱의 URL 포함
-    path("dev/", include("aix_final_prj.dev.urls1")),  # 개발자 1
-    path("dev/", include("aix_final_prj.dev.urls2")),  # 개발자 2
-    path('', include('core.urls')), # 세희
-    path('recyclables/', views.recyclables_view, name='recyclables'), # 세희
+    # 🧭 관리자 페이지
+    path("admin/", admin.site.urls),
+
+    # 🏠 홈
+    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+
+    # ♻️ 재활용 관련 (Recycle App)
+    path("recycle/", TemplateView.as_view(template_name="recycle/recyclables.html"), name="recyclables"),
+    path("recycle/upload/", TemplateView.as_view(template_name="recycle/upload.html"), name="upload"),
+    path("recycle/predict/", TemplateView.as_view(template_name="recycle/predict_list.html"), name="predict_list"),
+
+    # ☕ 커피 분석 (Coffee App)
+    # 👉 탭 순서상 첫 번째: 리포트
+    path("coffee/coffee_report/", TemplateView.as_view(template_name="coffee/coffee_report.html"), name="coffee_report"),
+    # 👉 두 번째: 메인 탭 (딥러닝, 회귀, 분류, 군집 통합)
+    path("coffee/", TemplateView.as_view(template_name="coffee/coffee.html"), name="coffee"),
+    # 👉 세 번째: BMI 분석
+    path("coffee/bmi/", TemplateView.as_view(template_name="coffee/bmi.html"), name="bmi"),
+    # 👉 네 번째: 수면 분석
+    path("coffee/sleep/", TemplateView.as_view(template_name="coffee/sleep.html"), name="sleep"),
+    # 👉 다섯 번째: 스트레스 분석
+    path("coffee/stress/", TemplateView.as_view(template_name="coffee/stress.html"), name="stress"),
+
+    # 🧠 PDF-RAG (문서 기반 챗봇)
+    path("rag/", TemplateView.as_view(template_name="rag/pdf_rag.html"), name="rag"),
+
+    # 📰 뉴스 / ⚙️ 설정 (기타 페이지)
+    path("news/", TemplateView.as_view(template_name="etc/news.html"), name="news"),
+    path("settings/", TemplateView.as_view(template_name="etc/settings.html"), name="settings"),
+
+    # 🔧 개발용 (AI API / ML 실험)
+    path("dev/api/", include("aix_final_prj.dev.urls1")),  # 예측, 업로드, 코드변경 등
+    path("dev/ml/", include("aix_final_prj.dev.urls2")),   # 머신러닝 / 데이터 분석 관련
 ]
 
+# ✅ 미디어 파일 접근 (업로드 파일 표시)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

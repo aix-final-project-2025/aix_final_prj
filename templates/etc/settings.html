@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Settings{% endblock %}
+
+{% block extra_head %}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>환경설정 — iOS 스타일</title>
+<style>
+  :root{
+    --bg:#f2f2f7;
+    --card:#ffffff;
+    --muted:#8e8e93;
+    --accent:#0a84ff;
+    --danger:#ff3b30;
+    --radius:14px;
+    --shadow: 0 6px 18px rgba(0,0,0,0.08);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:#111;}
+  .wrap{max-width:680px;margin:28px auto;padding:18px;}
+  h1{font-size:20px;margin:0 0 18px 0;font-weight:600;color:#111}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px}
+
+  .card{
+    background:var(--card);
+    border-radius:calc(var(--radius) - 2px);
+    box-shadow:var(--shadow);
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .row{display:flex;align-items:center;justify-content:space-between;}
+  .label{display:flex;flex-direction:column;}
+  .label .title{font-weight:600;color:#111}
+  .label .desc{font-size:13px;color:var(--muted);margin-top:4px}
+
+  .ios-toggle{
+    --w:52px; --h:32px;
+    width:var(--w); height:var(--h);
+    border-radius:999px;
+    background:#d1d1d6;
+    position:relative;
+    transition:background .18s ease;
+    flex-shrink:0;
+  }
+  .ios-toggle .knob{
+    width:26px;height:26px;border-radius:50%;
+    background:white; position:absolute; top:3px; left:3px;
+    box-shadow:0 3px 6px rgba(0,0,0,0.18);
+    transition: transform .18s cubic-bezier(.2,.9,.3,1);
+  }
+  .ios-toggle.on{ background: linear-gradient(180deg, #0a84ff, #0060d6); }
+  .ios-toggle.on .knob{ transform: translateX(20px); }
+
+  .segmented{
+    display:inline-flex;
+    border-radius:999px;
+    background: rgba(0,0,0,0.04);
+    padding:4px;
+  }
+  .segmented button{
+    border:0;background:transparent;padding:8px 12px;border-radius:10px;
+    font-weight:600;color:var(--muted);
+    cursor:pointer;outline:none;
+    transition: background .12s, color .12s, transform .06s;
+  }
+  .segmented button:hover{ background: rgba(0,0,0,0.03); transform: translateY(-1px); }
+  .segmented button.active{
+    background: linear-gradient(180deg,#fff,#f6f6f8);
+    color:var(--accent);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .voice-list{
+    display:flex;flex-direction:column;gap:8px;
+    margin-top:8px;
+  }
+  .voice-item{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg, #fff, #fbfbfc);
+    padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);
+    box-shadow:0 1px 0 rgba(0,0,0,0.02);
+    cursor:pointer;
+  }
+  .voice-item .meta{display:flex;flex-direction:column;margin-right:12px}
+  .voice-item .meta .name{font-weight:600}
+  .voice-item .meta .lang{font-size:13px;color:var(--muted)}
+  .voice-item .check{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;color:transparent}
+  .voice-item.active{border-color:rgba(10,132,255,0.18);box-shadow:0 6px 16px rgba(10,132,255,0.08)}
+  .voice-item.active .check{background:var(--accent); color:white; border-color:transparent}
+
+  .footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .btn{
+    padding:10px 14px;border-radius:10px;border:0;font-weight:600;cursor:pointer;
+  }
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(0,0,0,0.06)}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(10,132,255,0.18)}
+  .muted{color:var(--muted);font-size:13px}
+  @media (max-width:420px){
+    .wrap{padding:12px}
+    .card{padding:12px}
+    .segmented button{padding:8px 10px;font-size:14px}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <h1>환경설정</h1>
+  <div class="muted">앱 설정을 iOS 스타일로 제공합니다.</div>
+
+  <div class="card" id="card-toggle">
+    <div class="row">
+      <div class="label">
+        <div class="title">랭체인 사용</div>
+        <div class="desc">LLM 도구(랭체인)를 사용할지 여부를 토글합니다.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="toggle" class="ios-toggle" role="switch" aria-checked="false" tabindex="0">
+          <div class="knob" aria-hidden="true"></div>
+        </div>
+        <div id="toggle-status" class="muted">비활성</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-country">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="label">
+        <div class="title">국가 선택</div>
+        <div class="desc">지역에 따라 언어/규칙이 달라질 수 있습니다.</div>
+      </div>
+      <div>
+        <div class="segmented" role="tablist" aria-label="국가 선택">
+          <button data-country="kr">대한민국</button>
+          <button data-country="us">미국</button>
+          <button data-country="es">스페인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-voices">
+    <div class="label">
+      <div class="title">랭체인 목소리</div>
+      <div class="desc">사용할 음성(또는 TTS 음성)을 선택하세요.</div>
+    </div>
+
+    <div class="voice-list" id="voice-list"></div>
+
+    <div class="footer">
+      <button class="btn ghost" id="reset-btn">초기화</button>
+      <button class="btn primary" id="save-btn">저장</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+const STORAGE_KEY = 'settings_v1';
+const VOICES = [
+  { id: 'kr-1', name: 'Yuna', lang: 'ko-KR' },
+  { id: 'kr-2', name: 'Minho', lang: 'ko-KR' },
+  { id: 'us-1', name: 'Samantha', lang: 'en-US' },
+  { id: 'us-2', name: 'Daniel', lang: 'en-US' },
+  { id: 'es-1', name: 'Lucia', lang: 'es-ES' },
+  { id: 'es-2', name: 'Carlos', lang: 'es-ES' }
+];
+
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return { langchainEnabled:false, country:'kr', voiceId:VOICES[0].id };
+    return JSON.parse(raw);
+  }catch(e){ return { langchainEnabled:false, country:'kr', voiceId:VOICES[0].id }; }
+}
+function saveSettings(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+const toggleEl = document.getElementById('toggle');
+const toggleStatus = document.getElementById('toggle-status');
+const segmented = document.querySelectorAll('.segmented button');
+const voiceListEl = document.getElementById('voice-list');
+const saveBtn = document.getElementById('save-btn');
+const resetBtn = document.getElementById('reset-btn');
+
+let settings = loadSettings();
+
+function updateToggleUI(enabled){
+  if(enabled){
+    toggleEl.classList.add('on'); toggleEl.setAttribute('aria-checked','true'); toggleStatus.textContent='활성';
+  } else {
+    toggleEl.classList.remove('on'); toggleEl.setAttribute('aria-checked','false'); toggleStatus.textContent='비활성';
+  }
+  settings.langchainEnabled = !!enabled;
+}
+toggleEl.addEventListener('click', ()=> updateToggleUI(!settings.langchainEnabled));
+
+function setCountryUI(country){
+  segmented.forEach(btn=>{
+    if(btn.dataset.country===country){ btn.classList.add('active'); } else { btn.classList.remove('active'); }
+  });
+  settings.country = country;
+}
+segmented.forEach(btn=> btn.addEventListener('click', ()=>{ setCountryUI(btn.dataset.country); renderVoiceList(); }));
+
+function renderVoiceList(){
+  voiceListEl.innerHTML='';
+  const preferred=VOICES.filter(v=>v.id.startsWith(settings.country));
+  const others=VOICES.filter(v=>!v.id.startsWith(settings.country));
+  [...preferred,...others].forEach(v=>{
+    const item=document.createElement('div');
+    item.className='voice-item'+(settings.voiceId===v.id?' active':'');
+    item.innerHTML=`<div class="meta"><div class="name">${v.name}</div><div class="lang">${v.lang} · 코드: ${v.id}</div></div><div class="check">${settings.voiceId===v.id?'✓':''}</div>`;
+    item.addEventListener('click',()=>{
+      settings.voiceId=v.id;
+      document.querySelectorAll('.voice-item').forEach(el=>{el.classList.remove('active');el.querySelector('.check').textContent='';});
+      item.classList.add('active'); item.querySelector('.check').textContent='✓';
+    });
+    voiceListEl.appendChild(item);
+  });
+}
+
+saveBtn.addEventListener('click', ()=>{ saveSettings(settings); saveBtn.textContent='저장됨 ✓'; setTimeout(()=>saveBtn.textContent='저장',1000); });
+resetBtn.addEventListener('click', ()=>{ settings={langchainEnabled:false,country:'kr',voiceId:VOICES[0].id}; updateToggleUI(false); setCountryUI('kr'); renderVoiceList(); });
+
+updateToggleUI(settings.langchainEnabled);
+setCountryUI(settings.country);
+renderVoiceList();
+</script>
+{% endblock %}

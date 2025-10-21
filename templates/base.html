@@ -1,140 +1,91 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block page_title %}Re & Co | 대시보드{% endblock %}</title>
 
-  <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 🧩 기본 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- 🎨 공용 스타일 -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  <!-- 📱 상단 토글 버튼 -->
+  <div id="navbar">
+    <button class="togglebtn">&#9776;</button>
+  </div>
   
-      <title>{% block page_title %}아이콘 전개 반응형 사이드바 예제{% endblock %}</title>
-  
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <!-- 📚 사이드바 -->
+  <div id="mySidebar" class="sidebar">
+    <div class="sidebar-header"></div>
 
+    <!-- ♻️ 재활용 -->
+    <a href="{% url 'upload' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"></span>
+      <span class="text">recyclables</span>
+    </a>
 
-      {% block extra_head %}{% endblock %}
-  </head>
+    <a href="{% url 'predict_list' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"></span>
+      <span class="text">recycle data</span>
+    </a>
 
-  <body>  
-    <div id="navbar">
-        <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
-      </div>
-    
-    <div id="mySidebar" class="sidebar">
-        <div class="sidebar-header">
-        </div>
-        
+    <!-- ☕ 커피 분석 섹션 -->
+    <a href="{% url 'coffee_report' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">Coffee Report</span>
+    </a>
 
-        <a href="{% url 'upload' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
-                    alt="recyclables icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">recyclables</span>
-        </a>
-        <a href="{% url 'predict_request' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" 
-                    alt="recyclables icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">recycle data</span>
-        </a>
-        
-        <a href="{% url 'ds' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">coffee dataset</span>
-        </a>
-        <a href="{% url 'coffee' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">coffee</span>
-        </a>
-        <a href="{% url 'bmi' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">BMI</span>
-        </a>
-        <a href="{% url 'sleep' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">Sleep</span>
-        </a>
-        <a href="{% url 'stress' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">Stress</span>
-        </a>
-        <a href="{% url 'ragview' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" 
-                    alt="coffee icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">RAG</span>
-        </a>
-        <a href="#">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" 
-                    alt="News icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">News</span>
-        </a>
-        
-        <a href="{% url 'settings' %}">
-            <span class="icon">
-                <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" 
-                    alt="Settings icon" 
-                    style="width: 30px; height: 30px;">
-            </span>
-            <span class="text">settings</span>
-        </a>
+    <a href="{% url 'coffee' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">Coffee Analysis</span>
+    </a>
 
-    </div>
-    
-        {% block content %}{% endblock %}
-    </div>
+    <a href="{% url 'bmi' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">BMI</span>
+    </a>
 
-    <script>
-        const sidebar = document.getElementById("mySidebar");
-        const main = document.getElementById("mainContent");
-        const toggleButton = document.querySelector('.togglebtn');
+    <a href="{% url 'sleep' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">Sleep</span>
+    </a>
 
-        /* 메뉴바 확장/축소 토글 함수 (클릭 시 작동) */
-        function toggleNav() {
-            // expanded 클래스가 있으면 제거 (닫기), 없으면 추가 (열기)
-            const isExpanded = sidebar.classList.toggle('expanded');
-            
-            // 햄버거 버튼 모양 변경 (선택 사항)
-            toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;'; // X 또는 햄버거 아이콘
-        } 
+    <a href="{% url 'stress' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">Stress</span>
+    </a>
 
-        /* 검색 바 클릭 시 동작 함수 (기존 로직 유지) */
-        function goToSearchPage() {
-            console.log("검색 바가 클릭되었습니다. 검색 페이지로 이동합니다.");
-            alert("검색 페이지로 이동하는 동작이 실행되었습니다!");
-        }
-    </script>
-    <script src="{% static 'js/core_script.js' %}"></script>
-    {% block extra_script %}{% endblock %}
+    <!-- 🧠 RAG -->
+    <a href="{% url 'rag' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"></span>
+      <span class="text">RAG</span>
+    </a>
+
+    <!-- 📰 뉴스 / 설정 -->
+    <a href="{% url 'news' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000"></span>
+      <span class="text">News</span>
+    </a>
+
+    <a href="{% url 'settings' %}">
+      <span class="icon"><img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000"></span>
+      <span class="text">Settings</span>
+    </a>
+  </div>
+
+  <!-- 🧩 본문 -->
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ⚙️ 공용 스크립트 -->
+  <script src="{% static 'js/base.js' %}"></script>
+  {% block extra_script %}{% endblock %}
 </body>
-
 </html>

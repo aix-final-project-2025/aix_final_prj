@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}커피와 수면 관계 분석{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/coffee.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Django 기반 수면부족 데이터 분석 대시보드</h1>
+
+  <!-- 1️⃣ 딥러닝 -->
+  <div class="section">
+    <h2>1. 딥러닝(PyTorch)을 이용한 수면 품질 예측</h2>
+    <form id="dl-form">
+      <div class="form-grid">
+        <div>
+          <label for="country">Country:</label>
+          <select id="country" required>
+            <option value="14" selected>South Korea</option>
+            <option value="19">USA</option>
+          </select>
+        </div>
+        <div>
+          <label for="gender">Gender</label>
+          <select id="gender" required>
+            <option value="0" selected>Female</option>
+            <option value="1">Male</option>
+          </select>
+        </div>
+        <div><label for="age">Age:</label><input type="number" id="age" value="30" required></div>
+        <div><label for="intake">Coffee Intake (0~8):</label><input type="number" id="intake" value="2" min="0" max="8" required></div>
+        <div><label for="sleep_hours">Sleep Hours</label><input type="number" id="sleep_hours" value="7" required></div>
+        <div><label for="bmi">BMI:</label><input type="number" id="bmi" value="22" required></div>
+        <div><label for="activity">Physical Activity (시간/주):</label><input type="number" id="activity" value="2" required></div>
+        <div>
+          <label for="stress">Stress Level</label>
+          <select id="stress" required>
+            <option value="0">Low</option>
+            <option value="1" selected>Medium</option>
+            <option value="2">High</option>
+          </select>
+        </div>
+        <div>
+          <label for="occupation">Occupation</label>
+          <select id="occupation" required>
+            <option value="1" selected>Office</option>
+            <option value="4">Student</option>
+          </select>
+        </div>
+        <div>
+          <label for="smoking">Smoking</label>
+          <select id="smoking" required>
+            <option value="0" selected>No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div>
+          <label for="alcohol">Alcohol</label>
+          <select id="alcohol" required>
+            <option value="0" selected>No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit">예측 실행</button>
+    </form>
+    <div class="loader" id="dl-loader">분석 중...</div>
+    <div class="results" id="dl-results"></div>
+  </div>
+
+  <!-- 2️⃣ 회귀 / 분류 / 군집 -->
+  <div class="section">
+    <h2>2. 회귀 모델 분석 (수면 시간 예측)</h2>
+    <button id="run-regression">회귀 모델링 실행</button>
+    <div class="loader" id="regression-loader">분석 중...</div>
+    <div class="results" id="regression-results"></div>
+  </div>
+
+  <div class="section">
+    <h2>3. 분류 모델 분석 (수면 품질 분류)</h2>
+    <button id="run-classification">분류 모델링 실행</button>
+    <div class="loader" id="classification-loader">분석 중...</div>
+    <div class="results" id="classification-results"></div>
+  </div>
+
+  <div class="section">
+    <h2>4. 군집 모델 분석 (고객 세분화)</h2>
+    <button id="run-clustering">군집 모델링 실행</button>
+    <div class="loader" id="clustering-loader">분석 중...</div>
+    <div class="results" id="clustering-results"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/coffee.js' %}"></script>
+{% endblock %}
