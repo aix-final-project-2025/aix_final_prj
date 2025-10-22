@@ -1,5 +1,6 @@
 /* =============================
 📚 Sidebar & Navigation Styles
+Final Integration — 2025.10.22 by ChangDo
 ============================= */
 
 body {
@@ -9,7 +10,9 @@ body {
   padding: 0;
 }
 
-/* 상단 네비게이션 */
+/* =============================== */
+/* 📱 상단 네비게이션 */
+/* =============================== */
 #navbar {
   position: fixed;
   top: 12px;
@@ -30,48 +33,89 @@ body {
   transform: scale(1.1);
 }
 
-/* 사이드바 */
+/* =============================== */
+/* 📚 사이드바 기본 구조 */
+/* =============================== */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: 240px;
-  height: 100%;
+  height: 100vh;
   background-color: #fff;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   transform: translateX(-260px);
   transition: transform 0.3s ease;
   z-index: 999;
+
+  /* 중앙 정렬 설정 */
   display: flex;
   flex-direction: column;
-  padding-top: 60px;
+  align-items: center;
+  justify-content: center; /* 🌟 세로 중앙 정렬 */
+  padding: 20px 0;
+  border-right: 1px solid #eee;
 }
 
 .sidebar.expanded {
   transform: translateX(0);
 }
 
-.sidebar a {
-  padding: 14px 20px;
-  text-decoration: none;
+/* =============================== */
+/* 🏠 RE n CO 브랜드 버튼 */
+/* =============================== */
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.brand-btn {
+  display: inline-block;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 1.4rem;
   color: #333;
-  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease-in-out;
+}
+
+.brand-btn:hover {
+  color: #2c7a4b; /* 은은한 그린톤 */
+  transform: scale(1.05);
+}
+
+/* =============================== */
+/* 📂 메뉴 아이템 스타일 */
+/* =============================== */
+.sidebar a {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  width: 80%;
+  padding: 12px 15px;
+  color: #333;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
   gap: 10px;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
 
 .sidebar a:hover {
-  background-color: #f0f0f0;
+  background-color: #f4f4f4;
+  border-radius: 6px;
 }
 
 .sidebar .icon img {
   width: 22px;
   height: 22px;
+  opacity: 0.85;
 }
 
-/* 본문 */
+/* =============================== */
+/* 🧩 본문 컨텐츠 영역 */
+/* =============================== */
 .content {
   padding: 80px 20px;
   margin-left: 0;

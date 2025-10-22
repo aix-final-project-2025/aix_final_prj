@@ -22,7 +22,11 @@
   
   <!-- 📚 사이드바 -->
   <div id="mySidebar" class="sidebar">
-    <div class="sidebar-header"></div>
+
+    <!-- 🏠 RE n CO 홈 버튼 -->
+    <div class="sidebar-header">
+      <a href="{% url 'home' %}" class="brand-btn">RE&nbsp;n&nbsp;CO</a>
+    </div>
 
     <!-- ♻️ 재활용 -->
     <a href="{% url 'upload' %}">
