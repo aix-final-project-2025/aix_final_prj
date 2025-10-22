@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page_title %}Final_project{% endblock %}
+{% block page_title %}Recycling and Coffee{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -10,14 +10,55 @@
 {% block content %}
 <div class="content-layout">
   <div class="main-content">
-    <div class="promotion-section">
-      <div class="promo-text-area">
-        <h2>Recycling and Coffee</h2>
-      </div>
-      <div class="promo-image-area">
-        <img src="{% static 'images/main.png' %}" alt="Decaffeinated Coffee Promotion">
-      </div>
+
+    <!-- 🌱 상단 제목 및 부제 -->
+    <div class="page-header">
+      <h1>Recycling and Coffee</h1>
+      <p class="subtitle">당신의 한 잔이 순환이 되고, 지식이 됩니다</p>
     </div>
+
+    <!-- 🍃 메인 프로모션 섹션 -->
+    <section class="promotion-section">
+      <!-- 왼쪽 텍스트 -->
+      <div class="promo-text-area">
+        <div class="main-message-container">
+          <p>
+            <strong>소중한 순환에 깊이를 더하는 프로그램을 체험하세요</strong>
+            <br><br>
+            당신이 마신 커피컵을 분리수거하면, 그것이 곧 땅의 힘이 됩니다.<br>
+            씨앗을 키워 다시 향긋한 커피가 되기까지,<br>
+            당신의 작은 행동이 환경과 우리의 삶을 연결하는 아름다운 순환입니다.<br><br>
+          </p>
+
+          <div class="program-callout">
+            <div class="program-list">
+              <div class="program-item">
+                💡 <strong>바른 재활용 팁</strong>
+                <p class="description">헷갈리는 재활용 분류를 명쾌하게 알려주는 프로그램</p>
+              </div>
+              <div class="program-item">
+                🌿 <strong>커피와 우리의 삶</strong>
+                <p class="description">커피 미치는 스트레스 지수와 흡연과의 관계 등의 탐구 프로그램</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오른쪽 이미지 -->
+      <div class="promo-image-area">
+        <img src="{% static 'images/main.png' %}" alt="Recycling and Coffee illustration">
+      </div>
+    </section>
+
+    <!-- 🧾 푸터 -->
+    <footer class="company-footer">
+      <div class="footer-info">
+        <p>Team name : Re n Co</p>
+        <p>Product date : 2025.10.20 -</p>
+        <p>Team person : 우상익, 김대영, 정경주, 김정호, 채창도, 김동건, 이세희</p>
+      </div>
+    </footer>
   </div>
 </div>
 {% endblock content %}
