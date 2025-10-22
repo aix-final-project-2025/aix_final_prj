@@ -15,7 +15,8 @@ from aix_final_prj.service.keras_utils import pil_to_base64,fix_image_orientatio
 from .efficient_net_v2m import predict_from_pil
 from .tts_utils import translate_and_tts
 from .models import RecyclableResult, GroupCode
-
+import json
+from .models import CountryPf
 
 # 간단 업로드 폼
 class ImageUploadForm(forms.Form):
@@ -32,7 +33,7 @@ class UploadView(FormView):
         image   = form.cleaned_data["image"]
         pil_img = Image.open(image).convert("RGB")
         result = predict_from_pil(pil_img)
-        print(result)
+
         context = self.get_context_data(form=form, result=result, image_url=image.url)
         return self.render_to_response(context)
     
@@ -48,22 +49,18 @@ class PredictApiView(View):
         # 파일을 PIL 이미지로 로드 및 base64 변환
         try:
             image = Image.open(file).convert("RGB")
-            
             image = fix_image_orientation(image)
             buffered = BytesIO()
             image.save(buffered, format="PNG")
-            
             img_str = base64.b64encode(buffered.getvalue()).decode()
-            
             image_data_uri = f"data:image/png;base64,{img_str}"
-            
         except Exception as e:
             return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
 
         # predict 호출
         try:
             res = predict_from_pil(image)
-
+            print(" ==================== ")
             res["result_image"] = pil_to_base64(res["result_image"])
             res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
         except Exception as e:
@@ -215,5 +212,53 @@ class ClassChange(View):
             print(f" response group_code_id ={updated_item['group_code_id']} ")
             return JsonResponse({"success": True, "updated_item": updated_item})
     
+
+
 class Settings(TemplateView):
     template_name = "settings.html"
+
+
+from .models_utils import get_profile_setting
+class SettingDetailView(View):
+    template_name = "settings.html"
+    # ... (생략: post 메서드 시작 및 JSON 파싱)
+    def post(self, request, *args, **kwargs):
+
+        print("  SettingDetailView =====")
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'}, status=400)
+
+        # 2. 필수 필드 추출
+        query_country = data.get('country')
+        query_gender = data.get('gender')
+        query_active = data.get('active', None) # 🌟 active 값 추출 (없으면 None)
+
+        if not all([query_country, query_gender]):
+            return JsonResponse({'status': 'error', 'message': 'Country and gender fields are required in JSON body.'}, status=400)
+
+        # 3. 공통 모듈을 사용하여 DB 조회: active 값까지 전달
+        db_profile = get_profile_setting(query_country, query_gender, query_active) # 🌟 active 전달
+
+        # ... (생략: 조회 성공/실패 로직)
+
+        if db_profile:
+            # 조회 성공: 객체를 JSON 응답 형태로 변환
+            response_data = {
+                'country': db_profile.country,
+                'gender': db_profile.gender,
+                'active': db_profile.active, 
+                'created_at': db_profile.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'exists': True
+            }
+            return JsonResponse(response_data, status=200)
+        else:
+            # 조회 실패 (신규 등록이 필요한 상태 또는 해당 active 상태의 레코드가 없는 상태)
+            return JsonResponse({
+                'country': query_country,
+                'gender': query_gender,
+                'active': query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True
+                'exists': False,
+                'message': 'No existing settings found matching the criteria.'
+            }, status=200)
