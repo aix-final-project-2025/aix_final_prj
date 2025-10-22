@@ -38,3 +38,6 @@ data/
 
 uploads/
 *.mp3
+
+chunks.npy
+faiss_index
