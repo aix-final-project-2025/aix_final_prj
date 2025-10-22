@@ -101,7 +101,14 @@ class PredictApiView(View):
             # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
             print("DB save error:", e)
 
-        enable = os.getenv('ENABLE')
+        # enable = os.getenv('ENABLE')
+
+        rsEnable = CountryPf.objects.all().order_by('-created_at').first()
+        enable = 0
+        if rsEnable:
+            enable = rsEnable.enable
+            print(f"TTs 사용여부 : {rsEnable.enable}")
+      
         res["tts_able"] = enable
         if(enable == '1'):
             #JSON 반환
@@ -262,3 +269,94 @@ class SettingDetailView(View):
                 'exists': False,
                 'message': 'No existing settings found matching the criteria.'
             }, status=200)
+
+
+
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from .models import CountryPf 
+from datetime import datetime
+
+class SettingUpdateView(View):
+    """
+    단일 환경설정 레코드 관리: 신규 등록 또는 기존 데이터 수정.
+    country, gender, active 세 항목 모두 변경이 없을 시 DB 저장을 건너뜁니다.
+    """
+    
+    def post(self, request, *args, **kwargs):
+        # 1. JSON 데이터 파싱 및 검증
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'}, status=400)
+
+        request_country = data.get('country')
+        request_gender = data.get('gender')
+        request_active = data.get('active') 
+
+        if not all([request_country, request_gender, request_active is not None]):
+            return JsonResponse({'status': 'error', 'message': 'Missing required fields (country, gender, active)'}, status=400)
+        
+        if not isinstance(request_active, bool):
+             return JsonResponse({'status': 'error', 'message': 'Field "active" must be a boolean value.'}, status=400)
+
+
+        # 2. DB에서 기존 레코드 조회 (단일 레코드 관리 목적)
+        existing_profile = CountryPf.objects.all().first() 
+
+        # 3. 신규 등록 로직 (DB에 레코드가 없는 경우)
+        if existing_profile is None:
+            with transaction.atomic():
+                new_profile = CountryPf.objects.create(
+                    country=request_country,
+                    gender=request_gender,
+                    active=request_active 
+                )
+            return JsonResponse({
+                'status': 'success', 'message': 'New settings registered successfully.',
+                'action': 'CREATED', 'id': new_profile.id
+            }, status=201)
+
+        # 4. 수정 로직 (기존 데이터가 있는 경우)
+        is_changed = False
+        update_fields = []
+        
+        # 4-1. country 필드 비교
+        if existing_profile.country != request_country:
+            existing_profile.country = request_country
+            update_fields.append('country')
+            is_changed = True
+            
+        # 4-2. gender 필드 비교
+        if existing_profile.gender != request_gender:
+            existing_profile.gender = request_gender
+            update_fields.append('gender')
+            is_changed = True
+            
+        # 4-3. active 필드 비교
+        if existing_profile.active != request_active:
+            existing_profile.active = request_active
+            update_fields.append('active')
+            is_changed = True
+
+        # 5. 변경 사항 확인 및 저장
+        if is_changed:
+            # 🚨 변경 사항이 있을 경우에만 save() 호출 🚨
+            
+            # updated_at을 명시적으로 추가하지 않아도, 
+            # save(update_fields=...) 호출 시 Django가 알아서 auto_now 필드를 갱신합니다.
+            existing_profile.save(update_fields=update_fields) 
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Existing settings updated successfully.',
+                'action': 'UPDATED',
+                'updated_fields': update_fields
+            }, status=200)
+        
+        # 🚨 6. 변경 사항이 없는 경우 (is_changed == False)
+        # 3개 항목 모두 변경이 없으므로 save()가 호출되지 않고 이 응답을 반환합니다.
+        return JsonResponse({
+            'status': 'info', 
+            'message': 'No changes detected.'
+        }, status=200)
