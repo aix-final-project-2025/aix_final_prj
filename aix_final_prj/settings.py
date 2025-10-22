@@ -150,3 +150,32 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', '')
+
+CHROMA_DB_DIR = os.environ.get("CHROMA_DB_DIR", str(BASE_DIR / "chroma_db_new"))
+CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "my_notes")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCidfxH5O5iR7ZB0LafgoNDUlV76_yYNqk")  # 실제 API 키로 변경
+GEMINI_EMBED_MODELS = os.environ.get("GEMINI_EMBED_MODELS", "text-embedding-004").split(",")
+GEMINI_TEXT_MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-2.0-flash")
+WEB_INGEST_TO_CHROMA = os.environ.get("WEB_INGEST_TO_CHROMA", "1").lower() not in ("0", "false", "no")
+CRAWL_ANSWER_LINKS = os.environ.get("CRAWL_ANSWER_LINKS", "1").lower() not in ("0", "false", "no")
+NEWS_TOPK = os.environ.get("NEWS_TOPK", "5")
+RAG_QUERY_TOPK = os.environ.get("RAG_QUERY_TOPK", "5")
+RAG_FALLBACK_TOPK = os.environ.get("RAG_FALLBACK_TOPK", "12")
+RAG_AUTO_SEED_IF_EMPTY = os.environ.get("RAG_AUTO_SEED_IF_EMPTY", "1").lower() not in ("0", "false", "no")
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}

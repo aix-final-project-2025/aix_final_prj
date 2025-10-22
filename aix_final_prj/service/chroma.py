@@ -1,0 +1,1428 @@
+# chromadb_views.py
+from __future__ import annotations
+
+import os
+import re
+import json
+import logging
+import hashlib
+import importlib
+from typing import Any, Dict, List, Optional
+from datetime import datetime
+from email.utils import parsedate_to_datetime
+from urllib.parse import quote_plus, urlparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
+# ⚠️ 충돌 방지를 위해 google.generativeai as genai 는 사용하지 않습니다.
+# (본 파일은 google.genai 클라이언트를 사용)
+from bs4 import BeautifulSoup
+import requests
+import re as _re2  # 일부 유틸에서 사용할 수 있어 남겨둠
+
+from django.shortcuts import render
+from django.utils import timezone
+from django.conf import settings
+from django.http import JsonResponse, HttpRequest
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
+# views.py (상단, import들 아래)
+AUTO_INGEST_AFTER_GEMINI = getattr(
+    settings, "AUTO_INGEST_AFTER_GEMINI",
+    os.environ.get("AUTO_INGEST_AFTER_GEMINI", "1").lower() not in ("0", "false", "no")
+)
+
+# 선택적으로 SentenceTransformer를 쓰고 싶을 때 사용할 수 있음(기본 경로는 Google 임베딩)
+try:
+    from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+except Exception:
+    SentenceTransformerEmbeddingFunction = None
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 로깅
+# ─────────────────────────────────────────────────────────────────────────────
+log = logging.getLogger(__name__)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 안전한 기본 설정 (settings.py에 없으면 셋업)
+# ─────────────────────────────────────────────────────────────────────────────
+if not hasattr(settings, "CHROMA_DB_DIR"):
+    setattr(settings, "CHROMA_DB_DIR", os.environ.get("CHROMA_DB_DIR", r"C:\vscode\project\chroma_db_new"))
+if not hasattr(settings, "CHROMA_COLLECTION"):
+    setattr(settings, "CHROMA_COLLECTION", os.environ.get("CHROMA_COLLECTION", "my_notes"))
+# Google 임베딩 모델 후보 (콤마로 여러 개 지정 가능)
+if not hasattr(settings, "GEMINI_EMBED_MODELS"):
+    env_models = os.environ.get("GEMINI_EMBED_MODELS", "text-embedding-004")
+    setattr(settings, "GEMINI_EMBED_MODELS", [m.strip() for m in env_models.split(",") if m.strip()])
+# 텍스트 LLM 모델
+if not hasattr(settings, "GEMINI_TEXT_MODEL"):
+    setattr(settings, "GEMINI_TEXT_MODEL", os.environ.get("GEMINI_MODEL_DIRECT", "gemini-2.0-flash"))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 공용 응답 헬퍼
+# ─────────────────────────────────────────────────────────────────────────────
+def _ok(d: Dict[str, Any]) -> JsonResponse:
+    d.setdefault("ok", True)
+    return JsonResponse(d, status=200)
+
+def _fail(message: str, extra: Dict[str, Any] | None = None) -> JsonResponse:
+    payload = {"ok": False, "error": message}
+    if extra:
+        payload.update(extra)
+    return JsonResponse(payload, status=200)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Gemini 클라이언트/호출
+# ─────────────────────────────────────────────────────────────────────────────
+try:
+    from google import genai
+    try:
+        from google.genai.types import HttpOptions  # v1
+    except Exception:
+        HttpOptions = None
+except Exception:
+    genai = None
+    HttpOptions = None
+
+def _gemini_client():
+    if genai is None:
+        raise RuntimeError("google-genai 미설치: pip install -U google-genai")
+    api_key = getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY가 설정되지 않았습니다.")
+    api_version = getattr(settings, "GEMINI_API_VERSION", os.environ.get("GEMINI_API_VERSION", "v1"))
+    try:
+        if HttpOptions is not None:
+            return genai.Client(api_key=api_key, http_options=HttpOptions(api_version=api_version))
+        return genai.Client(api_key=api_key)
+    except TypeError:
+        return genai.Client(api_key=api_key)
+
+def _gemini_model() -> str:
+    return getattr(settings, "GEMINI_TEXT_MODEL", "gemini-2.0-flash")
+
+def _ask_gemini(prompt: str, model: Optional[str] = None) -> str:
+    try:
+        c = _gemini_client()
+        r = c.models.generate_content(model=model or _gemini_model(), contents=prompt)
+        txt = getattr(r, "text", None)
+        if not txt and getattr(r, "candidates", None):
+            try:
+                txt = r.candidates[0].content.parts[0].text
+            except Exception:
+                pass
+        return (txt or "").strip() or "[빈 응답]"
+    except Exception as e:
+        log.warning("Gemini 응답 실패: %s", e)
+        return f"[모델 응답 실패: {e}]"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 임베딩 (Google GenAI) : SDK 버전차 흡수 + 응답 파싱
+# ─────────────────────────────────────────────────────────────────────────────
+LAST_EMBED_META = {"param": None, "model": None, "dim": None}
+
+def _embed_texts(texts: List[str]) -> List[List[float]]:
+    """
+    google-genai SDK 버전차를 흡수하는 안전한 임베딩 호출.
+    - embed_content() 시그니처 검사 → contents/content/input 자동 선택
+    - 모델명은 'text-embedding-004'와 'models/text-embedding-004' 모두 순차 시도
+    - 응답 파싱: embedding.values / embeddings[0].values / dict 형태 모두 지원
+    """
+    import inspect
+    if not texts:
+        return []
+
+    c = _gemini_client()
+
+    # 파라미터 이름 자동 선택
+    try:
+        sig = inspect.signature(c.models.embed_content)
+        if "contents" in sig.parameters:
+            p = "contents"
+        elif "content" in sig.parameters:
+            p = "content"
+        elif "input" in sig.parameters:
+            p = "input"
+        else:
+            p = "contents"
+    except Exception:
+        p = "contents"
+
+    # 모델 후보
+    pref = getattr(settings, "GEMINI_EMBED_MODELS", ["text-embedding-004"])
+    models: List[str] = []
+    for m in pref:
+        models.extend([m] if "/" in m else [m, f"models/{m}"])
+
+    def parse(resp: Any) -> Optional[List[float]]:
+        try:
+            emb = getattr(resp, "embedding", None)
+            if emb is not None:
+                vals = getattr(emb, "values", None)
+                if vals:
+                    return list(vals)
+        except Exception:
+            pass
+        try:
+            embs = getattr(resp, "embeddings", None)
+            if embs:
+                first = embs[0] if len(embs) else None
+                if first is not None:
+                    vals = getattr(first, "values", None)
+                    if vals:
+                        return list(vals)
+        except Exception:
+            pass
+        if isinstance(resp, dict):
+            try:
+                vals = resp.get("embedding", {}).get("values")
+                if vals:
+                    return list(vals)
+            except Exception:
+                pass
+            try:
+                first = (resp.get("embeddings") or [None])[0]
+                if isinstance(first, dict) and "values" in first:
+                    return list(first["values"])
+            except Exception:
+                pass
+        return None
+
+    errors: List[str] = []
+    for model in models:
+        try:
+            vecs: List[List[float]] = []
+            for t in texts:
+                resp = c.models.embed_content(model=model, **{p: t})
+                v = parse(resp)
+                if not v:
+                    raise RuntimeError("임베딩 응답 파싱 실패")
+                vecs.append(v)
+            LAST_EMBED_META.update({"param": p, "model": model, "dim": len(vecs[0])})
+            return vecs
+        except Exception as e:
+            errors.append(f"{model} via {p}: {e}")
+            continue
+
+    raise RuntimeError("임베딩 실패: " + " | ".join(errors))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# URL/텍스트 유틸
+# ─────────────────────────────────────────────────────────────────────────────
+_LINK_RE = re.compile(r"https?://[^\s\]\)]+", re.IGNORECASE)
+def extract_links_from_text(text: str, max_n: int = 6):
+    urls, seen = [], set()
+    for m in _LINK_RE.finditer(text or ""):
+        u = m.group(0).rstrip(".,);")
+        if u not in seen:
+            urls.append(u); seen.add(u)
+        if len(urls) >= max_n:
+            break
+    return urls
+
+def _slug(s: str, n=60) -> str:
+    s = re.sub(r"[^0-9A-Za-z가-힣\-_. ]+", "", s or "")
+    s = re.sub(r"\s+", "-", s).strip("-")
+    return s[:n] or "doc"
+
+def _sha(s: str) -> str:
+    return hashlib.sha1((s or "").encode("utf-8", "ignore")).hexdigest()[:16]
+
+def _iso(dt) -> str:
+    try:
+        if isinstance(dt, datetime):
+            return dt.isoformat()
+        if not dt:
+            return ""
+        try:
+            return parsedate_to_datetime(dt).isoformat()
+        except Exception:
+            return datetime.fromisoformat(str(dt).replace("Z", "+00:00")).isoformat()
+    except Exception:
+        return ""
+
+_URL_MD = re.compile(r"\[[^\]]+\]\((https?://[^\s)]+)\)")
+_URL_RAW = re.compile(r"(https?://[^\s<>\]\)\"']+)")
+def _extract_urls(text: str) -> List[str]:
+    if not text:
+        return []
+    urls: List[str] = []
+    try:
+        urls += _URL_MD.findall(text)
+    except Exception:
+        pass
+    try:
+        urls += _URL_RAW.findall(text)
+    except Exception:
+        pass
+    out: List[str] = []
+    seen = set()
+    for u in urls:
+        u = u.strip().rstrip(").,]")
+        if not u.lower().startswith(("http://", "https://")):
+            continue
+        if u in seen:
+            continue
+        seen.add(u)
+        out.append(u)
+    return out
+
+def _chunk_text(text: str, size=1600, overlap=200):
+    t = (text or "").strip()
+    if not t: return []
+    out=[]; i=0; n=len(t)
+    while i<n:
+        j=min(i+size, n); out.append(t[i:j]); 
+        if j==n: break
+        i=j-overlap
+    return out
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 뉴스 검색(RSS) + 본문 크롤링
+# ─────────────────────────────────────────────────────────────────────────────
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+ACCEPT_LANG = "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
+
+def _search_news_rss(query: str, top_k: int):
+    import feedparser
+    url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=ko&gl=KR&ceid=KR:ko"
+    feed = feedparser.parse(url)
+    arts = []
+    for e in feed.get("entries", [])[:top_k]:
+        link = e.get("link", "")
+        src = (e.get("source") or {}).get("title", "") or urlparse(link).netloc
+        arts.append({
+            "title": e.get("title",""),
+            "url": link,
+            "source": src,
+            "published_at": (e.get("published") or e.get("updated") or ""),
+            "snippet": e.get("summary",""),
+        })
+    return arts
+
+def _resolve_redirect(url: str, timeout: int = 12):
+    try:
+        r = requests.get(url, headers={"User-Agent": UA, "Accept-Language": ACCEPT_LANG},
+                         timeout=timeout, allow_redirects=True)
+        return r.url or url, r.text
+    except Exception:
+        return url, None
+
+def _readability_text(html: str) -> str:
+    try:
+        from readability import Document
+        from lxml import html as lhtml
+        frag = Document(html).summary(html_partial=True)
+        return (lhtml.fromstring(frag).text_content() or "").strip()
+    except Exception:
+        return ""
+
+def _fetch_article_text(url: str, timeout: int = 12, min_chars: int = 400) -> str:
+    """리다이렉트 해제 → trafilatura → 부족하면 readability 폴백."""
+    try:
+        final, pre_html = _resolve_redirect(url, timeout=timeout)
+        import trafilatura
+        html_src = pre_html or trafilatura.fetch_url(final, timeout=timeout)
+        text = trafilatura.extract(html_src, output_format="txt",
+                                   include_links=False, include_comments=False,
+                                   favor_recall=True, no_fallback=False) if html_src else ""
+        text = (text or "").strip()
+        if len(text) < min_chars:
+            if not html_src:
+                html_src = requests.get(final, headers={"User-Agent": UA, "Accept-Language": ACCEPT_LANG},
+                                        timeout=timeout).text
+            alt = _readability_text(html_src or "")
+            if len(alt) > len(text):
+                text = alt
+        return text if len(text) >= min_chars else ""
+    except Exception:
+        return ""
+
+def _crawl_news_bodies(news: list, max_workers: int = 6):
+    """각 뉴스에 news_body 채워 넣기."""
+    out = [dict(n) for n in (news or [])]
+    if not out: return out
+
+    def job(n):
+        u = (n.get("url") or "").strip()
+        n["news_body"] = _fetch_article_text(u, timeout=12, min_chars=int(getattr(settings,"MIN_NEWS_BODY_CHARS",400)))
+        return n
+
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(job, n): i for i, n in enumerate(out)}
+        for f in as_completed(futs):
+            i = futs[f]
+            try:
+                out[i] = f.result()
+            except Exception:
+                out[i]["news_body"] = ""
+    return out
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Google 임베딩을 Chroma embedding_function에 바인딩하기 위한 래퍼
+# ─────────────────────────────────────────────────────────────────────────────
+class GoogleGenAIEmbeddingFunction:
+    """Chroma embedding_function 인터페이스 호환 래퍼(동일 차원 유지)."""
+    def __init__(self, _model_hint: Optional[str] = None):
+        self.model_hint = _model_hint  # 표시용
+    def __call__(self, texts: List[str]) -> List[List[float]]:
+        return _embed_texts(texts)
+
+def _current_embed_dim() -> int:
+    try:
+        v = _embed_texts(["dim_probe"])[0]
+        return len(v)
+    except Exception:
+        return -1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Chroma helpers (⚠️ 컬렉션 차원 자동 맞춤)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _chroma_client():
+    chromadb = importlib.import_module("chromadb")
+    Path(settings.CHROMA_DB_DIR).mkdir(parents=True, exist_ok=True)
+    PersistentClient = getattr(chromadb, "PersistentClient", None)
+    if PersistentClient:
+        return PersistentClient(path=settings.CHROMA_DB_DIR)
+    from chromadb.config import Settings as _S
+    return chromadb.Client(_S(chroma_db_impl="duckdb+parquet",
+                              persist_directory=settings.CHROMA_DB_DIR))
+
+def _safe_get_collection_name_matching_dim(base_name: str, want_dim: int):
+    """
+    - 기존 base_name 컬렉션이 있고 dim이 다르면 base_name_{dim} 으로 스위칭.
+    - 기존이 비어있거나 dim 확인이 불가(-1)면 base_name 그대로 사용.
+    """
+    client = _chroma_client()
+
+    # 1) 우선 base 컬렉션 시도
+    try:
+        col = client.get_or_create_collection(
+            name=base_name,
+            embedding_function=GoogleGenAIEmbeddingFunction()
+        )
+        # dim 확인
+        col_dim = -1
+        try:
+            peek = col.get(limit=1, include=["embeddings"])
+            if peek and peek.get("embeddings"):
+                col_dim = len(peek["embeddings"][0])
+        except Exception:
+            pass
+
+        if col_dim in (-1, None) or col_dim == want_dim:
+            # 비었거나 동일 차원 → 그대로 사용
+            return col, base_name
+        else:
+            # 차원 다름 → 새 이름
+            alt_name = f"{base_name}_{want_dim}"
+            alt = client.get_or_create_collection(
+                name=alt_name,
+                embedding_function=GoogleGenAIEmbeddingFunction()
+            )
+            return alt, alt_name
+    except Exception:
+        # get_or_create 실패 시 get_collection로 재시도(과거 컬렉션이 이미 있을 수 있음)
+        try:
+            col = client.get_collection(name=base_name)
+            return col, base_name
+        except Exception as e:
+            raise e
+
+def _current_embed_dim() -> int:
+    """현재 파이프라인이 생성하는 임베딩 벡터 차원(예: 768)을 추정."""
+    try:
+        v = _embed_texts(["__dim_probe__"])[0]
+        return len(v)
+    except Exception:
+        return -1
+
+def _chroma_collection():
+    """
+    - 현재 임베딩 차원(want_dim)을 계산
+    - 기본 컬렉션(settings.CHROMA_COLLECTION)의 실제 차원(cur_dim)을 확인
+    - 비어있거나(cur_dim=-1) 동일 차원이면 그대로 사용
+    - 다르면 '기본이름_{want_dim}' 컬렉션으로 자동 스위칭 (예: my_notes_768)
+    """
+    c = _chroma_client()
+    base = settings.CHROMA_COLLECTION
+    want_dim = _current_embed_dim()  # 예: 768
+
+    # 1) 기본 컬렉션 시도
+    cur_dim = -1
+    try:
+        col = c.get_or_create_collection(name=base)
+        try:
+            got = col.get(limit=1, include=["embeddings"])
+            embs = got.get("embeddings") or []
+            if embs and embs[0]:
+                cur_dim = len(embs[0])
+        except Exception:
+            pass
+
+        if cur_dim in (-1, None) or cur_dim == want_dim:
+            # 비었거나, 현재 임베딩 차원과 일치 → 그대로 사용
+            return col
+    except Exception:
+        pass
+
+    # 2) 차원 불일치면 새 이름으로 스위칭
+    alt = f"{base}_{want_dim}"
+    log.warning(
+        f"[Chroma] 컬렉션 '{base}'(dim={cur_dim}) != 현재 임베딩 dim={want_dim} → '{alt}' 사용"
+    )
+    return c.get_or_create_collection(name=alt)
+
+def _chroma_upsert(ids: List[str], docs: List[str], metas: List[Dict[str, Any]], embs: List[List[float]]):
+    col = _chroma_collection()
+    if hasattr(col, "upsert"):
+        return col.upsert(ids=ids, documents=docs, metadatas=metas, embeddings=embs)
+    try:
+        col.delete(ids=ids)
+    except Exception:
+        pass
+    return col.add(ids=ids, documents=docs, metadatas=metas, embeddings=embs)
+
+def _chroma_count(col=None) -> int:
+    try:
+        col = col or _chroma_collection()
+        if hasattr(col, "count"):
+            return int(col.count())
+        data = col.get(limit=1_000_000)
+        return len(data.get("ids") or [])
+    except Exception:
+        return 0
+
+def _chroma_query_with_embeddings(col, query: str, topk: int):
+    q_emb = _embed_texts([query])[0]
+    try:
+        return col.query(
+            query_embeddings=[q_emb],
+            n_results=max(1, int(topk)),
+            include=["documents", "metadatas", "distances"],
+        )
+    except TypeError:
+        # 아주 구버전 폴백
+        return col.query(query_embeddings=[q_emb], n_results=max(1, int(topk)))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 모델 답변 + 관련 뉴스(폴백 포함)
+# ─────────────────────────────────────────────────────────────────────────────
+def gemini_answer_with_news(question: str):
+    """
+    1) _ask_gemini()로 모델 답변
+    2) _search_news_rss()로 관련 뉴스
+       - 실패/없을 때는 답변에서 URL만 뽑아 목록으로 폴백
+    return: (answer_text: str, news_list: List[dict])
+    """
+    prompt = (
+        "한국어로 간결하고 최신성 있게 답하세요.\n"
+        "가능하면 참고할만한 기사/자료의 URL을 3~5개 본문 하단에 적어 주세요.\n\n"
+        f"[질문]\n{question}\n\n[답변]\n"
+    )
+    answer = _ask_gemini(prompt, model=None)
+
+    try:
+        topk = int(getattr(settings, "NEWS_TOPK", 5))
+        news = _search_news_rss(question, topk)
+    except Exception:
+        news = []
+
+    if not news:
+        urls = extract_links_from_text(answer, max_n=5)
+        news = [{
+            "title": u,
+            "url": u,
+            "source": urlparse(u).netloc,
+            "published_at": "",
+            "snippet": "",
+        } for u in urls]
+
+    return (answer or "").strip(), news
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 인덱싱: 모델 답변 + 뉴스 + (선택)답변 속 링크 → Chroma 저장
+# ─────────────────────────────────────────────────────────────────────────────
+def _indexto_chroma_safe(query: str, answer: str, news: List[Dict[str, Any]]):
+    if not getattr(settings, "WEB_INGEST_TO_CHROMA", os.environ.get("WEB_INGEST_TO_CHROMA", "1") not in ("0", "false", "False")):
+        return None
+
+    size = int(getattr(settings, "EMBED_CHUNK_SIZE", os.environ.get("EMBED_CHUNK_SIZE", "1600")))
+    overlap = int(getattr(settings, "EMBED_CHUNK_OVERLAP", os.environ.get("EMBED_CHUNK_OVERLAP", "200")))
+    now = datetime.utcnow().isoformat()
+
+    ids: List[str] = []
+    docs: List[str] = []
+    metas: List[Dict[str, Any]] = []
+
+    # A) 모델 답변 청크
+    a_chunks = _chunk_text(answer, size=size, overlap=overlap)
+    base_a = f"answer:{_sha(query)}"
+    for i, ch in enumerate(a_chunks):
+        if not ch.strip():
+            continue
+        ids.append(f"{base_a}:{i}")
+        docs.append(ch)
+        metas.append({"source": "web_answer", "title": "웹검색 답변", "question": query, "ingested_at": now})
+
+    # B) 뉴스 본문 청크
+    news_summaries: List[Dict[str, Any]] = []
+    min_chars = int(getattr(settings, "MIN_NEWS_BODY_CHARS", 400))
+    for art in (news or []):
+        url = (art.get("final_url") or art.get("url") or "").strip()
+        title = (art.get("title") or "").strip() or (urlparse(url).netloc if url else "뉴스")
+        body = (art.get("news_body") or "").strip()
+
+        if not (url and body and len(body) >= min_chars):
+            news_summaries.append({"title": title or url or "뉴스", "url": url, "chunks": 0})
+            continue
+
+        chunks = _chunk_text(body, size=size, overlap=overlap)
+        base = f"news:{_slug(title)}:{_sha(url)}"
+        cnt = 0
+        for i, ch in enumerate(chunks):
+            if not ch.strip(): 
+                continue
+            ids.append(f"{base}:{i}")
+            docs.append(ch)
+            metas.append({
+                "source": "news",
+                "url": url,
+                "title": title,
+                "source_name": art.get("source", ""),
+                "published_at": art.get("published_at", ""),
+                "ingested_at": now,
+            })
+            cnt += 1
+        news_summaries.append({"title": title, "url": url, "chunks": cnt})
+
+    # C) (선택) 답변 속 링크 본문 청크
+    link_summaries: List[Dict[str, Any]] = []
+    link_total_chunks = 0
+    if getattr(settings, "CRAWL_ANSWER_LINKS", os.environ.get("CRAWL_ANSWER_LINKS", "1") not in ("0", "false", "False")):
+        max_links = int(getattr(settings, "ANSWER_LINK_MAX", os.environ.get("ANSWER_LINK_MAX", "5")))
+        timeout_s = int(getattr(settings, "ANSWER_LINK_TIMEOUT", os.environ.get("ANSWER_LINK_TIMEOUT", "12")))
+        urls = _extract_urls(answer)[: max(0, max_links)]
+        for u in urls:
+            body = _fetch_article_text(u, timeout=timeout_s)
+            cnt = 0
+            if body:
+                chunks = _chunk_text(body, size=size, overlap=overlap)
+                base = f"anslink:{_slug(urlparse(u).netloc)}:{_sha(u)}"
+                for i, ch in enumerate(chunks):
+                    if not ch.strip():
+                        continue
+                    ids.append(f"{base}:{i}")
+                    docs.append(ch)
+                    metas.append({"source": "answer_link", "url": u, "question": query, "ingested_at": now})
+                    cnt += 1
+            link_total_chunks += cnt
+            link_summaries.append({"url": u, "chunks": cnt})
+
+    # D) 업서트(임베딩 계산)
+    clean = [(i, d, m) for i, d, m in zip(ids, docs, metas) if d and d.strip()]
+    if not clean:
+        return {
+            "inserted": 0,
+            "answer_chunks": 0,
+            "news_total_chunks": 0,
+            "answer_link_total_chunks": 0,
+            "news_items": news_summaries,
+            "answer_links": link_summaries,
+            "collection": settings.CHROMA_COLLECTION,
+            "dir": settings.CHROMA_DB_DIR,
+            "ingested_at": now,
+            "note": "인덱싱할 데이터가 없습니다.",
+        }
+    ids, docs, metas = map(list, zip(*clean))
+    embs = _embed_texts(docs)
+    _chroma_upsert(ids=ids, docs=docs, metas=metas, embs=embs)
+
+    ans_chunks = sum(1 for m in metas if m.get("source") == "web_answer")
+    news_chunks = sum(1 for m in metas if m.get("source") == "news")
+    return {
+        "inserted": len(ids),
+        "answer_chunks": ans_chunks,
+        "news_total_chunks": news_chunks,
+        "answer_link_total_chunks": link_total_chunks,
+        "news_items": news_summaries,
+        "answer_links": link_summaries,
+        "collection": settings.CHROMA_COLLECTION,
+        "dir": settings.CHROMA_DB_DIR,
+        "ingested_at": now,
+    }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 뷰: 홈
+# ─────────────────────────────────────────────────────────────────────────────
+def home(request):
+    mode   = (request.GET.get("mode") or "").strip().lower()   # "gemini" or "rag"
+    q      = (request.GET.get("q") or "").strip()
+    ingest = request.GET.get("ingest") == "1"
+
+    # ── 0) 쿼리 없는 GET(= 루트 / 로 진입) → 이전 결과 초기화 + 빈 화면
+    if request.method == "GET" and not request.GET:
+        request.session.pop("gemini_state", None)
+        request.session.pop("rag_state", None)
+        ctx = {
+            "model_name_gemini": getattr(settings, "GEMINI_MODEL_DIRECT", None) or _gemini_model(),
+            "model_name_rag":    getattr(settings, "GEMINI_MODEL_RAG", None)    or _gemini_model(),
+            "q_gemini": "", "gemini_answer": "", "gemini_error": "",
+            "news_list": [], "ingest_result": "", "ingest_error": "",
+            "q_rag": "", "rag_answer": "", "rag_error": "", "rag_sources": [],
+        }
+        resp = render(request, "chrome.html", ctx)
+        # 캐시 무효화(과거 화면 재등장 방지)
+        resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp["Pragma"]        = "no-cache"
+        resp["Expires"]       = "0"
+        return resp
+
+    # ── 1) 세션 상태(유지)
+    gemini_state = request.session.get("gemini_state") or {}
+    rag_state    = request.session.get("rag_state") or {}
+
+    q_gemini_saved = gemini_state.get("q", "")
+    q_rag_saved    = rag_state.get("q", "")
+
+    gemini_answer_text = gemini_state.get("answer", "")
+    news_list          = gemini_state.get("news", [])
+    gemini_error = ""
+    ingest_result = ""
+    ingest_error  = ""
+
+    rag_answer_text = rag_state.get("answer", "")
+    rag_sources     = rag_state.get("sources", [])
+    rag_error = ""
+
+    # ── 2) 상단: Gemini 검색
+    if mode == "gemini" and q:
+        try:
+            gemini_answer_text, news_list = gemini_answer_with_news(q)
+
+            # 세션 보존(윗 박스 유지)
+            request.session["gemini_state"] = {
+                "q": q,
+                "answer": gemini_answer_text,
+                "news": [
+                    {
+                        "title": n.get("title", ""),
+                        "url": n.get("url", ""),
+                        "source": n.get("source", ""),
+                        "published_at": n.get("published_at", ""),
+                        "snippet": n.get("snippet", ""),
+                    }
+                    for n in (news_list or [])
+                ],
+            }
+            request.session.modified = True
+        except Exception as e:
+            gemini_error = f"Gemini 오류: {e}"
+
+        # 자동 인덱싱/버튼 인덱싱
+        try:
+            import os as _os
+            AUTO_INGEST_AFTER_GEMINI = getattr(
+                settings, "AUTO_INGEST_AFTER_GEMINI",
+                _os.environ.get("AUTO_INGEST_AFTER_GEMINI", "1").lower() not in ("0","false","no")
+            )
+        except Exception:
+            AUTO_INGEST_AFTER_GEMINI = True
+
+        if not gemini_error and (AUTO_INGEST_AFTER_GEMINI or ingest):
+            try:
+                news_with_bodies = _crawl_news_bodies(news_list, max_workers=6) if news_list else []
+                res = _indexto_chroma_safe(q, gemini_answer_text, news_with_bodies)
+                inserted     = res.get("inserted", 0) if res else 0
+                total_chunks = res.get("news_total_chunks", 0) if res else 0
+                ingest_result = f"{inserted}개 저장, 뉴스 청크 {total_chunks}개"
+            except Exception as e:
+                ingest_error = f"ingest 오류: {e}"
+
+        q_gemini = q
+    else:
+        q_gemini = q_gemini_saved
+
+
+    # ── 3) 하단: RAG 검색 (요청이 온 경우만 갱신)
+    if mode == "rag" and q:
+        try:
+            # ⬇️ 베스트-에포트 파이프라인 사용
+            topk = max(1, int(getattr(settings, "RAG_QUERY_TOPK", 5)))
+            fallback_topk = max(topk + 5, int(getattr(settings, "RAG_FALLBACK_TOPK", 12)))
+            rag_answer_text, hits = _rag_answer_best_effort(q, initial_topk=topk, fallback_topk=fallback_topk)
+
+            # 소스 표시용 요약
+            rag_sources = [
+                f"[{i+1}] {(h['meta'].get('title') or h['meta'].get('url') or '문서')} · "
+                f"{h['meta'].get('source_name') or h['meta'].get('source') or ''}".strip(" ·")
+                for i, h in enumerate(hits)
+            ]
+
+            # 세션 저장
+            request.session["rag_state"] = {
+                "q": q,
+                "answer": rag_answer_text,
+                "sources": rag_sources,
+            }
+            request.session.modified = True
+
+            q_rag = q
+        except Exception as e:
+            rag_error = f"RAG 오류: {e}"
+            q_rag = q
+    else:
+        q_rag = q_rag_saved
+
+    # ── 4) 렌더(캐시 무효화 헤더 포함)
+    ctx = {
+        "model_name_gemini": getattr(settings, "GEMINI_MODEL_DIRECT", None) or _gemini_model(),
+        "model_name_rag":    getattr(settings, "GEMINI_MODEL_RAG", None)    or _gemini_model(),
+
+        "q_gemini": q_gemini,
+        "gemini_answer": gemini_answer_text,
+        "gemini_error": gemini_error,
+        "news_list": news_list,
+        "ingest_result": ingest_result,
+        "ingest_error": ingest_error,
+
+        "q_rag": q_rag,
+        "rag_answer": rag_answer_text,
+        "rag_error": rag_error,
+        "rag_sources": rag_sources,
+    }
+    resp = render(request, "chrome.html", ctx)
+    resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp["Pragma"]        = "no-cache"
+    resp["Expires"]       = "0"
+    return resp
+# ─────────────────────────────────────────────────────────────────────────────
+# 뷰: API - 검색 (WEB: 자동 인덱싱 / RAG)
+# ─────────────────────────────────────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_search(request: HttpRequest):
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return _fail("유효한 JSON이 아닙니다.")
+    mode = (payload.get("mode") or "web").strip().lower()
+    query = (payload.get("query") or "").strip()
+    model = (payload.get("model") or "").strip() or None
+    if not query:
+        return _fail("query가 비었습니다.")
+
+    if mode == "web":
+        # 1) 모델 답변
+        answer = _ask_gemini(query, model=model)
+
+        # 2) 뉴스 수집 + 본문
+        news, crawl_err = [], None
+        try:
+            topk = int(getattr(settings, "NEWS_TOPK", os.environ.get("NEWS_TOPK", "5")))
+            news = _search_news_rss(query, topk)
+            news = _crawl_news_bodies(news, max_workers=4)
+        except Exception as e:
+            crawl_err = str(e)
+
+        # 3) 인덱싱
+        ingest_summary, ingest_error = None, None
+        try:
+            ingest_summary = _indexto_chroma_safe(query, answer, news)
+        except Exception as e:
+            ingest_error = str(e)
+
+        safe_news = [
+            {
+                "title": n.get("title", ""),
+                "url": n.get("url", ""),
+                "source": n.get("source", ""),
+                "published_at": n.get("published_at", ""),
+                "snippet": n.get("snippet", ""),
+            }
+            for n in (news or [])
+        ]
+        ok_cnt = sum(1 for n in news if (n.get("news_body") or "")) 
+        total = len(news or [])
+        crawl_err = (crawl_err or "")
+        crawl_err = f"{crawl_err} | news bodies: {ok_cnt}/{total}".strip(" |")
+
+        return _ok(
+            {
+                "mode": "web",
+                "model": (model or _gemini_model()),
+                "text": answer,
+                "news": safe_news,
+                "ingest": ingest_summary,
+                "warnings": {"crawl": crawl_err, "ingest": ingest_error},
+            }
+        )
+
+    elif mode == "rag":
+        try:
+            col = _chroma_collection()
+
+            # 비어 있으면 시드(옵션)
+            if getattr(settings, "RAG_AUTO_SEED_IF_EMPTY", True) and _chroma_count(col) == 0:
+                _rag_seed_internal(force=True)
+
+            topk = max(1, int(getattr(settings, "RAG_QUERY_TOPK", 5)))
+
+            # 질문을 직접 임베딩해서 질의
+            res = _chroma_query_with_embeddings(col, query, topk)
+
+            docs = (res.get("documents") or [[]])[0]
+            metas = (res.get("metadatas") or [[]])[0]
+            ids = (res.get("ids") or [[]])[0]
+            dists = (res.get("distances") or [[]])[0]
+
+            hits = []
+            for i, doc in enumerate(docs):
+                if not doc:
+                    continue
+                snip = (doc[:500] if isinstance(doc, str) else str(doc)).replace("\n", " ").strip()
+                m = metas[i] if i < len(metas) else {}
+                score = float(dists[i]) if (dists and i < len(dists) and dists[i] is not None) else None
+                hits.append({"id": ids[i] if i < len(ids) else "", "score": score, "meta": m, "snippet": snip})
+
+            if not hits:
+                reason = (
+                    f"검색 결과 없음 (collection='{settings.CHROMA_COLLECTION}', "
+                    f"dir='{settings.CHROMA_DB_DIR}', count={_chroma_count(col)})"
+                )
+                return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": "[검색 결과 없음]", "hits": [], "reason": reason})
+
+            context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
+            prompt = (
+                "아래 컨텍스트만 근거로 한국어로 간결하게 답하세요. "
+                "없으면 '본문에 없음'이라고 답하세요.\n\n"
+                f"[질문]\n{query}\n\n[컨텍스트]\n{context}\n\n답변:\n"
+            )
+            text = _ask_gemini(prompt, model=model)
+            return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": text, "hits": hits})
+
+        except Exception as e:
+            return _fail(f"RAG 검색 실패: {e}")
+
+    return _fail(f"알 수 없는 mode: {mode}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 진단/유틸 엔드포인트들
+# ─────────────────────────────────────────────────────────────────────────────
+@require_http_methods(["GET"])
+def api_ping(request: HttpRequest):
+    return _ok({"pong": "Pong!"})
+
+@require_http_methods(["GET"])
+def api_config(request: HttpRequest):
+    """환경/경로/권한 진단."""
+    p = settings.CHROMA_DB_DIR
+    exists = os.path.isdir(p)
+    writable = False
+    write_error = None
+    try:
+        Path(p).mkdir(parents=True, exist_ok=True)
+        test_path = Path(p) / ".write_test"
+        with open(test_path, "w", encoding="utf-8") as f:
+            f.write("ok")
+        writable = True
+        try:
+            test_path.unlink()
+        except Exception:
+            pass
+    except Exception as e:
+        write_error = str(e)
+
+    return _ok(
+        {
+            "WEB_INGEST_TO_CHROMA": bool(getattr(settings, "WEB_INGEST_TO_CHROMA", True)),
+            "CHROMA_DB_DIR": p,
+            "dir_exists": exists,
+            "dir_writable": writable,
+            "dir_write_error": write_error,
+            "CHROMA_COLLECTION": getattr(settings, "CHROMA_COLLECTION", ""),
+            "GEMINI_API_KEY_set": bool(getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY")),
+            "embedding_models_probe": getattr(settings, "GEMINI_EMBED_MODELS", ["text-embedding-004"]),
+        }
+    )
+
+@require_http_methods(["GET"])
+def api_diag(request: HttpRequest):
+    """키/채팅/임베딩/크로마 쓰기 간단 진단"""
+    steps = []
+
+    # 키
+    key_ok = bool(getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY"))
+    steps.append({"name": "api_key", "ok": key_ok})
+    if not key_ok:
+        return _ok({"ok": False, "steps": steps})
+
+    # chat
+    try:
+        txt = _ask_gemini("ping")[:30]
+        steps.append({"name": "chat", "ok": True, "text": txt})
+    except Exception as e:
+        steps.append({"name": "chat", "ok": False, "error": str(e)})
+        return _ok({"ok": False, "steps": steps})
+
+    # embed
+    tried_models = getattr(settings, "GEMINI_EMBED_MODELS", ["text-embedding-004"])
+    try:
+        vecs = _embed_texts(["hello world"])
+        dim = len(vecs[0]) if vecs else 0
+        steps.append(
+            {
+                "name": "embed",
+                "ok": True,
+                "dim": dim,
+                "tried": tried_models,
+                "used_param": LAST_EMBED_META.get("param"),
+                "used_model": LAST_EMBED_META.get("model"),
+            }
+        )
+    except Exception as e:
+        steps.append({"name": "embed", "ok": False, "error": str(e), "tried": tried_models})
+        return _ok({"ok": False, "steps": steps})
+
+    # chroma write
+    try:
+        v = vecs[0]
+        col = _chroma_collection()
+        col.add(ids=["diag:1"], documents=["diag"], metadatas=[{"source": "diag"}], embeddings=[v])
+        steps.append({"name": "chroma_add", "ok": True, "dir": settings.CHROMA_DB_DIR, "collection": settings.CHROMA_COLLECTION})
+        try:
+            col.delete(ids=["diag:1"])
+        except Exception:
+            pass
+    except Exception as e:
+        steps.append({"name": "chroma_add", "ok": False, "error": str(e)})
+        return _ok({"ok": False, "steps": steps})
+
+    return _ok({"ok": True, "steps": steps})
+
+@require_http_methods(["GET"])
+def api_chroma_verify(request: HttpRequest):
+    """
+    질문(q|question) 기준으로 크로마 DB에 저장된 청크 개요를 안전하게 확인.
+    - 모든 예외를 잡아 JSON으로 돌려주어 HTTP 500 방지
+    - Chroma 0.4/0.5 반환 형태 차이(중첩/평면 리스트)와 include/where 지원 차이를 흡수
+    """
+    try:
+        q = (request.GET.get("question") or request.GET.get("q") or "").strip()
+        if not q:
+            return _fail("question 파라미터가 필요합니다. 예: /api/chroma_verify?question=당신의_질문")
+
+        col = _chroma_collection()
+
+        # 1) where 지원 시도
+        data = None
+        err_where = None
+        try:
+            data = col.get(where={"question": q}, include=["metadatas", "documents", "ids"])
+        except Exception as e:
+            err_where = str(e)
+
+        # 2) where 실패 시 전체에서 필터링
+        if not data:
+            try:
+                try:
+                    data = col.get(include=["metadatas", "documents", "ids"])
+                except TypeError:
+                    data = col.get()
+            except Exception as e:
+                return _fail("Chroma get() 실패", {"reason": str(e)})
+
+            _ids = data.get("ids") or []
+            _docs = data.get("documents") or []
+            _metas = data.get("metadatas") or []
+            ids, docs, metas = [], [], []
+            for i, m in enumerate(_metas):
+                try:
+                    if isinstance(m, dict) and (m.get("question") == q):
+                        ids.append(_ids[i] if i < len(_ids) else "")
+                        docs.append(_docs[i] if i < len(_docs) else "")
+                        metas.append(m)
+                except Exception:
+                    continue
+            data = {"ids": ids, "documents": docs, "metadatas": metas, "_where_error": err_where}
+
+        # 3) 반환 형태 정규화
+        def _flatten(v):
+            if v and isinstance(v, list) and len(v) == 1 and isinstance(v[0], list):
+                return v[0]
+            return v or []
+
+        ids     = _flatten(data.get("ids"))
+        docs    = _flatten(data.get("documents"))
+        metas   = _flatten(data.get("metadatas"))
+
+        total = len(ids)
+        ans = link = news = other = 0
+        for m in metas:
+            if not isinstance(m, dict):
+                other += 1
+                continue
+            src = m.get("source")
+            if src == "web_answer":    ans  += 1
+            elif src == "answer_link": link += 1
+            elif src == "news":        news += 1
+            else:                      other+= 1
+
+        sample = []
+        for i in range(min(5, total)):
+            snippet = (docs[i] or "")[:160].replace("\n", " ") if i < len(docs) else ""
+            sample.append({
+                "id": ids[i] if i < len(ids) else "",
+                "source": (metas[i].get("source") if (i < len(metas) and isinstance(metas[i], dict)) else ""),
+                "url": (metas[i].get("url") if (i < len(metas) and isinstance(metas[i], dict)) else ""),
+                "snippet": snippet
+            })
+
+        return _ok({
+            "verify": {
+                "question": q,
+                "total": total,
+                "answer_chunks": ans,
+                "answer_link_chunks": link,
+                "news_chunks": news,
+                "other_chunks": other,
+                "collection": settings.CHROMA_COLLECTION,
+                "dir": settings.CHROMA_DB_DIR,
+                "sample": sample
+            },
+            "debug": {
+                "where_error": data.get("_where_error"),
+                "shapes": {"ids": type(ids).__name__, "docs": type(docs).__name__, "metas": type(metas).__name__}
+            }
+        })
+    except Exception as e:
+        return _fail("검증 처리 실패", {"exception": str(e)})
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RAG 시드/진단
+# ─────────────────────────────────────────────────────────────────────────────
+def _rag_seed_internal(force: bool = False):
+    col = _chroma_collection()
+    docs = [
+        "새 DB의 첫 문서입니다. 이것은 RAG 동작 점검용 샘플 텍스트입니다.",
+        "두 번째 문서입니다. RAG 검색이 정상 동작하는지 확인하세요.",
+    ]
+    ids = ["seed:doc1", "seed:doc2"]
+    metas = [{"source": "seed", "title": "doc1"}, {"source": "seed", "title": "doc2"}]
+    embs = _embed_texts(docs)
+    if hasattr(col, "upsert"):
+        col.upsert(ids=ids, documents=docs, metadatas=metas, embeddings=embs)
+    else:
+        try:
+            col.delete(ids=ids)
+        except Exception:
+            pass
+        col.add(ids=ids, documents=docs, metadatas=metas, embeddings=embs)
+    return {"seeded": len(ids)}
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_rag_seed(request: HttpRequest):
+    try:
+        info = _rag_seed_internal(force=True)
+        col = _chroma_collection()
+        return _ok({"seed": info, "count": _chroma_count(col)})
+    except Exception as e:
+        return _fail(f"RAG 시드 실패: {e}")
+
+@require_http_methods(["GET"])
+def api_rag_diag(request: HttpRequest):
+    try:
+        col = _chroma_collection()
+        count = _chroma_count(col)
+        sample = []
+        try:
+            got = col.get(limit=3, include=["documents", "metadatas", "ids"])
+            ids = got.get("ids") or []
+            docs = got.get("documents") or []
+            metas = got.get("metadatas") or []
+            for i in range(min(3, len(ids))):
+                sample.append(
+                    {
+                        "id": ids[i],
+                        "snippet": (docs[i] or "")[:120].replace("\n", " "),
+                        "meta": metas[i] if i < len(metas) else {},
+                    }
+                )
+        except Exception:
+            pass
+        return _ok({"dir": settings.CHROMA_DB_DIR, "collection": settings.CHROMA_COLLECTION, "count": count, "sample": sample})
+    except Exception as e:
+        return _fail(f"RAG 진단 실패: {e}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 외부에서 쓰는 래퍼
+# ─────────────────────────────────────────────────────────────────────────────
+def ask_gemini(prompt: str, model: Optional[str] = None) -> str:
+    return _ask_gemini(prompt, model=model)
+
+def embed_texts(texts: List[str]) -> List[List[float]]:
+    return _embed_texts(texts)
+
+__all__ = [
+    # views
+    "home", "api_search", "api_ping", "api_config", "api_diag",
+    "api_chroma_verify", "api_rag_seed", "api_rag_diag",
+    # helpers
+    "ask_gemini", "embed_texts",
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 별도 엔드포인트 (원본 요청 포함)
+# ─────────────────────────────────────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def web_qa_view(request: HttpRequest):
+    q = None
+    model = None
+    if request.method == "GET":
+        q = (request.GET.get("q") or request.GET.get("query") or request.GET.get("question") or "").strip()
+        model = (request.GET.get("model") or "").strip() or None
+    else:
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except Exception:
+            payload = request.POST
+        q = (payload.get("query") or payload.get("q") or payload.get("question") or "").strip()
+        model = (payload.get("model") or "").strip() or None
+
+    if not q:
+        return _fail("query가 비었습니다.")
+
+    answer = _ask_gemini(q, model=model)
+
+    news, crawl_err = [], None
+    try:
+        topk = int(getattr(settings, "NEWS_TOPK", os.environ.get("NEWS_TOPK", "5")))
+        news = _search_news_rss(q, topk)
+        news = _crawl_news_bodies(news, max_workers=4)
+    except Exception as e:
+        crawl_err = str(e)
+
+    ingest_summary, ingest_error = None, None
+    try:
+        ingest_summary = _indexto_chroma_safe(q, answer, news)
+    except Exception as e:
+        ingest_error = str(e)
+
+    safe_news = [
+        {
+            "title": n.get("title", ""),
+            "url": n.get("url", ""),
+            "source": n.get("source", ""),
+            "published_at": n.get("published_at", ""),
+            "snippet": n.get("snippet", ""),
+        }
+        for n in (news or [])
+    ]
+
+    return _ok({
+        "mode": "web",
+        "model": (model or _gemini_model()),
+        "text": answer,
+        "news": safe_news,
+        "ingest": ingest_summary,
+        "warnings": {"crawl": crawl_err, "ingest": ingest_error},
+    })
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def rag_qa_view(request: HttpRequest):
+    q = None
+    model = None
+    if request.method == "GET":
+        q = (request.GET.get("q") or request.GET.get("query") or request.GET.get("question") or "").strip()
+        model = (request.GET.get("model") or "").strip() or None
+    else:
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except Exception:
+            payload = request.POST
+        q = (payload.get("query") or payload.get("q") or payload.get("question") or "").strip()
+        model = (payload.get("model") or "").strip() or None
+
+    if not q:
+        return _fail("query가 비었습니다.")
+
+    try:
+        col = _chroma_collection()
+
+        if getattr(settings, "RAG_AUTO_SEED_IF_EMPTY", True) and _chroma_count(col) == 0:
+            _rag_seed_internal(force=True)
+
+        topk = max(1, int(getattr(settings, "RAG_QUERY_TOPK", 5)))
+
+        res = _chroma_query_with_embeddings(col, q, topk)
+
+        docs = (res.get("documents") or [[]])[0]
+        metas = (res.get("metadatas") or [[]])[0]
+        ids   = (res.get("ids") or [[]])[0]
+        dists = (res.get("distances") or [[]])[0]
+
+        hits = []
+        for i, doc in enumerate(docs):
+            if not doc: 
+                continue
+            snip = (doc[:500] if isinstance(doc, str) else str(doc)).replace("\n", " ").strip()
+            m = metas[i] if i < len(metas) else {}
+            score = float(dists[i]) if (dists and i < len(dists) and dists[i] is not None) else None
+            hits.append({"id": ids[i] if i < len(ids) else "", "score": score, "meta": m, "snippet": snip})
+
+        if not hits:
+            reason = (
+                f"검색 결과 없음 (collection='{settings.CHROMA_COLLECTION}', "
+                f"dir='{settings.CHROMA_DB_DIR}', count={_chroma_count(col)})"
+            )
+            return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": "[검색 결과 없음]", "hits": [], "reason": reason})
+
+        context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
+        prompt = (
+            "아래 컨텍스트만 근거로 한국어로 간결하게 답하세요. "
+            "없으면 '본문에 없음'이라고 답하세요.\n\n"
+            f"[질문]\n{q}\n\n[컨텍스트]\n{context}\n\n답변:\n"
+        )
+        text = _ask_gemini(prompt, model=model)
+        return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": text, "hits": hits})
+
+    except Exception as e:
+        return _fail(f"RAG 검색 실패: {e}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 데모 템플릿
+# ─────────────────────────────────────────────────────────────────────────────
+def result_view(request):
+    model_answer = request.GET.get("answer") or "여기에 모델 생성 답변을 넣어 주세요."
+    news_list = [
+        {
+            "title": "점심식사 후 마시는 커피, 뇌에 '이런' 영향 미친다",
+            "url": "https://example.com/news/1",
+            "source": "헬스조선",
+            "published_at": "Tue, 22 Jul 2025 07:00:00 GMT",
+            "snippet": "연구팀은 식후 카페인이 인지 기능에 미치는 ...",
+        },
+    ]
+    return render(request, "chroma.html", {
+        "model_name": "gemini-2.0-flash",
+        "model_answer": model_answer,
+        "news_list": news_list,
+        "now": timezone.now().strftime("%Y-%m-%d %H:%M"),
+    })
+
+# --- 뉴스만 수집/본문 크롤링 후 Chroma에 저장하는 엔드포인트 ---
+@require_http_methods(["GET"])
+def api_news_ingest(request: HttpRequest):
+    q = (request.GET.get("q") or request.GET.get("query") or "").strip()
+    if not q:
+        return _fail("q 파라미터 필요: /api/news_ingest?q=질문")
+
+    try:
+        # 1) 뉴스 RSS 수집 + 본문 크롤링
+        topk = int(getattr(settings, "NEWS_TOPK", os.environ.get("NEWS_TOPK", "5")))
+        news = _search_news_rss(q, topk)
+        news = _crawl_news_bodies(news, max_workers=6)
+
+        # 2) 인덱싱: 답변은 비우고(news만 저장)
+        ingest_summary = _indexto_chroma_safe(q, answer="", news=news)
+
+        # 3) 클라이언트에 안전한 메타만 반환
+        safe_news = [
+            {
+                "title": n.get("title", ""),
+                "url": n.get("url", ""),
+                "source": n.get("source", ""),
+                "published_at": n.get("published_at", ""),
+                "snippet": n.get("snippet", ""),
+            }
+            for n in (news or [])
+        ]
+        return _ok({"query": q, "news": safe_news, "ingest": ingest_summary})
+    except Exception as e:
+        return _fail(f"뉴스 인덱싱 실패: {e}")
+    
+# ---------- RAG 베스트-에포트 파이프라인 유틸 ----------
+
+def _parse_hits_from_res(res):
+    def _pick(v):
+        return v[0] if (isinstance(v, list) and v and isinstance(v[0], list)) else (v or [])
+    docs  = _pick(res.get("documents"))
+    metas = _pick(res.get("metadatas"))
+    ids   = _pick(res.get("ids")) if "ids" in res else [""] * len(docs)
+    dists = _pick(res.get("distances"))
+    hits = []
+    for i, doc in enumerate(docs):
+        if not doc:
+            continue
+        snip = (doc[:800] if isinstance(doc, str) else str(doc)).replace("\n", " ").strip()
+        m = metas[i] if i < len(metas) else {}
+        score = float(dists[i]) if (dists and i < len(dists) and dists[i] is not None) else None
+        hits.append({"id": ids[i] if i < len(ids) else "", "score": score, "meta": m, "snippet": snip})
+    return hits
+
+def _make_rag_prompt(question: str, context: str) -> str:
+    # ❗️'본문에 없음'이라는 단어 자체를 쓰지 않도록 지시하고,
+    #    제공된 자료를 최대한 통합·요약해 답하게끔 유도
+    return (
+        "아래 제공된 자료만 근거로 한국어로 핵심을 정리해 답하세요.\n"
+        "- 자료에서 확인되는 사실을 묶어서 요약해 주세요.\n"
+        "- 확실한 근거가 보이면 항목화하여 정리하고, 문장 끝에 [1], [2]처럼 근거 블록 번호를 붙이세요.\n"
+        "- 직접적 근거가 부족하면 '자료 내 직접 근거 부족'이라고 한 줄로 밝힌 뒤, "
+        "자료에서 추론 가능한 범위 내 핵심 포인트를 요약하세요.\n"
+        "- '본문에 없음'이라는 표현은 사용하지 마세요.\n\n"
+        f"[질문]\n{question}\n\n[자료]\n{context}\n\n[답변]\n"
+    )
+
+def _rag_answer_best_effort(question: str, initial_topk: int = 5, fallback_topk: int = 12):
+    """
+    1) 1차 검색(topk) → 컨텍스트 생성 → 답변
+    2) 답변이 빈약(짧음/특정 문구 포함)하면:
+       - 키워드 확장(LLM) → 더 넓은 topk로 재검색 → 재답변
+    """
+    col = _chroma_collection()
+    # (선택) 설정에 소스 필터가 있으면 우선 적용
+    sources_filter = getattr(settings, "RAG_SOURCES_FILTER", None)
+
+    # --- 1차 검색
+    try:
+        res = _chroma_query_with_embeddings(col, question, initial_topk, sources_filter=sources_filter)
+    except TypeError:
+        res = _chroma_query_with_embeddings(col, question, initial_topk)
+
+    hits = _parse_hits_from_res(res)
+    context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
+    ans = _ask_gemini(_make_rag_prompt(question, context), model=None)
+
+    def _weak(a: str) -> bool:
+        t = (a or "").strip()
+        return (not t) or (len(t) < 60) or ("본문에 없음" in t)
+
+    if not hits or _weak(ans):
+        # --- 2차: 키워드 확장 + 더 넓은 topk
+        try:
+            kw = _ask_gemini(
+                f"아래 질문의 한국어 핵심 키워드를 쉼표로 8~12개만 나열해줘. 설명 없이 키워드만.\n질문: {question}",
+                model=None
+            )
+        except Exception:
+            kw = ""
+        expanded_q = (question + " " + (kw or "")).strip()
+        try:
+            res2 = _chroma_query_with_embeddings(col, expanded_q, fallback_topk, sources_filter=None)
+        except TypeError:
+            res2 = _chroma_query_with_embeddings(col, expanded_q, fallback_topk)
+
+        hits2 = _parse_hits_from_res(res2)
+        if hits2:
+            context2 = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits2))
+            ans2 = _ask_gemini(_make_rag_prompt(question, context2), model=None)
+            # 더 좋은 쪽 선택
+            if not ans or len((ans2 or "").strip()) > len((ans or "").strip()):
+                return ans2, hits2
+
+    return ans, hits

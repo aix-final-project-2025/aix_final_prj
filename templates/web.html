@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}News{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=delete,more_vert" />
+
+<link rel="stylesheet" href="{% static 'css/recyclables.css' %}">
+{% endblock %}
+
+{% block content %}
+
+    <div class="wrap">
+        <!-- 상단: Gemini (네이버창) -->
+        <section class="section card">
+            <div class="title">🔎 Gemini 답변 & 참고 기사</div>
+            <form class="naverbar" method="get" action="{% url 'chroma' %}">
+                {% csrf_token %}
+                <input type="hidden" name="mode" value="gemini" />
+                <input type="text" name="q" placeholder="질문을 입력하세요 (예: AI 최신 동향은?)" value="{{ q_gemini|default_if_none:'' }}" />
+                <button type="submit">검색</button>
+            </form>
+            <div class="cols" style="margin-top:14px;">
+                <div class="panel">
+                    <header>🤖 Gemini 답변 {% if model_name_gemini %}<span class="small">· {{ model_name_gemini }}</span>{% endif %}</header>
+                    <div class="body">
+                        {% if gemini_error %}
+                            <p class="err">{{ gemini_error }}</p>
+                        {% elif gemini_answer %}
+                            <div>{{ gemini_answer|linebreaksbr }}</div>
+                        {% else %}
+                            <p class="muted">윗 검색창에 질문을 입력하고 Enter를 누르세요.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="panel">
+                    <header>📰 참고 기사</header>
+                    <div class="body">
+                        {% if news_list and news_list|length > 0 %}
+                            <ul class="newslist">
+                                {% for n in news_list %}
+                                    <li>
+                                        <h4 class="news-title">
+                                            {% if n.url %}
+                                                <a href="{{ n.url }}" target="_blank" rel="noopener noreferrer">{{ n.title|default:"제목 없음" }}</a>
+                                            {% else %}
+                                                {{ n.title|default:"제목 없음" }}
+                                            {% endif %}
+                                        </h4>
+                                        <div class="meta">
+                                            {% if n.source %}
+                                                <span class="chip">출처 · {{ n.source }}</span>
+                                            {% endif %}
+                                            {% if n.published_at %}
+                                                <span class="small">{{ n.published_at }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if n.snippet %}
+                                            <div class="small">{{ n.snippet }}</div>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <!-- 기사 → 크롤링 → 청크 → 크로마 저장 -->
+                            <form method="get" action="{% url 'chroma' %}" style="margin-top:14px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="mode" value="gemini" />
+                                <input type="hidden" name="q" value="{{ q_gemini|default_if_none:'' }}" />
+                                <input type="hidden" name="ingest" value="1" />
+                                <button class="cta" type="submit">🔄 참고 기사 크롤링 → 크로마 저장</button>
+                                {% if ingest_result %}
+                                    <span class="small">({{ ingest_result }})</span>
+                                {% endif %}
+                                {% if ingest_error %}
+                                    <span class="err small">{{ ingest_error }}</span>
+                                {% endif %}
+                            </form>
+                        {% else %}
+                            <p class="muted">참고 기사가 여기에 표시됩니다. (네이버 뉴스 API 또는 Gemini 링크 추출)</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 하단: RAG (네이버창) -->
+        <section class="section card">
+            <div class="title">📚 RAG (Chroma 벡터DB) 답변</div>
+            <form class="naverbar" method="get" action="{% url 'chroma' %}" style="margin-bottom:14px;">
+                {% csrf_token %}
+                <input type="hidden" name="mode" value="rag" />
+                <input type="text" name="q" placeholder="내 지식(Chroma) 기반으로 묻기" value="{{ q_rag|default_if_none:'' }}" />
+                <button type="submit">검색</button>
+            </form>
+            <div class="panel">
+                <header>📘 RAG 답변 {% if model_name_rag %}<span class="small">· {{ model_name_rag }}</span>{% endif %}</header>
+                <div class="body">
+                    {% if rag_error %}
+                        <p class="err">{{ rag_error }}</p>
+                    {% elif rag_answer %}
+                        <div>{{ rag_answer|linebreaksbr }}</div>
+                        {% if rag_sources %}
+                            <hr />
+                            <div class="small">참고 소스:</div>
+                            <ul class="small">
+                                {% for s in rag_sources %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% else %}
+                        <p class="muted">아래 검색창에 질문을 입력하고 Enter를 누르세요.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+
+{% block extra_script %}
+    <script>
+        (function () {
+            try {
+                // 브라우저가 '리로드'로 들어왔는지 감지
+                var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+                var isReload = nav ? (nav.type === 'reload') : (performance && performance.navigation && performance.navigation.type === 1);
+                if (isReload) {
+                    // 쿼리/해시가 있거나 루트가 아니면 즉시 루트로 교체(히스토리 오염 X)
+                    var notRoot = !(location.pathname === '/' || location.pathname === '');
+                    if (notRoot || location.search || location.hash) {
+                        window.location.replace('{% url "chroma" %}');
+                    }
+                }
+            } catch (e) {
+                // 실패해도 무시 (페이지 기능에는 영향 없음)
+            }
+        })();
+    </script>
+{% endblock %}
