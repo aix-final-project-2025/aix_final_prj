@@ -34,7 +34,7 @@
   템플릿에서는 이렇게 사용합니다:
 
   ```html
-  [Link Text] <a href="{% url 'core:home' %}">홈</a>
+  [faraday-retry] <a href="{% url 'core:home' %}">홈</a>
   ```
 
 👉 원리: **URL도 이름 충돌 방지를 위해 “앱이름:라우트이름” 구조 사용**
