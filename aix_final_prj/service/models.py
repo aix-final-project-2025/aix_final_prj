@@ -63,7 +63,6 @@ class RecyclableResult(models.Model):
     
 
 
-
 class CountryPf(models.Model):
     COUNTRY_CHOICES = [
         ('KR', '대한민국'),
@@ -74,11 +73,11 @@ class CountryPf(models.Model):
     GENDER_CHOICES = [
         ('M', '남성'),
         ('F', '여성'),
-        ('O', '기타'),
     ]
 
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, verbose_name='국가')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='성별')
+    active = models.BooleanField(default=True, verbose_name='사용여부')  # ← 추가
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='등록일')
 
     class Meta:
@@ -88,4 +87,9 @@ class CountryPf(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.country}-{self.gender}-{self.created_at.strftime('%Y-%m-%d')}"    
+        status = "사용" if self.active else "미사용"
+        return f"{self.country}-{self.gender}-{status}-{self.created_at.strftime('%Y-%m-%d')}"
+    
+
+
+ 
