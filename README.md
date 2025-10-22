@@ -15,8 +15,8 @@
 
 예시:
 
-* `core/templates/core/home.html` → `render(request, "core/home.html")`
-* `users/templates/users/home.html` → `render(request, "users/home.html")`
+* `[faraday-retry] core/templates/core/home.html` → `render(request, "core/home.html")`
+* `[faraday-retry] users/templates/users/home.html` → `render(request, "users/home.html")`
 
 ✅ **전역 템플릿(`templates/base.html`)은 경로 없이 파일명 `"base.html"`만 호출하면 됩니다.**
 
@@ -104,8 +104,8 @@ aix_final_prj/
 
 * **명확성**
 
-  * `core/templates/core/home.html` → 호출: `"core/home.html"`
-  * `crawling/templates/crawling/list.html` → 호출: `"crawling/list.html"`
+  * [faraday-retry]`core/templates/core/home.html` → 호출: `"core/home.html"`
+  * [faraday-retry]`crawling/templates/crawling/list.html` → 호출: `"crawling/list.html"`
     → 이름 충돌 없음, 소속이 바로 보임
 
 * **협업 편의성**
