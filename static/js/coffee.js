@@ -239,3 +239,121 @@ function runClustering(url){
     showResults('clustering-results',html);
   }).finally(()=>hideLoader('clustering-loader'));
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll(".tab-link");
+  const contents = document.querySelectorAll(".tab-content");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.getAttribute("data-tab");
+
+      tabs.forEach(t => t.classList.remove("active"));
+      contents.forEach(c => c.classList.remove("active"));
+
+      tab.classList.add("active");
+      document.getElementById(target).classList.add("active");
+    });
+  });
+});
+
+// ===============================
+// ☕ Coffee Tab Switching Script
+// ===============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll(".tab-btn");
+  const content = document.getElementById("tab-content");
+
+  // 기본 탭: report.html
+  let currentTab = "report";
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const selected = btn.dataset.tab;
+      if (selected === currentTab) return; // 동일 탭 클릭 시 무시
+
+      // 버튼 스타일 변경
+      buttons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // 콘텐츠 교체
+      fetch(`/static/templates/coffee/${selected}.html`)
+        .then((res) => res.text())
+        .then((html) => {
+          content.innerHTML = html;
+          currentTab = selected;
+        })
+        .catch(() => {
+          content.innerHTML = `<p style="color:red;">⚠️ ${selected}.html을 불러오지 못했습니다.</p>`;
+        });
+    });
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // 🔹 공통 로더 표시 함수
+  const showLoader = id => document.getElementById(id)?.classList.remove("d-none");
+  const hideLoader = id => document.getElementById(id)?.classList.add("d-none");
+  const showResults = (id, html) => document.getElementById(id).innerHTML = html;
+
+  // 🔹 공통 fetch 함수
+  async function handleFetch(url, options, loaderId, resultId, successHTMLCallback) {
+    try {
+      showLoader(loaderId);
+      const res = await fetch(url, options);
+      const data = await res.json();
+      showResults(resultId, successHTMLCallback(data));
+    } catch (err) {
+      showResults(resultId, `<p style="color:red;">❌ 오류 발생: ${err.message}</p>`);
+    } finally {
+      hideLoader(loaderId);
+    }
+  }
+
+  // 🔹 딥러닝 폼 공통 처리
+  document.addEventListener("submit", e => {
+    if (e.target.id === "dl-form") {
+      e.preventDefault();
+
+      const form = e.target;
+      const payload = Object.fromEntries(new FormData(form).entries());
+      const tab = document.querySelector(".tab-btn.active")?.dataset.tab;
+      const url = `/dev/api/predict_dl_${tab}/`;
+
+      handleFetch(
+        url,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
+        "dl-loader",
+        "dl-results",
+        data => `
+          <h3>예측 결과</h3>
+          <p><strong>${data.predicted_class}</strong></p>
+          <ul>${Object.entries(data.probabilities)
+            .map(([k, v]) => `<li>${k}: ${v}</li>`)
+            .join("")}</ul>`
+      );
+    }
+  });
+
+  // 🔹 회귀 / 분류 / 군집 버튼 공통 처리
+  document.addEventListener("click", e => {
+    const btn = e.target;
+    if (btn.id.startsWith("run-")) {
+      const mode = btn.id.replace("run-", ""); // regression, classification, clustering
+      const tab = document.querySelector(".tab-btn.active")?.dataset.tab;
+      const url = `/dev/api/run_${mode}_${tab}/`;
+
+      handleFetch(
+        url,
+        { method: "POST" },
+        `${mode}-loader`,
+        `${mode}-results`,
+        data => `
+          <h3>${mode.toUpperCase()} 결과</h3>
+          <pre>${JSON.stringify(data.results, null, 2)}</pre>`
+      );
+    }
+  });
+});

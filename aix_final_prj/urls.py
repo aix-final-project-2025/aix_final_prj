@@ -17,16 +17,8 @@ urlpatterns = [
     path("recycle/predict/", TemplateView.as_view(template_name="recycle/predict_list.html"), name="predict_list"),
 
     # ☕ 커피 분석 (Coffee App)
-    # 👉 탭 순서상 첫 번째: 리포트
-    path("coffee/coffee_report/", TemplateView.as_view(template_name="coffee/coffee_report.html"), name="coffee_report"),
-    # 👉 두 번째: 메인 탭 (딥러닝, 회귀, 분류, 군집 통합)
+    # 👉 이제 coffee 하나만 유지 (내부 탭으로 분리됨)
     path("coffee/", TemplateView.as_view(template_name="coffee/coffee.html"), name="coffee"),
-    # 👉 세 번째: BMI 분석
-    path("coffee/bmi/", TemplateView.as_view(template_name="coffee/bmi.html"), name="bmi"),
-    # 👉 네 번째: 수면 분석
-    path("coffee/sleep/", TemplateView.as_view(template_name="coffee/sleep.html"), name="sleep"),
-    # 👉 다섯 번째: 스트레스 분석
-    path("coffee/stress/", TemplateView.as_view(template_name="coffee/stress.html"), name="stress"),
 
     # 🧠 PDF-RAG (문서 기반 챗봇)
     path("rag/", TemplateView.as_view(template_name="rag/pdf_rag.html"), name="rag"),
