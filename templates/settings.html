@@ -145,8 +145,8 @@
         </div>
         <div>
           <div class="segmented" role="tablist" aria-label="국가 선택">
-            <button data-country="kr">대한민국</button>
-            <button data-country="us">미국</button>
+            <button data-country="ko">대한민국</button>
+            <button data-country="en">미국</button>
             <button data-country="es">스페인</button>
           </div>
         </div>
@@ -196,7 +196,7 @@
   - 저장 시 localStorage에 persist
 */
 
-const STORAGE_KEY = 'settings_v1';
+const STORAGE_KEY = 'settings_v0';
 
 // 샘플 voice 데이터 (id = 코드값)
 const VOICES = [
@@ -214,17 +214,15 @@ function loadSettings(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return {
       active: false,
-      country: 'kr',
+      country: 'ko',
       // gender: 'female'
       gender: '2'
     };
 
-    
-
     return JSON.parse(raw);
   }catch(e){
     //console.error('loadSettings',e);
-    return { active:false, country:'kr', gender: '2' };
+    return { active:false, country:'ko', gender: '2' };
   }
   
 }
@@ -379,7 +377,7 @@ segmented1.forEach(btn=>{
 /* 저장/초기화 핸들러 */
 saveBtn.addEventListener('click', ()=>{
   if(saveSettings(settings)){
-    // saveBtn.textContent = '저장됨 ✓';
+    saveBtn.textContent = '저장중 ✓';
     // setTimeout(()=> saveBtn.textContent = '저장', 1200);
     fetchSaving(settings.country,settings.gender,settings.active)
   } else {
@@ -391,7 +389,7 @@ resetBtn.addEventListener('click', ()=>{
   // 기본값으로 복원
   settings = {
     active: false,
-    country: 'kr',
+    country: 'ko',
     gender: '2'
   };
   updateToggleUI(settings.active);
@@ -446,20 +444,22 @@ function fetchSaving(country, gender, active) {
 
         if (data.exists) {
             // 기존 설정이 조회된 경우
-            console.log("✅ 기존 설정 로드 완료.");
+            console.log("기존 설정 로드 완료.");
             console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
             // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
         } else {
             // 설정이 없는 경우 (신규 등록 준비)
-            console.log("⭐ 신규 설정 필요.");
+            console.log("신규 설정 필요.");
             console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
             // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
         }
+        setTimeout(()=> saveBtn.textContent = '저장', 1200);
     })
     .catch(error => {
         // 네트워크 오류 또는 서버 에러 처리
-        console.error('⚠️ 환경설정 조회 실패:', error);
+        console.error('환경설정 조회 실패:', error);
         alert('환경설정 데이터를 불러오는 중 오류가 발생했습니다.');
+        saveBtn.textContent = '저장실패'
     });
 }
 /**
@@ -490,7 +490,6 @@ function fetchSettings(country, gender, active) {
 
     const apiUrl = "{% url 'settings_detail' %}"; // SettingDetailView URL
 
-    console.log("요청 JSON 데이터:", lookupData);
 
     fetch(apiUrl, {
         method: 'POST', // Django View가 POST 요청을 받도록 구현됨
@@ -513,19 +512,19 @@ function fetchSettings(country, gender, active) {
 
         if (data.exists) {
             // 기존 설정이 조회된 경우
-            console.log("✅ 기존 설정 로드 완료.");
+            console.log("기존 설정 로드 완료.");
             console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
             // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
         } else {
             // 설정이 없는 경우 (신규 등록 준비)
-            console.log("⭐ 신규 설정 필요.");
+            console.log("신규 설정 필요.");
             console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
             // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
         }
     })
     .catch(error => {
         // 네트워크 오류 또는 서버 에러 처리
-        console.error('⚠️ 환경설정 조회 실패:', error);
+        console.error('환경설정 조회 실패:', error);
         alert('환경설정 데이터를 불러오는 중 오류가 발생했습니다.');
     });
 }
@@ -537,9 +536,8 @@ updateToggleUI(settings.active);
 setCountryUI(settings.country);
 setPepleUI(settings.gender)
 
-
+console.log(" init data "+JSON.stringify(settings))
 fetchSettings(settings.country,settings.gender,settings.active)
-//renderVoiceList();
 
 /* Expose settings for console debugging */
 window._appSettings = settings;

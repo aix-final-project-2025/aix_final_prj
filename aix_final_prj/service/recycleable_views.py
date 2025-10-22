@@ -106,14 +106,16 @@ class PredictApiView(View):
         rsEnable = CountryPf.objects.all().order_by('-created_at').first()
         enable = 0
         if rsEnable:
-            enable = rsEnable.enable
-            print(f"TTs 사용여부 : {rsEnable.enable}")
+            enable = rsEnable.active
+            print(f"TTs 사용여부 : {enable}")
       
+        print(f" enable data {enable}")
         res["tts_able"] = enable
-        if(enable == '1'):
+        if(enable == 1):
             #JSON 반환
-            print("  TTS called =====================================")
-            tts_name = translate_and_tts(f'{result_message}','en')
+            print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
+            
+            tts_name = translate_and_tts(f'{result_message}',rsEnable.country,rsEnable.gender)
             host = request.scheme + "://" + request.get_host()
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
      
@@ -240,16 +242,17 @@ class SettingDetailView(View):
         # 2. 필수 필드 추출
         query_country = data.get('country')
         query_gender = data.get('gender')
-        query_active = data.get('active', None) # 🌟 active 값 추출 (없으면 None)
-
-        if not all([query_country, query_gender]):
+        query_active = data.get('active', None) # active 값 추출 (없으면 None)
+        print(f" query_country {query_country},query_gender {query_gender},query_active {query_active}")
+        
+        if query_country is None and query_gender is None and query_active is None:
             return JsonResponse({'status': 'error', 'message': 'Country and gender fields are required in JSON body.'}, status=400)
 
         # 3. 공통 모듈을 사용하여 DB 조회: active 값까지 전달
-        db_profile = get_profile_setting(query_country, query_gender, query_active) # 🌟 active 전달
+        db_profile = get_profile_setting(query_country, query_gender, query_active) # active 전달
 
         # ... (생략: 조회 성공/실패 로직)
-
+        print(f" new_profile.id 111 -------")
         if db_profile:
             # 조회 성공: 객체를 JSON 응답 형태로 변환
             response_data = {
@@ -259,16 +262,32 @@ class SettingDetailView(View):
                 'created_at': db_profile.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'exists': True
             }
+            print(f" new_profile.id 222 -------")
             return JsonResponse(response_data, status=200)
         else:
+
+            print(f" new_profile.id 333 -------")
             # 조회 실패 (신규 등록이 필요한 상태 또는 해당 active 상태의 레코드가 없는 상태)
+            new_profile = CountryPf.objects.create(
+                    country=query_country,
+                    gender=query_gender,
+                    active=query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True 
+            )
+            print(f" new_profile.id 444 -------")
+            print(f" new_profile.id {new_profile.id}")
             return JsonResponse({
-                'country': query_country,
-                'gender': query_gender,
-                'active': query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True
-                'exists': False,
-                'message': 'No existing settings found matching the criteria.'
+                'status': 'success', 'message': 'New settings registered successfully.',
+                'action': 'CREATED', 'id': new_profile.id
             }, status=200)
+
+            
+            # return JsonResponse({
+            #     'country': query_country,
+            #     'gender': query_gender,
+            #     'active': query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True
+            #     'exists': False,
+            #     'message': 'No existing settings found matching the criteria.'
+            # }, status=200)
 
 
 
