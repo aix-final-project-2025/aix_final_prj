@@ -71,7 +71,7 @@ except Exception:
 
 def _gemini_client():
     if genai is None:
-        raise RuntimeError("google-genai 미설치: pip install -U google-generativeai")
+        raise RuntimeError("google-genai 미설치: pip install google-generativeai google-genai")
     api_key = getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY")
     
     
