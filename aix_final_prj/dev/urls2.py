@@ -7,7 +7,7 @@ import aix_final_prj.service.bmi_views as bmiview
 import aix_final_prj.service.coffee_views as coffeeview
 import aix_final_prj.service.sleep_views as sleepview
 import aix_final_prj.service.stress_views as stressview
-import aix_final_prj.service.views as views
+import aix_final_prj.service.news_views as newsviews
 #class dsPage(View):
  #   template_name = "ds.html"
     
@@ -103,18 +103,18 @@ urlpatterns = [
     path('predict_dl_sl/', sleepview.predict_dl_sl, name='predict_dl_sl'),
     path('run_classification_st/', stressview.run_classification_st, name='run_classification_st'),
     path('predict_dl_st/',stressview.predict_dl_st, name='predict_dl_st'),
-    path('', views.home, name='chroma'),
-    path('api/search/', views.api_search, name='api_search'),
-    path('api/ping/', views.api_ping, name='api_ping'),
-    path('api/config/', views.api_config, name='api_config'),
-    path('api/diag/', views.api_diag, name='api_diag'),
-    path('api/chroma_verify/', views.api_chroma_verify, name='api_chroma_verify'),
-    path('api/rag_seed/', views.api_rag_seed, name='api_rag_seed'),
-    path('api/rag_diag/', views.api_rag_diag, name='api_rag_diag'),
-    path('web_qa/', views.web_qa_view, name='web_qa'),
-    path('rag_qa/', views.rag_qa_view, name='rag_qa'),
-    path('result/', views.result_view, name='result'),
-    path('api/news_ingest/', views.api_news_ingest, name='api_news_ingest'),
+    path('', newsviews.home, name='chroma'),
+    path('api/search/', newsviews.api_search, name='api_search'),
+    path('api/ping/', newsviews.api_ping, name='api_ping'),
+    path('api/config/', newsviews.api_config, name='api_config'),
+    path('api/diag/', newsviews.api_diag, name='api_diag'),
+    path('api/chroma_verify/', newsviews.api_chroma_verify, name='api_chroma_verify'),
+    path('api/rag_seed/', newsviews.api_rag_seed, name='api_rag_seed'),
+    path('api/rag_diag/', newsviews.api_rag_diag, name='api_rag_diag'),
+    path('web_qa/', newsviews.web_qa_view, name='web_qa'),
+    path('rag_qa/', newsviews.rag_qa_view, name='rag_qa'),
+    path('result/', newsviews.result_view, name='result'),
+    path('api/news_ingest/', newsviews.api_news_ingest, name='api_news_ingest'),
     
     
 ]
