@@ -1,100 +1,165 @@
-/* 폰트 적용 */
+/* =============================
+📚 Base.css (통합 최종본)
+Created: 2025.10 / by Chang-Do Merge
+============================= */
+
+/* 🧱 기본 세팅 */
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #f8f8f8;
+    background-color: #fafafa;
     color: #333;
 }
 
-/* 🟢 1. 독립적인 햄버거 버튼 컨테이너 (오른쪽 상단 고정) */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===============================
+📱 상단 네비게이션 (햄버거 버튼)
+=============================== */
 #navbar {
     position: fixed;
-    top: 70px;
-    right: 100px; 오른쪽 정렬
-    z-index: 1000; /* 사이드바보다 위에 오도록 높은 z-index 설정 */
+    top: 12px;
+    left: 12px;
+    z-index: 1001;
     padding: 10px 20px;
 }
 
-/* Sidebar styles 수정 */
+.togglebtn {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s;
+}
+
+.togglebtn:hover {
+    transform: scale(1.1);
+}
+
+/* ===============================
+📚 사이드바 기본 구조
+=============================== */
 .sidebar {
     height: 100%;
-    width: 60px; /* 초기 너비 유지 */
+    width: 60px;
     position: fixed;
     z-index: 1000;
     top: 0;
-    left: 0; /* ★★★ left를 0으로 고정합니다. */
-    
-    /* 🟢 초기 상태: 왼쪽으로 100% 숨김 */
-    transform: translateX(-100%); 
-    
+    left: 0;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+
     background-color: #fff;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     overflow-x: hidden;
-    
-    /* ★★★ transition을 transform과 width로 변경합니다. */
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; 
+    white-space: nowrap;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 위쪽 정렬 */
+    align-items: center; /* 가로 중앙 정렬 */
+    border-right: 1px solid #eee;
+    padding-top: 80px;
+    padding-bottom: 20px;
 }
 
 .sidebar.expanded {
-    width: 250px; /* 확장된 너비 유지 */
-    
-    /* 🟢 확장 상태: 화면에 나타남 (0으로 이동) */
-    transform: translateX(0); 
+    width: 250px;
+    transform: translateX(0);
 }
+
+/* ===============================
+🏠 사이드바 헤더 & 브랜드 버튼
+=============================== */
 .sidebar-header {
-    height: 60px;
+    text-align: center;
+    padding: 5px 0 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.brand-btn {
+    display: inline-block;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 1.4rem;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.25s ease-in-out;
+}
+
+.brand-btn:hover {
+    color: #2c7a4b;
+    transform: scale(1.05);
+}
+
+/* ===============================
+📂 메뉴 아이템
+=============================== */
+.sidebar a {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 0 10px;
-}
-
-.sidebar a {
-    padding: 12px 18px;
-    text-decoration: none;
-    font-size: 18px;
+    width: 100%;
+    padding: 16px 18px;
     color: #333;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.2s;
-    white-space: nowrap;
+    font-size: 17px;
+    font-weight: 500;
+    gap: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    
+    border-radius: 8px;     
+    transition: all 0.2s ease;
 }
 
 .sidebar a:hover {
-    background-color: #f0f0f0;
+    background-color: #f4f4f4;
+    border-radius: 6px;
     cursor: pointer;
 }
 
-/* 🟢 아이콘 정렬 및 크기 조정 (기본 데스크톱 크기) */
+/* ===============================
+📁 아이콘 & 텍스트 애니메이션
+=============================== */
 .sidebar a .icon {
-    font-size: 20px; /* Home 이모티콘 기본 크기 */
-    margin-right: 15px;
-    
-    /* ⚠️ PNG 아이콘 크기에 맞게 width와 height를 30px로 통일 */
-    width: 30px; 
-    height: 30px; 
-    
-    /* ⚠️ Flexbox를 사용하여 내부 요소(img) 수직/수평 중앙 정렬 */
+    width: 32px;
+    height: 32px;
     display: flex;
-    align-items: center; /* 수직 가운데 정렬 */
-    justify-content: center; /* 수평 가운데 정렬 */
-    
-    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
-/* 🟢 <img> 태그의 수직 정렬을 확실하게 보장하고 크기 조정 */
 .sidebar a .icon img {
-    vertical-align: middle; 
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.9;
 }
-
 
 .sidebar a .text {
     opacity: 0;
     transform: translateX(-10px);
     transition: opacity 0.3s, transform 0.3s;
     flex-grow: 1;
+    font-size: 17px;
+    font-weight: 500;
 }
 
 .sidebar.expanded a .text {
@@ -102,50 +167,32 @@ body {
     transform: translateX(0);
 }
 
-.sidebar .closebtn {
-    display: none;
-}
-
-/* Main content (사이드바가 숨겨져 있으므로 초기 margin-left를 0으로 변경) */
+/* ===============================
+📄 메인 콘텐츠
+=============================== */
 .main {
     transition: margin-left 0.3s;
     padding: 20px;
-    margin-left: 0; 
+    margin-left: 0;
     background-color: #fff;
     min-height: 100vh;
 }
 
-/* 햄버거 버튼 스타일 (위치 조정) */
-.togglebtn {
-    font-size: 24px;
-    line-height: 1;
-    cursor: pointer;
-    background-color: #2196F3;
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    display: block;
-    transition: background-color 0.2s;
-}
-
-.togglebtn:hover {
-    background-color: #0b7dda;
-}
-
-/* Responsive (600px 이하 스타일) */
+/* ===============================
+📱 반응형 디자인
+=============================== */
 @media screen and (max-width: 600px) {
     .sidebar {
-        width: 70%; 
+        width: 70%;
     }
 
     .sidebar.expanded {
         width: 70%;
-        left: 0; 
+        left: 0;
     }
 
     .main {
-        margin-left: 0; 
+        margin-left: 0;
         padding: 15px;
     }
 
@@ -158,51 +205,41 @@ body {
     }
 }
 
-/*  모바일 환경(앱 환경) 글자 및 사이드바 요소 크기 조정 (768px 이하)  */
 @media screen and (max-width: 768px) {
-    
-    /* 1. 기본 텍스트 크기 증가 */
     body {
         font-size: 1.1em;
     }
 
-    /* 2. 사이드바 항목 간격 확대 */
     .sidebar a {
-        padding: 15px 18px; 
+        padding: 15px 18px;
     }
 
-    /* 3. 사이드바 메뉴 텍스트 크기 증가 (1.2em로 더 강조) */
     .sidebar a .text {
         font-size: 1.2em;
     }
-    
-    /* 4. 아이콘 컨테이너 크기 증가 (30px -> 35px) */
+
     .sidebar a .icon {
-        width: 35px; 
-        height: 35px; 
-        font-size: 28px; /* 폰트/이모티콘 기반 아이콘(Home 등) 크기 조정 */
+        width: 30px;
+        height: 30px;
+        font-size: 28px;
     }
-    
-    /* 5. 제목 크기 증가 */
+
     .page-title {
         font-size: 1.8em;
     }
 
-    /* 6. 재활용 앨범 설명 텍스트 증가 (recyclables.css 내용 가정) */
     .description-text {
         font-size: 1.1em;
     }
-    /* 7. 햄버거 버튼 컨테이너 위치 및 크기 조정 */
+
     #navbar {
-        top: 20px; /* 상단 고정 위치를 70px에서 20px로 줄여 공간 확보 */
-        transform: translateX(65px); /* 버튼이 사이드바(닫힌 너비 60px) 옆에 붙도록 조정 */
-        padding: 5px 10px; /* 패딩도 줄여줍니다. */
+        top: 20px;
+        transform: translateX(65px);
+        padding: 5px 10px;
     }
 
-    /* 8. 햄버거 버튼 자체 크기 조정 */
     .togglebtn {
-        font-size: 20px; /* 아이콘 크기 약간 축소 */
-        padding: 6px 10px; /* 버튼 내부 패딩 축소 */
+        font-size: 20px;
+        padding: 6px 10px;
     }
 }
-
