@@ -1,6 +1,6 @@
 from django.urls import path
 #from aix_final_prj.service.news_views import NewsPage
-from aix_final_prj.service.recycleable_views import SettingUpdateView,SettingDetailView,Settings,ClassChange, CodeList, PredictListView, PredictListPageView,UploadView, PredictApiView
+from aix_final_prj.service.recycleable_views import getSettingInfo,SettingUpdateView,SettingDetailView,Settings,ClassChange, CodeList, PredictListView, PredictListPageView,UploadView, PredictApiView
 from django.http import JsonResponse
 
 def dummy_wellknown(_):
@@ -19,4 +19,5 @@ urlpatterns = [
     path('api/settings/', Settings.as_view(), name='settings'),
     path('api/settings_detail/', SettingDetailView.as_view(), name='settings_detail'),
     path('api/settings_save/', SettingUpdateView.as_view(), name='settings_save'),
+    path('api/settingsInfo/', getSettingInfo.as_view(), name='settingsInfo'),
 ]
