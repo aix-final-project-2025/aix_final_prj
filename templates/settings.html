@@ -1,16 +1,127 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page_title %}환경설정 — iOS 스타일{% endblock %}
-
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/settings.css' %}">
+
+<style>
+  :root{
+    --bg:#f2f2f7;
+    --card:#ffffff;
+    --muted:#8e8e93;
+    --accent:#0a84ff; /* iOS blue */
+    --danger:#ff3b30;
+    --radius:14px;
+    --shadow: 0 6px 18px rgba(0,0,0,0.08);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:#111;}
+  .wrap{max-width:680px;margin:28px auto;padding:18px;}
+
+  h1{font-size:20px;margin:0 0 18px 0;font-weight:600;color:#111}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px}
+
+  /* card */
+  .card{
+    background:var(--card);
+    border-radius:calc(var(--radius) - 2px);
+    box-shadow:var(--shadow);
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  /* row layout common */
+  .row{display:flex;align-items:center;justify-content:space-between;}
+  .label{
+    display:flex;flex-direction:column;
+  }
+  .label .title{font-weight:600;color:#111}
+  .label .desc{font-size:13px;color:var(--muted);margin-top:4px}
+
+  /* iOS toggle switch */
+  .ios-toggle{
+    --w:52px; --h:32px;
+    width:var(--w); height:var(--h);
+    border-radius:999px;
+    background:#d1d1d6;
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+    transition:background .18s ease;
+    flex-shrink:0;
+  }
+  .ios-toggle .knob{
+    width:26px;height:26px;border-radius:50%;
+    background:white; position:absolute; top:3px; left:3px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.18);
+    transition: transform .18s cubic-bezier(.2,.9,.3,1);
+  }
+  .ios-toggle.on{ background: linear-gradient(180deg, #0a84ff, #0060d6); }
+  .ios-toggle.on .knob{ transform: translateX(20px); }
+
+  /* segmented control (country) */
+  .segmented ,.segmented1 {
+    display:inline-flex;
+    border-radius:999px;
+    background: rgba(0,0,0,0.04);
+    padding:4px;
+  }
+  .segmented button ,.segmented1 button {
+    border:0;background:transparent;padding:8px 12px;border-radius:10px;
+    font-weight:600;color:var(--muted);
+    cursor:pointer;outline:none;
+    transition: background .12s, color .12s, transform .06s;
+  }
+  .segmented button:hover ,.segmented1 button:hover{ background: rgba(0,0,0,0.03); transform: translateY(-1px); }
+  .segmented button.active,.segmented1 button.active{
+    background: linear-gradient(180deg,#fff,#f6f6f8);
+    color:var(--accent);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  /* voice list */
+  .voice-list{
+    display:flex;flex-direction:column;gap:8px;
+    margin-top:8px;
+  }
+  .voice-item{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg, #fff, #fbfbfc);
+    padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    cursor:pointer;
+  }
+  .voice-item .meta{display:flex;flex-direction:column;margin-right:12px}
+  .voice-item .meta .name{font-weight:600}
+  .voice-item .meta .lang{font-size:13px;color:var(--muted)}
+  .voice-item .check{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;color:transparent}
+  .voice-item.active{border-color:rgba(10,132,255,0.18);box-shadow:0 6px 16px rgba(10,132,255,0.08)}
+  .voice-item.active .check{background:var(--accent); color:white; border-color:transparent}
+
+  /* footer save */
+  .footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .btn{
+    padding:10px 14px;border-radius:10px;border:0;font-weight:600;cursor:pointer;
+  }
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(0,0,0,0.06)}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(10,132,255,0.18)}
+
+  /* small helpers */
+  .muted{color:var(--muted);font-size:13px}
+  @media (max-width:420px){
+    .wrap{padding:12px}
+    .card{padding:12px}
+    .segmented button{padding:8px 10px;font-size:14px}
+  }
+</style>
+
 {% endblock extra_head %}
 
 {% block content %}
+
+<body>
   {% csrf_token %}
   <div class="wrap">
     <h1>환경설정</h1>
+    <!-- <div class="muted">앱 설정을 iOS 스타일로 제공합니다.</div> -->
 
     <!-- 1. 랭체인 사용여부 -->
     <div class="card" id="card-toggle">
@@ -29,44 +140,412 @@
     </div>
 
     <!-- 2. 국가 선택 -->
-    <div class="card">
-      <div class="row">
+    <div class="card" id="card-country">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div class="label">
           <div class="title">국가 선택</div>
           <div class="desc">지역에 따라 언어/규칙이 달라질 수 있습니다.</div>
         </div>
-        <div class="segmented" role="tablist" aria-label="국가 선택">
-          <button data-country="ko">대한민국</button>
-          <button data-country="en">미국</button>
-          <button data-country="es">스페인</button>
+        <div>
+          <div class="segmented" role="tablist" aria-label="국가 선택">
+            <button data-country="ko">대한민국</button>
+            <button data-country="en">미국</button>
+            <button data-country="es">스페인</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 3. 성별 선택 -->
-    <div class="card">
-      <div class="row">
+    <div class="card" id="card-country">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div class="label">
           <div class="title">성별 선택</div>
           <div class="desc">사용자 성별에 따라 목소리가 달라질 수 있습니다.</div>
         </div>
-        <div class="segmented1" role="tablist" aria-label="성별 선택">
+        <div>
+          <div class="segmented1" role="tablist" aria-label="성별 선택">
           <button data-gender="1">남성</button>
           <button data-gender="2">여성</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 4. 저장 -->
-    <div class="card">
+
+    <!-- 3. 랭체인 목소리 리스트 -->
+    <div class="card" id="card-voices">
+      <!-- <div class="label">
+        <div class="title">랭체인 목소리</div>
+        <div class="desc">사용할 음성(또는 TTS 음성)을 선택하세요.</div>
+      </div>
+
+      <div class="voice-list" id="voice-list">
+      </div> -->
+
       <div class="footer">
         <button class="btn ghost" id="reset-btn">초기화</button>
         <button class="btn primary" id="save-btn">저장</button>
       </div>
     </div>
   </div>
+
 {% endblock content %}
 
-{% block extra_script %}
-<script src="{% static 'js/settings.js' %}"></script>
-{% endblock extra_script %}
+<script>
+/*
+  동작 요약:
+  - 상태는 localStorage에 저장(key: settings_v1)
+  - toggle 클릭/스페이스/엔터/키보드 제어 가능
+  - segmented country 버튼은 한 번 선택하면 active
+  - voice-list는 sample 데이터를 가짐(각 항목에 id/code 포함)
+  - 저장 시 localStorage에 persist
+*/
+
+const STORAGE_KEY = 'settings_v0';
+
+// 샘플 voice 데이터 (id = 코드값)
+const VOICES = [
+  { id: 'kr-1', name: 'Yuna', lang: 'ko-KR' },
+  { id: 'kr-2', name: 'Minho', lang: 'ko-KR' },
+  { id: 'us-1', name: 'Samantha', lang: 'en-US' },
+  { id: 'us-2', name: 'Daniel', lang: 'en-US' },
+  { id: 'es-1', name: 'Lucia', lang: 'es-ES' },
+  { id: 'es-2', name: 'Carlos', lang: 'es-ES' }
+];
+
+// 초기값 로드
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return {
+      active: false,
+      country: 'ko',
+      // gender: 'female'
+      gender: '2'
+    };
+
+    return JSON.parse(raw);
+  }catch(e){
+    //console.error('loadSettings',e);
+    return { active:false, country:'ko', gender: '2' };
+  }
+  
+}
+
+function saveSettings(s){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    return true;
+  }catch(e){
+    console.error('saveSettings', e);
+    return false;
+  }
+}
+
+/* UI 참조 */
+const toggleEl = document.getElementById('toggle');
+const toggleStatus = document.getElementById('toggle-status');
+const segmented = document.querySelectorAll('.segmented button');
+const segmented1 = document.querySelectorAll('.segmented1 button');
+const voiceListEl = document.getElementById('voice-list');
+const saveBtn = document.getElementById('save-btn');
+const resetBtn = document.getElementById('reset-btn');
+
+
+
+
+/* 토글 초기화/토글 함수 */
+function updateToggleUI(enabled){
+  if(enabled){
+    toggleEl.classList.add('on');
+    toggleEl.setAttribute('aria-checked','true');
+    toggleStatus.textContent = '활성';
+  } else {
+    toggleEl.classList.remove('on');
+    toggleEl.setAttribute('aria-checked','false');
+    toggleStatus.textContent = '비활성';
+  }
+  settings.active = !!enabled;
+}
+
+toggleEl.addEventListener('click', ()=>{
+  updateToggleUI(!settings.active);
+});
+toggleEl.addEventListener('keydown', (ev)=>{
+  if(ev.key === ' ' || ev.key === 'Spacebar' || ev.key === 'Enter'){
+    ev.preventDefault();
+    updateToggleUI(!settings.active);
+  }
+});
+
+/* segmented (country) 초기화/핸들러 */
+function setCountryUI(country){
+  segmented.forEach(btn=>{
+    if(btn.dataset.country === country){
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed','true');
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-pressed','false');
+    }
+  });
+  settings.country = country;
+  console.log(JSON.stringify(settings))
+}
+
+/* segmented1 (country) 초기화/핸들러 */
+function setPepleUI(gender){
+  segmented1.forEach(btn=>{
+    if(btn.dataset.gender === gender){
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed','true');
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-pressed','false');
+    }
+  });
+  settings.gender = gender;
+  console.log(JSON.stringify(settings))
+}
+
+segmented.forEach(btn=>{
+  btn.addEventListener('click', ()=> {
+    setCountryUI(btn.dataset.country);
+    // country 변경 시 보이스 리스트를 필터링하거나 권장 보이스 제안 가능
+    //renderVoiceList();
+  });
+});
+
+segmented1.forEach(btn=>{
+  btn.addEventListener('click', ()=> {
+    setPepleUI(btn.dataset.gender);
+    // country 변경 시 보이스 리스트를 필터링하거나 권장 보이스 제안 가능
+    //renderVoiceList();
+  });
+});
+
+/* voice list 렌더링 */
+// function renderVoiceList(){
+//   voiceListEl.innerHTML = '';
+//   // 선택한 국가에 맞는 보이스만 먼저 표시하고 나머지 보여줄 수도 있음.
+//   // 여기서는 전체 목록을 보여주되, 선택된 country와 같은 언어의 보이스를 위로 올림.
+//   const preferred = VOICES.filter(v => v.id.startsWith(settings.country));
+//   const others = VOICES.filter(v => !v.id.startsWith(settings.country));
+//   const ordered = [...preferred, ...others];
+
+//   ordered.forEach(v=>{
+//     const item = document.createElement('div');
+//     item.className = 'voice-item' + (settings.voiceId === v.id ? ' active' : '');
+//     item.tabIndex = 0;
+//     item.setAttribute('role','button');
+//     item.setAttribute('aria-pressed', settings.voiceId === v.id ? 'true' : 'false');
+
+//     const meta = document.createElement('div');
+//     meta.className = 'meta';
+//     const nm = document.createElement('div'); nm.className='name'; nm.textContent = v.name;
+//     const lg = document.createElement('div'); lg.className='lang'; lg.textContent = v.lang + ' · 코드: ' + v.id;
+//     meta.appendChild(nm); meta.appendChild(lg);
+
+//     const check = document.createElement('div');
+//     check.className = 'check';
+//     check.innerHTML = settings.voiceId === v.id ? '✓' : '';
+
+//     item.appendChild(meta);
+//     item.appendChild(check);
+
+//     // 클릭 이벤트: active 교체하고 selected 설정
+//     item.addEventListener('click', ()=>{
+//       settings.voiceId = v.id;
+//       // UI 업데이트
+//       document.querySelectorAll('.voice-item').forEach(el=>{
+//         el.classList.remove('active');
+//         el.querySelector('.check').textContent = '';
+//         el.setAttribute('aria-pressed','false');
+//       });
+//       item.classList.add('active');
+//       check.textContent = '✓';
+//       item.setAttribute('aria-pressed','true');
+//     });
+
+//     // 키보드로도 선택 가능
+//     item.addEventListener('keydown', (ev)=>{
+//       if(ev.key === 'Enter' || ev.key === ' '){
+//         ev.preventDefault();
+//         item.click();
+//       }
+//     });
+
+//     voiceListEl.appendChild(item);
+//   });
+// }
+
+/* 저장/초기화 핸들러 */
+saveBtn.addEventListener('click', ()=>{
+  if(saveSettings(settings)){
+    saveBtn.textContent = '저장중 ✓';
+    // setTimeout(()=> saveBtn.textContent = '저장', 1200);
+    fetchSaving(settings.country,settings.gender,settings.active)
+  } else {
+    alert('저장 실패 (로컬 저장소 오류)');
+  }
+});
+
+resetBtn.addEventListener('click', ()=>{
+  // 기본값으로 복원
+  settings = {
+    active: false,
+    country: 'ko',
+    gender: '2'
+  };
+  updateToggleUI(settings.active);
+  setCountryUI(settings.country);
+  setPepleUI(settings.gender)
+  //renderVoiceList();
+});
+
+
+function fetchSaving(country, gender, active) {
+    // 1. Django CSRF 토큰 가져오기
+    // HTML 템플릿의 <input type="hidden" name="csrfmiddlewaretoken" value="..."> 태그에서 가져오거나,
+    // <meta name="csrf-token" content="..."> 태그에서 가져올 수 있습니다.
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; 
+    console.log(". csrfToken ==== "+csrfToken+"} ")
+    // 2. 조회 조건을 JSON 객체로 구성
+    const lookupData = {
+        "country": country,
+        "gender": gender
+        // active 값이 null이 아니면 JSON에 포함
+        // Django utils의 get_profile_setting 함수에서 active: null일 경우 필터 조건을 무시하도록 구현했기 때문에,
+        // 조회 조건으로 사용하려면 명시적으로 포함합니다.
+        // 만약 active가 필수 조회 조건이라면 이 부분을 if문 없이 포함해야 합니다.
+        // 현재는 선택적 필터이므로, 값이 주어졌을 때만 포함합니다.
+    };
+    if (active !== null && active !== undefined) {
+        lookupData.active = active;
+    }
+
+    const apiUrl = "{% url 'settings_save' %}"; // SettingDetailView URL
+
+    console.log("요청 JSON 데이터:", lookupData);
+
+    fetch(apiUrl, {
+        method: 'POST', // Django View가 POST 요청을 받도록 구현됨
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // 보안을 위한 CSRF 헤더 추가
+        },
+        body: JSON.stringify(lookupData) // JSON 데이터를 문자열로 변환하여 전송
+    })
+    .then(response => {
+        // HTTP 상태 코드 확인 (400, 500 등 오류 처리)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // 응답 본문을 JSON으로 파싱
+    })
+    .then(data => {
+        // 3. 응답 데이터 처리
+        console.log("Django 서버 응답:", data);
+
+        if (data.exists) {
+            // 기존 설정이 조회된 경우
+            console.log("기존 설정 로드 완료.");
+            console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
+            // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
+        } else {
+            // 설정이 없는 경우 (신규 등록 준비)
+            console.log("신규 설정 필요.");
+            console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
+            // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
+        }
+        setTimeout(()=> saveBtn.textContent = '저장', 1200);
+    })
+    .catch(error => {
+        // 네트워크 오류 또는 서버 에러 처리
+        console.error('환경설정 조회 실패:', error);
+        alert('환경설정 데이터를 불러오는 중 오류가 발생했습니다.');
+        saveBtn.textContent = '저장실패'
+    });
+}
+/**
+ * Django CBV (SettingDetailView)에 AJAX POST 요청을 보내 환경설정 데이터를 조회합니다.
+ * @param {string} country - 조회할 국가 코드 (예: 'KR')
+ * @param {string} gender - 조회할 성별 코드 (예: 'M')
+ * @param {boolean|null} active - 조회할 사용 여부 (true, false 또는 null)
+ */
+function fetchSettings(country, gender, active) {
+    // 1. Django CSRF 토큰 가져오기
+    // HTML 템플릿의 <input type="hidden" name="csrfmiddlewaretoken" value="..."> 태그에서 가져오거나,
+    // <meta name="csrf-token" content="..."> 태그에서 가져올 수 있습니다.
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; 
+    console.log(". csrfToken ==== "+csrfToken+"} ")
+    // 2. 조회 조건을 JSON 객체로 구성
+    const lookupData = {
+        "country": country,
+        "gender": gender
+        // active 값이 null이 아니면 JSON에 포함
+        // Django utils의 get_profile_setting 함수에서 active: null일 경우 필터 조건을 무시하도록 구현했기 때문에,
+        // 조회 조건으로 사용하려면 명시적으로 포함합니다.
+        // 만약 active가 필수 조회 조건이라면 이 부분을 if문 없이 포함해야 합니다.
+        // 현재는 선택적 필터이므로, 값이 주어졌을 때만 포함합니다.
+    };
+    if (active !== null && active !== undefined) {
+        lookupData.active = active;
+    }
+
+    const apiUrl = "{% url 'settings_detail' %}"; // SettingDetailView URL
+
+
+    fetch(apiUrl, {
+        method: 'POST', // Django View가 POST 요청을 받도록 구현됨
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // 보안을 위한 CSRF 헤더 추가
+        },
+        body: JSON.stringify(lookupData) // JSON 데이터를 문자열로 변환하여 전송
+    })
+    .then(response => {
+        // HTTP 상태 코드 확인 (400, 500 등 오류 처리)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // 응답 본문을 JSON으로 파싱
+    })
+    .then(data => {
+        // 3. 응답 데이터 처리
+        console.log("Django 서버 응답:", data);
+
+        if (data.exists) {
+            // 기존 설정이 조회된 경우
+            console.log("기존 설정 로드 완료.");
+            console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
+            // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
+        } else {
+            // 설정이 없는 경우 (신규 등록 준비)
+            console.log("신규 설정 필요.");
+            console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
+            // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
+        }
+    })
+    .catch(error => {
+        // 네트워크 오류 또는 서버 에러 처리
+        console.error('환경설정 조회 실패:', error);
+        alert('환경설정 데이터를 불러오는 중 오류가 발생했습니다.');
+    });
+}
+
+
+ let settings = loadSettings();
+/* 초기 적용 */
+updateToggleUI(settings.active);
+setCountryUI(settings.country);
+setPepleUI(settings.gender)
+
+console.log(" init data "+JSON.stringify(settings))
+fetchSettings(settings.country,settings.gender,settings.active)
+
+/* Expose settings for console debugging */
+window._appSettings = settings;
+</script>
+</body>
+</html>
