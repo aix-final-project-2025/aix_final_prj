@@ -15,6 +15,50 @@
   justify-content: center;
 }
 
+/* 🌱 상단 제목 및 부제 */
+.page-header {
+  display: flex;              /* flexbox 사용 */
+  flex-direction: column;     /* 세로 정렬 */
+  align-items: center;        /* 가로 가운데 정렬 */
+  justify-content: center;    /* 세로 중앙 배치 */
+  text-align: center;         /* 내부 텍스트도 가운데 정렬 */
+  margin-top: 80px;           /* 상단 여백 */
+  margin-bottom: 60px;        /* 아래 섹션과 간격 확보 */
+}
+
+.page-header h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 2.8rem;
+  letter-spacing: 1.5px;
+  color: #111;
+  margin-bottom: 20px;
+}
+
+.subtitle-container {
+  text-align: center;         /* 부제 영역도 중앙 */
+  width: fit-content;
+  margin: 0 auto;             /* 자동 중앙 배치 */
+}
+
+.subtitle {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  font-size: 1.1rem;
+  color: #666;
+  margin: 10px 0;
+}
+
+.line {
+  border: none;
+  height: 1px;
+  background-color: #ddd;
+  width: 100%;
+  max-width: 480px;
+  margin: 6px auto;
+}
+
+
 /* =============================== */
 /* ☕ 메인 프로모션 섹션 */
 /* =============================== */
