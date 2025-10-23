@@ -4,6 +4,13 @@
 # 설치: pip install langchain openai gTTS pydub python-dotenv playsound (LangChain v0.x 버전 설치 필요)
 
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # 🚫 GPU 탐색 비활성화 > import os 바로 밑에 코드 위치해야
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"   # ⚡ 불필요한 로그 줄이기 > import os 바로 밑에 코드 위치해야
+
+# ----------------------------------------------------
+# 🧩 2️⃣ 표준 라이브러리 & 외부 라이브러리
+# ----------------------------------------------------
+
 import json
 import re
 from typing import Dict
@@ -75,7 +82,7 @@ llm = ChatOpenAI(
 )
 
 # LLMChain은 v0.x의 langchain.chains에서 가져옵니다.
-chain = LLMChain(llm=llm, prompt=prompt_template)
+# chain = LLMChain(llm=llm, prompt=prompt_template)   -- # runserver시 LangChain 에러 발생 임시 주석처리
 
 # ------------------------
 # 3. JSON 파싱 유틸

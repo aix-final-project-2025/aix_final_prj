@@ -1,8 +1,9 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block extra_head %}
-
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>환경설정 — iOS 스타일</title>
 <style>
   :root{
     --bg:#f2f2f7;
@@ -112,11 +113,7 @@
     .segmented button{padding:8px 10px;font-size:14px}
   }
 </style>
-
-{% endblock extra_head %}
-
-{% block content %}
-
+</head>
 <body>
   {% csrf_token %}
   <div class="wrap">
@@ -188,8 +185,6 @@
       </div>
     </div>
   </div>
-
-{% endblock content %}
 
 <script>
 /*
