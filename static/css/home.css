@@ -1,0 +1,160 @@
+/* ================================
+   🏠 HOME PAGE (Recycling & Coffee)
+   Final Integration: 2025.10.22 by ChangDo
+================================ */
+
+/* =============================== */
+/* 🌿 Google Font 적용 */
+/* =============================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Noto+Sans+KR:wght@400&display=swap');
+
+
+ .content-layout {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+/*
+.page-header {
+  text-align: center;
+  margin-top: 80px;
+  margin-bottom: 50px;
+}
+
+
+.page-header h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;        
+  font-size: 2.9rem;        
+  letter-spacing: 2px;     
+  color: #111;
+  margin-bottom: 30px;
+  text-transform: none;    
+
+.subtitle-container {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  text-align: center;
+}
+
+
+.subtitle {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+  color: #666;
+  margin: 10px 0;
+  letter-spacing: 0.3px;
+}
+
+
+.line {
+  border: none;
+  height: 1px;
+  background-color: #e5e5e5;
+  width: 100%;
+  max-width: 540px; 
+  margin: 8px auto;
+}
+
+.top-line { margin-bottom: 6px; }
+.bottom-line { margin-top: 6px; } */
+
+/* =============================== */
+/* ☕ 메인 프로모션 섹션 */
+/* =============================== */
+.promotion-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #eaf5e1;
+  padding: 60px 80px;
+  border-radius: 8px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* 왼쪽 텍스트 */
+.promo-text-area {
+  flex: 1;
+  padding-right: 40px;
+  color: #333;
+}
+
+.main-message-container {
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.program-item {
+  margin: 12px 0;
+}
+
+.program-item strong {
+  font-weight: 600;
+}
+
+.program-item .description {
+  margin-left: 25px;
+  color: #444;
+  font-size: 15px;
+}
+
+/* 오른쪽 이미지 */
+.promo-image-area img {
+  width: 100%;
+  max-width: 550px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* =============================== */
+/* 🧾 푸터 (중앙 정렬 개선) */
+/* =============================== */
+.company-footer {
+  width: 100%;
+  padding: 20px 20px;
+  background-color: #d8d8d8;
+  border-top: 1px solid #eee;
+  color: #777;
+  font-size: 13px;
+  text-align: center;          /* 가운데 정렬 */
+  margin-top: 40px;
+}
+
+.footer-info {
+  max-width: 800px;            /* 폭 제한 */
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.footer-info p {
+  margin: 5px 0;
+}
+
+/* =============================== */
+/* 📱 반응형 디자인 */
+/* =============================== */
+@media screen and (max-width: 768px) {
+  .promotion-section {
+    flex-direction: column;
+    padding: 30px 20px;
+  }
+
+  .promo-text-area {
+    padding: 0;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .promo-image-area img {
+    max-width: 100%;
+  }
+
+  .company-footer {
+    text-align: center;
+    padding: 30px 10px;
+  }
+}
