@@ -45,4 +45,4 @@ uploads/
 chunks.npy
 faiss_index
 *.pdf
-*.csv
+*.csvstaticfiles/
