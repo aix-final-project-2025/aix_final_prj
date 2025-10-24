@@ -228,12 +228,46 @@ class Settings(TemplateView):
 
 
 from .models_utils import get_profile_setting
+
+class getSettingInfo(View):
+    template_name = "settings.html"
+    # ... (생략: post 메서드 시작 및 JSON 파싱)
+    def post(self, request, *args, **kwargs):
+
+        settingInfo = CountryPf.objects.all().first() 
+        if settingInfo is not None:
+            print(" 1 is not None")
+            sdict = {
+                'country': settingInfo.country,
+                'gender': settingInfo.gender,
+                'active': settingInfo.active
+                # 필요한 필드만 선택
+            }
+
+        else :
+            print(" 2 is not None")
+            sdict = {
+                'country': 'ko',
+                'gender': 2,
+                'active': False
+                # 필요한 필드만 선택
+             }
+        print(f" setting called =={settingInfo}")
+        return JsonResponse({
+                'status': 'success', 
+                'message': 'Existing settings updated successfully.',
+                'action': 'UPDATED',
+                'settingInfo': sdict
+        }, status=200)
+
+
+
+
 class SettingDetailView(View):
     template_name = "settings.html"
     # ... (생략: post 메서드 시작 및 JSON 파싱)
     def post(self, request, *args, **kwargs):
 
-        print("  SettingDetailView =====")
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -252,7 +286,6 @@ class SettingDetailView(View):
         db_profile = get_profile_setting(query_country, query_gender, query_active) # active 전달
 
         # ... (생략: 조회 성공/실패 로직)
-        print(f" new_profile.id 111 -------")
         if db_profile:
             # 조회 성공: 객체를 JSON 응답 형태로 변환
             response_data = {
@@ -262,32 +295,21 @@ class SettingDetailView(View):
                 'created_at': db_profile.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'exists': True
             }
-            print(f" new_profile.id 222 -------")
             return JsonResponse(response_data, status=200)
         else:
 
-            print(f" new_profile.id 333 -------")
             # 조회 실패 (신규 등록이 필요한 상태 또는 해당 active 상태의 레코드가 없는 상태)
             new_profile = CountryPf.objects.create(
                     country=query_country,
                     gender=query_gender,
                     active=query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True 
             )
-            print(f" new_profile.id 444 -------")
             print(f" new_profile.id {new_profile.id}")
             return JsonResponse({
                 'status': 'success', 'message': 'New settings registered successfully.',
                 'action': 'CREATED', 'id': new_profile.id
             }, status=200)
 
-            
-            # return JsonResponse({
-            #     'country': query_country,
-            #     'gender': query_gender,
-            #     'active': query_active if query_active is not None else True, # 요청된 active 값이 있으면 사용, 없으면 기본값 True
-            #     'exists': False,
-            #     'message': 'No existing settings found matching the criteria.'
-            # }, status=200)
 
 
 
@@ -360,7 +382,7 @@ class SettingUpdateView(View):
 
         # 5. 변경 사항 확인 및 저장
         if is_changed:
-            # 🚨 변경 사항이 있을 경우에만 save() 호출 🚨
+            # 변경 사항이 있을 경우에만 save() 호출 
             
             # updated_at을 명시적으로 추가하지 않아도, 
             # save(update_fields=...) 호출 시 Django가 알아서 auto_now 필드를 갱신합니다.
@@ -373,7 +395,7 @@ class SettingUpdateView(View):
                 'updated_fields': update_fields
             }, status=200)
         
-        # 🚨 6. 변경 사항이 없는 경우 (is_changed == False)
+        # 6. 변경 사항이 없는 경우 (is_changed == False)
         # 3개 항목 모두 변경이 없으므로 save()가 호출되지 않고 이 응답을 반환합니다.
         return JsonResponse({
             'status': 'info', 
