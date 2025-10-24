@@ -150,7 +150,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+
 
 CHROMA_DB_DIR = os.environ.get("CHROMA_DB_DIR", str(BASE_DIR / "chroma_db_new"))
 CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "my_notes")
