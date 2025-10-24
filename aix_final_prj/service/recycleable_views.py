@@ -122,9 +122,6 @@ class PredictApiView(View):
         return JsonResponse(res)
 
 
-
-
-
 """
 생활쓰레기 리스트화면 호출
 """    
@@ -144,18 +141,47 @@ class PredictListView(View):
         end = page * per_page
 
         # QuerySet 슬라이싱
-        qs = RecyclableResult.objects.order_by('-id')[start:end]
+        # qs = RecyclableResult.objects.order_by('-id')[start:end]
+
+        qs_items = RecyclableResult.objects.select_related('group_code').order_by('-id')[start:end]
+
+        # items_list = []
+        # for item in qs_items:
+        #     items_list.append({
+        #         'id': item.id,
+        #         'image_url': item.RESULT_IMAGE.url if item.RESULT_IMAGE else '',
+        #         'predicted_result': item.PREDICTED_CLASS,
+        #         'top3': item.TOP_3,
+        #         'recycling_guide': item.RECYCLING_GUIDE,
+        #         'group_code_id': item.group_code.id,  # group_code의 icode를 그대로 사용
+        #         'group_code_name': item.group_code.name,
+        #     })
+
+
+        # items = [
+        #     {
+        #         "id": w.id,
+        #         "image_url": w.RESULT_IMAGE.url if w.RESULT_IMAGE else "",
+        #         "predicted_result": w.RESULT_MESSAGE or "",
+        #         "predicted_class": w.PREDICTED_CLASS or "",
+        #         "recycling_guide": w.RECYCLING_GUIDE or "",
+        #         "group_code_id": w.group_code_id or ""
+        #     }
+        #     for w in qs_items
+        # ]
 
         items = [
             {
-                "id": w.id,
-                "image_url": w.RESULT_IMAGE.url if w.RESULT_IMAGE else "",
-                "predicted_result": w.RESULT_MESSAGE or "",
+                'id': w.id,
+                'image_url': w.RESULT_IMAGE.url if w.RESULT_IMAGE else '',
+                'predicted_result': w.RESULT_MESSAGE,
+                'top3': w.TOP_3,
                 "predicted_class": w.PREDICTED_CLASS or "",
-                "recycling_guide": w.RECYCLING_GUIDE or "",
-                "group_code_id": w.group_code_id or ""
+                'recycling_guide': w.RECYCLING_GUIDE,
+                'group_code_id': w.group_code.code,  # group_code의 icode를 그대로 사용
+                'group_code_name': w.group_code.name,
             }
-            for w in qs
+            for w in qs_items
         ]
 
         has_more = RecyclableResult.objects.count() > end
