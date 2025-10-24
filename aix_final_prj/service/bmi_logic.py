@@ -125,7 +125,9 @@ def run_clustering_analysis():
     df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+    bins = [-np.inf, 18.5, 25, 30, np.inf]
+    labels = [0, 1, 2, 3]
+    df1['BMI_GU'] = pd.cut(df1['BMI'], bins=bins, labels=labels, right=False)
     inertias = []
     k_range = range(2, 11)
     for k in k_range:
