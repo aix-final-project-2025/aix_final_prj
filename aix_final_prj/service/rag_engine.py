@@ -7,6 +7,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # 임베딩 모델 및 LLM 초기화
+from huggingface_hub import login
+login(os.getenv("HF_TOKEN"))
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 LLM_MODEL = "skt/kogpt2-base-v2"
 

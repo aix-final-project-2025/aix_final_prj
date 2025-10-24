@@ -1,6 +1,3 @@
-# WEB DESIGNER 
-._sehee
-
 # Python 캐시
 __pycache__/
 *.py[cod]
@@ -45,11 +42,11 @@ uploads/
 chunks.npy
 faiss_index
 *.pdf
-*.csvstaticfiles/
+*.csv
 
-chroma_db_new/
-keras/
 skt/
-plots/
-uploaded_pdfs/
 paraphrase-multilingual-MiniLM-L12-v2*
+plots/
+keras/
+uploaded_pdfs/
+chroma_db_new/
