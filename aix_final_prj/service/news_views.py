@@ -371,7 +371,7 @@ def _safe_get_collection_name_matching_dim(base_name: str, want_dim: int):
         if col_dim in (-1, None) or col_dim == want_dim:
             return col, base_name
         else:
-            alt_name = f"{base_name}_{want_dim}"
+            alt_name = f"{base_name}"
             alt = client.get_or_create_collection(
                 name=alt_name,
                 embedding_function=GoogleGenAIEmbeddingFunction()
