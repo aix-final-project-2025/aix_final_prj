@@ -1,16 +1,11 @@
-/* ================================
-   🏠 HOME PAGE (Recycling & Coffee)
-   Final Integration: 2025.10.22 by ChangDo
-================================ */
-
-/* 🌿 전체 컨테이너 */
+/* 
 .content-layout {
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-/* 🧩 메인 제목 영역 */
+
 .page-header {
   text-align: center;
   margin-top: 80px;
@@ -31,7 +26,7 @@
   letter-spacing: 0.3px;
 }
 
-/* ☕ 메인 프로모션 섹션 */
+
 .promotion-section {
   display: flex;
   justify-content: space-between;
@@ -43,7 +38,7 @@
   margin: 0 auto;
 }
 
-/* 왼쪽 텍스트 */
+
 .promo-text-area {
   flex: 1;
   padding-right: 40px;
@@ -69,7 +64,7 @@
   font-size: 15px;
 }
 
-/* 오른쪽 이미지 */
+
 .promo-image-area img {
   width: 100%;
   max-width: 550px;
@@ -78,7 +73,7 @@
   display: block;
 }
 
-/* 🧾 푸터 */
+
 .company-footer {
   width: 100%;
   padding: 30px 40px;
@@ -95,7 +90,6 @@
   line-height: 1.6;
 }
 
-/* 📱 반응형 */
 @media screen and (max-width: 768px) {
   .promotion-section {
     flex-direction: column;
@@ -115,4 +109,4 @@
   .company-footer {
     text-align: center;
   }
-}
+} */

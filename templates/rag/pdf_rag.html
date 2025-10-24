@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block page_title %}PDF-RAG{% endblock %}
-
+{% block subtitle %}
+<p class="subtitle text-base text-gray-500 mt-1">PDF-RAG</p>
+{% endblock subtitle %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/pdf_rag.css' %}">
 {% endblock %}

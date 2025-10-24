@@ -1,3 +1,32 @@
+
+
+/* ------------------------------------------- */
+/* A. base.html의 .line 요소를 뷰포트 너비 전체로 확장 (확장 요청 반영) */
+/* ------------------------------------------- */
+/* .page-header는 content 영역 내부에 있으므로,
+   상위 요소(.content)의 실제 좌우 패딩(base.html CSS에서 20px로 확인됨)을 상쇄하여 확장합니다. */
+.page-header .line {
+    /* hr이 블록 요소로 동작하게 하고, 박스 모델을 명시합니다. */
+    display: block;
+    box-sizing: content-box; 
+    
+    /* 1. 너비를 컨테이너 폭(100%)에 좌우 패딩(20px * 2 = 40px)을 더한 만큼 확장 */
+    width: calc(100% + 40px); /* 48px -> 40px로 수정 */
+    
+    /* 2. 왼쪽으로 컨테이너의 왼쪽 패딩(20px)만큼 이동시켜 패딩을 상쇄 */
+    margin-left: -20px; /* 24px -> 20px로 수정 */
+    margin-right: 0; /* 오른쪽 마진 초기화 */
+    
+    max-width: none; 
+}
+
+/* ------------------------------------------- */
+/* 1. 기본 요소 스타일 (사용자 요청에 따라 추가된 h1, h3, .container) */
+/* ------------------------------------------- */
+
+body {
+  background: #f5f7fa;
+}
 h1 {
   text-align: center;
   margin-bottom: 10px;
@@ -8,79 +37,174 @@ h3 {
 }
 
 .container {
-  max-width: 900px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* ------------------------------------------- */
+/* 2. 앨범 그리드 레이아웃 스타일 (List Page - predict_list.html 용) */
+/* ------------------------------------------- */
+.recycling-album-container {
+    max-width: 1240px;
+    margin: 0 auto;    
+    padding: 20px;
+}
+
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px; 
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* 카드가 1개/2개일 때 중앙 정렬 */
+.album-grid .album-card:nth-child(1):nth-last-child(1) {
+    grid-column: 2 / 3;
+}
+.album-grid .album-card:nth-child(1):nth-last-child(2) {
+    grid-column: 2 / 3;
+}
+
+
+/* ------------------------------------------- */
+/* 3. 개별 앨범 카드 스타일 */
+/* ------------------------------------------- */
+.album-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    position: relative; 
+}
+.album-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.card-image-wrapper { width: 100%; }
+.card-image { width: 100%; height: auto; display: block; }
+.card-caption { padding: 10px; text-align: center; }
+.description-text { margin: 0; font-size: 0.9em; color: #555; }
+
+
+/* ------------------------------------------- */
+/* 4. 헤더/버튼 스타일 (List Page - predict_list.html 용) */
+/* ------------------------------------------- */
+.content-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-bottom: 30px; 
+    padding: 20px 0 10px 0;
+}
+.page-title {
+    color: #1e3a8a; 
+    font-size: 2em; 
+    font-weight: 800;
+    margin-top: 0;
+    margin-bottom: 20px; 
+    border-bottom: 3px solid #3b82f6; 
+    padding-bottom: 8px;
+    letter-spacing: 1.5px;
+}
+.upload-btn {
+    background-color: #3b82f6; 
+    color: white; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); 
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none; 
+    display: inline-block;
+    transition: background-color 0.3s, transform 0.2s;
+}
+.upload-btn:hover {
+    background-color: #1d4ed8; 
+    transform: translateY(-2px); 
+}
+
+/* ------------------------------------------- */
+/* 5. 드롭다운 메뉴 스타일 */
+/* ------------------------------------------- */
+.card-dropdown-menu {
+    position: absolute;
+    top: 5px; 
+    right: 5px; 
+    z-index: 10; 
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.dropdown-toggle {
+    background: none; border: none; cursor: pointer; padding: 4px; opacity: 0.8;
+}
+.dropdown-toggle .material-symbols-outlined { font-size: 24px; color: #333; }
+.menu-content {
+    position: absolute; top: 100%; right: 0; min-width: 120px;
+    background-color: #fff; border: 1px solid #ddd; border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); z-index: 20; text-align: left;
+}
+.menu-content.hidden { display: none; }
+.delete-action {
+    display: flex; align-items: center; padding: 8px 10px; text-decoration: none;
+    color: #ef4444; font-size: 14px; white-space: nowrap;
+}
+.delete-action:hover { background-color: #fde8e8; }
+.delete-icon { font-size: 18px; margin-right: 8px; color: #ef4444; }
+
+
+/* ------------------------------------------- */
+/* 6. 파일 업로드 관련 및 기타 스타일 (Upload Page에서 사용될 수 있는 스타일) */
+/* ------------------------------------------- */
+/* 주의: 이 스타일은 upload.html에서 더 적합할 수 있지만, 요청에 따라 포함했습니다. */
 
 #drop-area {
-  border: 3px dashed #4caf50;
-  border-radius: 12px;
-  padding: 30px;
-  text-align: center;
-  background: #fdfdfd;
-  transition: background 0.3s, border-color 0.3s;
-  cursor: pointer;
+    border: 3px dashed #4caf50; border-radius: 12px; padding: 30px;
+    text-align: center; background: #fdfdfd; transition: background 0.3s, border-color 0.3s;
+    cursor: pointer;
 }
-#drop-area.dragover {
-  background: #e8f5e9;
-  border-color: #2e7d32;
-}
-#drop-area p {
-  font-size: 16px;
-  margin: 0;
-}
-
-input[type="file"] {
-  display: none;
-}
-
+#drop-area.dragover { background: #e8f5e9; border-color: #2e7d32; }
+#drop-area p { font-size: 16px; margin: 0; }
+input[type="file"] { display: none; }
 button {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-  margin-top: 15px;
+    background-color: #007bff; color: white; padding: 10px 18px;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 15px;
 }
-button:hover {
-  background-color: #0056b3;
-}
+button:hover { background-color: #0056b3; }
+hr { border: 0; border-top: 1px solid #ddd; margin: 30px 0; }
+ul { list-style: none; padding: 0; }
+ul li { margin: 8px 0; }
+ul li a { color: #007bff; text-decoration: none; }
+ul li a:hover { text-decoration: underline; }
+input[type="text"] { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; width: 300px; }
 
-hr {
-  border: 0;
-  border-top: 1px solid #ddd;
-  margin: 30px 0;
-}
 
-ul {
-  list-style: none;
-  padding: 0;
+/* ------------------------------------------- */
+/* 7. 반응형 설정 (모바일 최적화) */
+/* ------------------------------------------- */
+/* 768px 이하: 한 행에 2개 */
+@media screen and (max-width: 768px) {
+    .album-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
 }
-ul li {
-  margin: 8px 0;
-}
-ul li a {
-  color: #007bff;
-  text-decoration: none;
-}
-ul li a:hover {
-  text-decoration: underline;
-}
+/* 600px 이하: 모바일 1열 레이아웃 및 중앙 정렬 해제 */
+@media screen and (max-width: 600px) {
+    .album-grid { grid-template-columns: 1fr; }
+    /* 단일/2개 중앙 정렬 설정 해제 */
+    .album-grid .album-card:nth-child(1):nth-last-child(1) { grid-column: auto; }
+    .album-grid .album-card:nth-child(1):nth-last-child(2) { grid-column: auto; }
 
-input[type="text"] {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  width: 300px;
-}
-
-@media (max-width: 600px) {
-  .container { padding: 18px; }
-  input[type="text"] { width: 100%; }
+    .container { padding: 18px; }
+    input[type="text"] { width: 100%; }
 }

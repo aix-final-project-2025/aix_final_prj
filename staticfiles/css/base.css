@@ -1,15 +1,11 @@
-/* =============================
-📚 Sidebar & Navigation Styles
-============================= */
-
-body {
+/* body {
   font-family: 'Inter', sans-serif;
   background: #fafafa;
   margin: 0;
   padding: 0;
 }
 
-/* 상단 네비게이션 */
+
 #navbar {
   position: fixed;
   top: 12px;
@@ -30,7 +26,7 @@ body {
   transform: scale(1.1);
 }
 
-/* 사이드바 */
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -71,7 +67,7 @@ body {
   height: 22px;
 }
 
-/* 본문 */
+
 .content {
   padding: 80px 20px;
   margin-left: 0;
@@ -80,4 +76,4 @@ body {
 
 .sidebar.expanded ~ .content {
   margin-left: 240px;
-}
+}  */
