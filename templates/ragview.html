@@ -126,15 +126,19 @@
         </div>
         <button type="submit">PDF 업로드 및 처리</button>
     </form>
+    <br>
+    <br>
     <hr>
     <h3>업로드된 PDF 파일 / tokenize / VectorDB(faiss) 처리</h3>
+    
     <ul>
         {% for filename in uploaded_filenames %}
             <li><a href="{% static 'uploaded_pdfs/' %}{{ filename }}" target="_blank">{{ filename }}</a></li>
         {% endfor %}
     </ul>
-    <hr>
-
+    <br>
+    <br>
+    <p></p>
     <h2>질문하기</h2>
     <form method="post">
         {% csrf_token %}
