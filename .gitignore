@@ -50,6 +50,6 @@ faiss_index
 chroma_db_new/
 keras/
 skt/
-static/plots/
-static/uploads_pdf
+plots/
+uploaded_pdfs/
 paraphrase-multilingual-MiniLM-L12-v2*

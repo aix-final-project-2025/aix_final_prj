@@ -5,15 +5,7 @@
 
 {% block extra_head %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Django 기반 분석 대시보드</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/base.css">
-
-
-    
+      
   <style>     
       /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
       h1 {
@@ -118,7 +110,11 @@
         .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
-</head>
+
+{% endblock %}
+
+{% block content %}
+
     <div class="container">
     <h1>PDF를 이용한 RAG 시스템</h1>
     <h3>(소규모 한글지원 skt/kogpt2-base-v2모델 사용)</h3>

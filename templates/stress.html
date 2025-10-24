@@ -5,10 +5,7 @@
 
 {% block extra_head %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Django 기반 분석 대시보드</title>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
@@ -25,7 +22,9 @@
         .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
-</head>
+{% endblock %}
+
+{% block content %}
 
 <div class="container">
     <h1>Django 기반 스트레스 레벨 데이터 분석 대시보드</h1>
