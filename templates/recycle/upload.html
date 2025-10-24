@@ -39,7 +39,7 @@ h1 {
 #drop-area {
   border: 3px dashed #4caf50;
   border-radius: 12px;
-  width: 150%;
+  width: 200%;
   margin: 0 auto;
   display:flex;
   align-items:center;
@@ -47,7 +47,7 @@ h1 {
   position:relative;
   cursor:pointer;
   box-sizing:border-box;
-  min-height:280px;
+  min-height:500px;
   overflow:hidden;
   background:#fff;
   padding:18px;
@@ -63,29 +63,21 @@ h1 {
 input[type="file"] { display: none; }
 
 #buttonWrapper {
-  display:flex;
-  justify-content:center; /* 수평 중앙 정렬 */
-  /* background: #f5f7fa; (배경 제거) */
-  /* position:fixed; (고정 해제) */
-  /* left:0; (고정 해제) */
-  /* width:100%; (전체 폭 대신 아래의 90% 사용) */
-  /* padding: 15px 0 15px 0; (패딩 제거) */
-  /* bottom: 0; (하단 고정 해제) */
-  /* box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1); (그림자 제거) */
-  
-  /* ✅ 중앙 정렬 및 위쪽 여백 */
-  width: 90%; s
-  max-width: 600px;
-  margin: 20px auto; 
-  background: transparent; 
-  box-shadow: none; 
-  padding: 0; 
-  
-  align-items:center;
-  z-index:100;
-  box-sizing:border-box;  
-  gap: 15px;
+    display: flex;
+    justify-content: center;   /* 수평 중앙 */
+    align-items: center;       /* 수직 중앙 */
+    
+    position: relative;        /* 상위 컨테이너 기준 */
+    top: 0;                    /* 상단에 붙임 */
+    left: 50%;
+    transform: translateX(-50%); /* 수평 중앙 정렬 */
+
+    width: auto;               /* 버튼 폭에 맞춤 */
+    gap: 15px;                 /* 버튼 사이 간격 */
+    margin-bottom: 15px;       /* 아래 여백 필요 시 */
+    z-index: 100;
 }
+
 
 button {
   border: none;

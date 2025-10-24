@@ -5,6 +5,15 @@ body {
   background: #f2f2f2;
 }
 
+/* 공통 subtitle-container를 화면 전체 폭으로 확장 (전문가 스타일) */
+.subtitle-container {
+    width: 80vw;        /* 화면 전체 폭 */
+    max-width: 100vw;  
+    margin: 0 auto;
+    text-align: center;
+    
+}
+
 .container {
   width: 90%;
   max-width: 1200px;
@@ -38,6 +47,7 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
 
 /* PC 카드 */
 @media (min-width: 768px) {
