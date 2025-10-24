@@ -1,245 +1,79 @@
-/* =============================
-📚 Base.css (통합 최종본)
-Created: 2025.10 / by Chang-Do Merge
-============================= */
-
-/* 🧱 기본 세팅 */
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #fafafa;
-    color: #333;
+/* body {
+  font-family: 'Inter', sans-serif;
+  background: #fafafa;
+  margin: 0;
+  padding: 0;
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
-}
 
-/* ===============================
-📱 상단 네비게이션 (햄버거 버튼)
-=============================== */
 #navbar {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1001;
-    padding: 10px 20px;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1001;
 }
 
 .togglebtn {
-    width: 42px;
-    height: 42px;
-    font-size: 22px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #333;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  transition: transform 0.3s;
 }
 
 .togglebtn:hover {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
-/* ===============================
-📚 사이드바 기본 구조
-=============================== */
+
 .sidebar {
-    height: 100%;
-    width: 60px;
-    position: fixed;
-    z-index: 1000;
-    top: 0;
-    left: 0;
-
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
-
-    background-color: #fff;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    overflow-x: hidden;
-    white-space: nowrap;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* 위쪽 정렬 */
-    align-items: center; /* 가로 중앙 정렬 */
-    border-right: 1px solid #eee;
-    padding-top: 80px;
-    padding-bottom: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(-260px);
+  transition: transform 0.3s ease;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  padding-top: 60px;
 }
 
 .sidebar.expanded {
-    width: 250px;
-    transform: translateX(0);
+  transform: translateX(0);
 }
 
-/* ===============================
-🏠 사이드바 헤더 & 브랜드 버튼
-=============================== */
-.sidebar-header {
-    text-align: center;
-    padding: 5px 0 10px;
-    margin-bottom: 20px;
-    width: 100%;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.brand-btn {
-    display: inline-block;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    letter-spacing: 1px;
-    font-size: 1.4rem;
-    color: #333;
-    text-decoration: none;
-    transition: all 0.25s ease-in-out;
-}
-
-.brand-btn:hover {
-    color: #2c7a4b;
-    transform: scale(1.05);
-}
-
-/* ===============================
-📂 메뉴 아이템
-=============================== */
 .sidebar a {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    padding: 16px 18px;
-    color: #333;
-    font-size: 17px;
-    font-weight: 500;
-    gap: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-    
-    border-radius: 8px;     
-    transition: all 0.2s ease;
+  padding: 14px 20px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
 }
 
 .sidebar a:hover {
-    background-color: #f4f4f4;
-    border-radius: 6px;
-    cursor: pointer;
+  background-color: #f0f0f0;
 }
 
-/* ===============================
-📁 아이콘 & 텍스트 애니메이션
-=============================== */
-.sidebar a .icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.sidebar .icon img {
+  width: 22px;
+  height: 22px;
 }
 
-.sidebar a .icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    opacity: 0.9;
+
+.content {
+  padding: 80px 20px;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
 }
 
-.sidebar a .text {
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: opacity 0.3s, transform 0.3s;
-    flex-grow: 1;
-    font-size: 17px;
-    font-weight: 500;
-}
-
-.sidebar.expanded a .text {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* ===============================
-📄 메인 콘텐츠
-=============================== */
-.main {
-    transition: margin-left 0.3s;
-    padding: 20px;
-    margin-left: 0;
-    background-color: #fff;
-    min-height: 100vh;
-}
-
-/* ===============================
-📱 반응형 디자인
-=============================== */
-@media screen and (max-width: 600px) {
-    .sidebar {
-        width: 70%;
-    }
-
-    .sidebar.expanded {
-        width: 70%;
-        left: 0;
-    }
-
-    .main {
-        margin-left: 0;
-        padding: 15px;
-    }
-
-    .sidebar a {
-        font-size: 16px;
-    }
-
-    .sidebar-header {
-        height: 50px;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    body {
-        font-size: 1.1em;
-    }
-
-    .sidebar a {
-        padding: 15px 18px;
-    }
-
-    .sidebar a .text {
-        font-size: 1.2em;
-    }
-
-    .sidebar a .icon {
-        width: 30px;
-        height: 30px;
-        font-size: 28px;
-    }
-
-    .page-title {
-        font-size: 1.8em;
-    }
-
-    .description-text {
-        font-size: 1.1em;
-    }
-
-    #navbar {
-        top: 20px;
-        transform: translateX(65px);
-        padding: 5px 10px;
-    }
-
-    .togglebtn {
-        font-size: 20px;
-        padding: 6px 10px;
-    }
-}
+.sidebar.expanded ~ .content {
+  margin-left: 240px;
+}  */

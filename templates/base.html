@@ -1,129 +1,130 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block page_title %}Recycling and Coffee{% endblock %}</title>
 
-  <!-- 🧩 폰트 & CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  {% block extra_head %}{% endblock %}
+    <!-- 🧩 기본 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (필수) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body>
-  <!-- 🟦 상단 햄버거 버튼 -->
-  <div id="navbar">
-    <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
-  </div>
+    <!-- ➡️ 전체 컨테이너 -->
+    <div class="main-layout flex min-h-screen">
+        
+        <!-- 🧭 사이드바 (Nav) -->
+        <div id="mySidebar" class="sidebar">
+            <!-- RE n CO 홈 버튼 -->
+            <div class="sidebar-header">
+                <a href="{% url 'home' %}" class="brand-btn">RE&nbsp;n&nbsp;CO</a>
+            </div>
 
-  <!-- 🟩 사이드바 -->
-  <div id="mySidebar" class="sidebar">
-    <div class="sidebar-header">
-      <a href="/" class="brand-btn">RE n CO</a>
+            <!-- ♻️ 메뉴 그룹 -->
+            <div class="menu-item-group">
+                <a class="main-menu-toggle" data-target="recycling-submenu">
+                    <span class="icon"><img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000" alt="Recycling Icon"></span>
+                    <span class="text">Recyclables</span>
+                    <span class="toggle-arrow">▼</span>
+                </a>
+                <!-- 서브메뉴 -->
+                <div id="recycling-submenu" class="submenu">
+                    <a href="{% url 'upload' %}" class="submenu-item"><span class="text">Upload</span></a>
+                    <a href="{% url 'predict_list' %}" class="submenu-item"><span class="text">Recycling data</span></a>
+                </div>
+            </div>
+            
+            <!-- ☕ 커피 분석 -->
+            <div class="menu-item-group">
+                <a class="main-menu-toggle" data-target="coffee-submenu">
+                    <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" alt="Coffee Icon"></span>
+                    <span class="text">Coffee Dashboard</span>
+                    <span class="toggle-arrow">▼</span>
+                </a>
+                <!-- 서브메뉴 -->
+                <div id="coffee-submenu" class="submenu">
+                    <!-- TODO: coffee_detail URL은 예시입니다. 실제 URL에 맞게 수정해주세요. -->
+                    <a href="{% url 'ds' %}" class="submenu-item"><span class="text">Ds</span></a>
+                    <a href="{% url 'coffee' %}" class="submenu-item"><span class="text">report</span></a>
+                    <a href="{% url 'bmi' %}" class="submenu-item"><span class="text">Bmi</span></a>
+                    <a href="{% url 'sleep' %}" class="submenu-item"><span class="text">Sleep</span></a>
+                    <a href="{% url 'stress' %}" class="submenu-item"><span class="text">Stress</span></a>
+                    <!--
+                    
+                    
+                    추가해야 할 공간임
+                    
+                    
+                    
+                    -->
+                </div>
+            </div>
+            <!-- 🧠 RAG 챗봇 -->
+            <a href="{% url 'ragview' %}" class="menu-item">
+                <span class="icon"><img src="https://img.icons8.com/?size=100&id=61372&format=png&color=000000" alt="RAG Chatbot Icon"></span>
+                <span class="text">PDF-RAG</span>
+            </a>
+
+            <!--  뉴스 -->
+            <a href="{% url 'chroma' %}" class="menu-item">
+                <span class="icon"><img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" alt="News Icon"></span>
+                <span class="text">News</span>
+            </a>
+
+            <!-- ⚙️ 설정 -->
+            <a href="{% url 'settings' %}" class="menu-item">
+                <span class="icon"><img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" alt="Settings Icon"></span>
+                <span class="text">Settings</span>
+            </a>
+        </div>
+
+        <!-- 🧩 메인 콘텐츠 영역 -->
+        <div class="content-layout flex-grow">
+             <!-- 💻 상단 토글 버튼 (메인 콘텐츠 영역에 배치) -->
+            <div id="navbar">
+                <button class="togglebtn">&#9776;</button>
+            </div>
+            
+            <!-- 페이지별 내용 컨테이너 -->
+            <div class="content main-content p-6">
+                
+                <!-- 🎯 공통 헤더 블록 (coffee.html에서 비울 수 있음) -->
+                {% block page_header %}
+                <div class="page-header pb-4 mb-4">
+                    <!-- 🌱 상단 제목: 단순화 -->
+                    <h1 class="text-3xl font-extrabold text-gray-900">{% block header_title %}Recycling and Coffee{% endblock header_title %}</h1>
+    <!-- 부제 + 가로선 -->
+                <div class="subtitle-container">
+                    <hr class="line top-line">
+                    <!-- ✅ 이 부분을 새로운 블록 태그로 감쌉니다. -->
+                    {% block subtitle %}
+                    <p class="subtitle text-base text-gray-500 mt-1">당신의 한 잔이 순환이 되고, 지식이 됩니다</p>
+                    {% endblock subtitle %}
+                    <hr class="line bottom-line">
+                </div>
+            </div>
+                {% endblock page_header %}
+
+                <!-- 🧩 각 페이지별 메인 컨텐츠가 들어가는 블록 -->
+                <div class="content-wrapper">
+                    {% block content %}
+                    <!-- 각 HTML 파일의 내용이 여기에 삽입됩니다. -->
+                    {% endblock content %}
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 메뉴 항목들 -->
-    <a href="{% url 'upload' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"
-             alt="recyclables icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Recyclables</span>
-    </a>
-
-    <a href="{% url 'predict_request' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"
-             alt="recycle data icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Recycle Data</span>
-    </a>
-
-    <a href="{% url 'ds' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="coffee dataset icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Coffee Dataset</span>
-    </a>
-
-    <a href="{% url 'coffee' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="coffee icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Coffee</span>
-    </a>
-
-    <a href="{% url 'bmi' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="bmi icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">BMI</span>
-    </a>
-
-    <a href="{% url 'sleep' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="sleep icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Sleep</span>
-    </a>
-
-    <a href="{% url 'stress' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="stress icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Stress</span>
-    </a>
-
-    <a href="{% url 'ragview' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
-             alt="rag icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">RAG</span>
-    </a>
-
-    <a href="{% url 'chroma' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000"
-             alt="news icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">News</span>
-    </a>
-
-    <a href="{% url 'settings' %}">
-      <span class="icon">
-        <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000"
-             alt="settings icon" style="width: 30px; height: 30px;">
-      </span>
-      <span class="text">Settings</span>
-    </a>
-  </div>
-
-  <!-- 🧩 본문 콘텐츠 블록 -->
-  <div id="mainContent" class="main">
-    {% block content %}{% endblock %}
-  </div>
-
-  <!-- ⚙️ 스크립트 -->
-  <script>
-    const sidebar = document.getElementById("mySidebar");
-    const main = document.getElementById("mainContent");
-    const toggleButton = document.querySelector('.togglebtn');
-
-    function toggleNav() {
-      const isExpanded = sidebar.classList.toggle('expanded');
-      toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;';
-    }
-  </script>
-
-  <script src="{% static 'js/core_script.js' %}"></script>
-  {% block extra_script %}{% endblock %}
+    <!-- ⚙️ 공용 스크립트 -->
+    <script src="{% static 'js/base.js' %}"></script>
+    {% block extra_script %}{% endblock %}
 </body>
 </html>

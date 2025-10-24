@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- 🧩 폰트 & CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  <!-- 🟦 상단 햄버거 버튼 -->
+  <div id="navbar">
+    <button class="togglebtn" onclick="toggleNav()">&#9776;</button>
+  </div>
+
+  <!-- 🟩 사이드바 -->
+  <div id="mySidebar" class="sidebar">
+    <div class="sidebar-header">
+      <a href="/" class="brand-btn">RE n CO</a>
+    </div>
+
+    <!-- 메뉴 항목들 -->
+    <a href="{% url 'upload' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"
+             alt="recyclables icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Recyclables</span>
+    </a>
+
+    <a href="{% url 'predict_request' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=1P9tb6hUxL2T&format=png&color=000000"
+             alt="recycle data icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Recycle Data</span>
+    </a>
+
+    <a href="{% url 'ds' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="coffee dataset icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Coffee Dataset</span>
+    </a>
+
+    <a href="{% url 'coffee' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="coffee icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Coffee</span>
+    </a>
+
+    <a href="{% url 'bmi' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="bmi icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">BMI</span>
+    </a>
+
+    <a href="{% url 'sleep' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="sleep icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Sleep</span>
+    </a>
+
+    <a href="{% url 'stress' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="stress icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Stress</span>
+    </a>
+
+    <a href="{% url 'ragview' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000"
+             alt="rag icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">RAG</span>
+    </a>
+
+    <a href="{% url 'chroma' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000"
+             alt="news icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">News</span>
+    </a>
+
+    <a href="{% url 'settings' %}">
+      <span class="icon">
+        <img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000"
+             alt="settings icon" style="width: 30px; height: 30px;">
+      </span>
+      <span class="text">Settings</span>
+    </a>
+  </div>
+
+  <!-- 🧩 본문 콘텐츠 블록 -->
+  <div id="mainContent" class="main">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ⚙️ 스크립트 -->
+  <script>
+    const sidebar = document.getElementById("mySidebar");
+    const main = document.getElementById("mainContent");
+    const toggleButton = document.querySelector('.togglebtn');
+
+    function toggleNav() {
+      const isExpanded = sidebar.classList.toggle('expanded');
+      toggleButton.innerHTML = isExpanded ? '&#10006;' : '&#9776;';
+    }
+  </script>
+
+  <script src="{% static 'js/core_script.js' %}"></script>
+  {% block extra_script %}{% endblock %}
+</body>
+</html>

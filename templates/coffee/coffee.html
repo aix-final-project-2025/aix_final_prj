@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}☕ Coffee Health Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/coffee.css' %}">
+{% endblock %}
+{% block page_header %}{% endblock page_header %}
+{% block content %}
+<div class="coffee-container">
+  <!-- 🏷️ 상단 제목 -->
+  <h1 class="title text-center">☕ Coffee Health Dashboard</h1>
+
+  <!-- 🧭 탭 버튼 -->
+  <div class="coffee-tabs text-center my-4">
+    <button class="tab-btn" data-tab="report">📑 Report</button>
+    <button class="tab-btn" data-tab="analysis">📊 Analysis</button>
+    <button class="tab-btn" data-tab="bmi">💪 BMI</button>
+    <button class="tab-btn" data-tab="sleep">😴 Sleep</button>
+    <button class="tab-btn" data-tab="stress">😵‍💫 Stress</button>
+  </div>
+
+  <!-- 🧩 탭 콘텐츠 영역 (초기에는 비어 있음) -->
+  <div id="tab-content" class="tab-content-container text-center">
+    <p class="placeholder-text">👆 상단의 탭을 선택해주세요.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/coffee.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tabs = document.querySelectorAll(".tab-btn");
+  const content = document.getElementById("tab-content");
+
+  tabs.forEach(btn => {
+    btn.addEventListener("click", async () => {
+      // 🔹 활성화 탭 스타일 변경
+      tabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const tab = btn.dataset.tab;
+
+      try {
+        // 🔹 로딩 상태 표시
+        content.innerHTML = "<div class='loading'>⏳ Loading...</div>";
+
+        // ✅ 안전한 Django URL 접근 방식
+        const res = await fetch(`/coffee/${tab}/`);
+        if (!res.ok) throw new Error("탭 파일을 불러올 수 없습니다.");
+        const html = await res.text();
+
+        // 🔹 탭 콘텐츠 갱신
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = `<p class="error">⚠️ 탭 로드 실패: ${err.message}</p>`;
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mb-4 text-center text-danger">💪 BMI(체질량지수) 관련 데이터 분석 대시보드</h1>
+
+  <!-- 1️⃣ 딥러닝 예측 -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-header bg-danger text-white">1. 딥러닝 (PyTorch) 기반 BMI 카테고리 예측</div>
+    <div class="card-body">
+      <form id="dl-form" class="row g-3">
+        <div class="col-md-4">
+          <label for="country" class="form-label">Country</label>
+          <select id="country" class="form-select" required>
+            <option value="0">Australia</option>
+            <option value="14" selected>South Korea</option>
+            <option value="19">USA</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="gender" class="form-label">Gender</label>
+          <select id="gender" class="form-select" required>
+            <option value="0" selected>Female</option>
+            <option value="1">Male</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="age" class="form-label">Age</label>
+          <input type="number" id="age" class="form-control" value="45" required>
+        </div>
+
+        <div class="col-md-4">
+          <label for="coffee_intake" class="form-label">Coffee Intake (0–8)</label>
+          <input type="number" id="coffee_intake" class="form-control" value="2" min="0" max="8" required>
+        </div>
+
+        <div class="col-md-4">
+          <label for="sleep_hours" class="form-label">Sleep Hours</label>
+          <input type="number" id="sleep_hours" class="form-control" value="6" required>
+        </div>
+
+        <div class="col-md-4">
+          <label for="activity" class="form-label">Physical Activity (시간/주)</label>
+          <input type="number" id="activity" class="form-control" value="2" required>
+        </div>
+
+        <div class="col-md-4">
+          <label for="occupation" class="form-label">Occupation</label>
+          <select id="occupation" class="form-select" required>
+            <option value="1" selected>Office</option>
+            <option value="4">Student</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="smoking" class="form-label">Smoking</label>
+          <select id="smoking" class="form-select" required>
+            <option value="0" selected>No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="alcohol" class="form-label">Alcohol</label>
+          <select id="alcohol" class="form-select" required>
+            <option value="0" selected>No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+
+        <div class="col-12 text-center mt-3">
+          <button type="submit" class="btn btn-danger px-4">예측 실행</button>
+        </div>
+      </form>
+
+      <div class="text-center mt-3">
+        <div class="spinner-border text-danger d-none" id="dl-loader" role="status">
+          <span class="visually-hidden">분석 중...</span>
+        </div>
+        <div class="results mt-3" id="dl-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2️⃣ 회귀 모델 -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-header bg-secondary text-white">2. 회귀 모델 분석 (BMI 예측)</div>
+    <div class="card-body text-center">
+      <button class="btn btn-secondary mb-3" id="run-regression">회귀 모델링 실행</button>
+      <div class="spinner-border text-secondary d-none" id="regression-loader" role="status"></div>
+      <div class="results mt-3" id="regression-results"></div>
+    </div>
+  </div>
+
+  <!-- 3️⃣ 분류 모델 -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-header bg-warning text-dark">3. 분류 모델 분석 (BMI 25 이상 여부 분류)</div>
+    <div class="card-body text-center">
+      <button class="btn btn-warning mb-3" id="run-classification">분류 모델링 실행</button>
+      <div class="spinner-border text-warning d-none" id="classification-loader" role="status"></div>
+      <div class="results mt-3" id="classification-results"></div>
+    </div>
+  </div>
+
+  <!-- 4️⃣ 군집 모델 -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-header bg-success text-white">4. 군집 모델 분석 (고객 세분화)</div>
+    <div class="card-body text-center">
+      <button class="btn btn-success mb-3" id="run-clustering">군집 모델링 실행</button>
+      <div class="spinner-border text-success d-none" id="clustering-loader" role="status"></div>
+      <div class="results mt-3" id="clustering-results"></div>
+    </div>
+  </div>
+
+  <footer class="text-center text-muted py-4">
+    <p>&copy; 2025 BMI Analysis — Deep Learning & ML Module</p>
+  </footer>
+</div>
+{% endblock content %}

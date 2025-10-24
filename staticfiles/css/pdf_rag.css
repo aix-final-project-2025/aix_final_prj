@@ -1,0 +1,86 @@
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+h3 {
+  text-align: center;
+  color: #555;
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+#drop-area {
+  border: 3px dashed #4caf50;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  background: #fdfdfd;
+  transition: background 0.3s, border-color 0.3s;
+  cursor: pointer;
+}
+#drop-area.dragover {
+  background: #e8f5e9;
+  border-color: #2e7d32;
+}
+#drop-area p {
+  font-size: 16px;
+  margin: 0;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-top: 15px;
+}
+button:hover {
+  background-color: #0056b3;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #ddd;
+  margin: 30px 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+ul li {
+  margin: 8px 0;
+}
+ul li a {
+  color: #007bff;
+  text-decoration: none;
+}
+ul li a:hover {
+  text-decoration: underline;
+}
+
+input[type="text"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 300px;
+}
+
+@media (max-width: 600px) {
+  .container { padding: 18px; }
+  input[type="text"] { width: 100%; }
+}

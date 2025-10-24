@@ -1,84 +1,33 @@
-/* ================================
-   🏠 HOME PAGE (Recycling & Coffee)
-   Final Integration: 2025.10.23 by ChangDo
-================================ */
-
-/* =============================== */
-/* 🌿 Google Font 적용 */
-/* =============================== */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Noto+Sans+KR:wght@400&display=swap');
-
-
-/* =============================== */
-/* 📐 전체 레이아웃 */
-/* =============================== */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* ✅ 스크롤 차단 */
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-body {
+/* 
+.content-layout {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 100vh;
-  background-color: #fafafa;
-  color: #333;
-}
-
-/* =============================== */
-/* 🌱 상단 제목 및 부제 */
-/* =============================== */
-.page-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+}
+
+
+.page-header {
   text-align: center;
-  margin-top: 60px;
-  margin-bottom: 40px;
+  margin-top: 80px;
+  margin-bottom: 50px;
 }
 
 .page-header h1 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 2.8rem;
-  letter-spacing: 1.5px;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #111;
-  margin-bottom: 20px;
+  letter-spacing: 0.5px;
 }
 
-.subtitle-container {
-  text-align: center;
-  width: fit-content;
-  margin: 0 auto;
-}
-
-.subtitle {
-  font-family: 'Noto Sans KR', sans-serif;
-  font-weight: 400;
-  font-size: 1.1rem;
+.page-header .subtitle {
   color: #666;
-  margin: 10px 0;
+  font-size: 1rem;
+  margin-top: 10px;
+  letter-spacing: 0.3px;
 }
 
-.line {
-  border: none;
-  height: 1px;
-  background-color: #ddd;
-  width: 100%;
-  max-width: 480px;
-  margin: 6px auto;
-}
 
-/* =============================== */
-/* ☕ 메인 프로모션 섹션 */
-/* =============================== */
 .promotion-section {
-  flex: 1 1 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -87,10 +36,9 @@ body {
   border-radius: 8px;
   max-width: 1300px;
   margin: 0 auto;
-  box-sizing: border-box;
 }
 
-/* 왼쪽 텍스트 */
+
 .promo-text-area {
   flex: 1;
   padding-right: 40px;
@@ -116,7 +64,7 @@ body {
   font-size: 15px;
 }
 
-/* 오른쪽 이미지 */
+
 .promo-image-area img {
   width: 100%;
   max-width: 550px;
@@ -125,45 +73,24 @@ body {
   display: block;
 }
 
-/* =============================== */
-/* 🧾 푸터 (하단 띄움 + 중앙 정렬) */
-/* =============================== */
-.company-footer {
-  flex: 0 1 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #d8d8d8;   /* 💡 색상만 다름 */
-  padding: 10;         /* ✅ 동일 패딩 */
-  border-radius: 8px;           /* ✅ 동일 라운드 */
-  max-width: 1300px;            /* ✅ 동일 폭 */
-  margin: 40px auto 0 auto;     /* ✅ 위쪽 간격 + 가운데 정렬 */
-  box-sizing: border-box;       /* ✅ 안정적 레이아웃 */
-  border-top: 1px solid #eee;   /* 살짝 경계선 */
-}
 
-.footer-info {
+.company-footer {
   width: 100%;
-  line-height: 1.6;
-  text-align: center;           /* ✅ 텍스트 중앙정렬 */
+  padding: 30px 40px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
   color: #777;
   font-size: 13px;
+  text-align: right;
+  margin-top: 70px;
 }
-
-
 
 .footer-info p {
   margin: 5px 0;
+  line-height: 1.6;
 }
 
-/* =============================== */
-/* 📱 반응형 디자인 */
-/* =============================== */
 @media screen and (max-width: 768px) {
-  html, body {
-    overflow: auto; /* 📱 모바일에서는 스크롤 허용 */
-  }
-
   .promotion-section {
     flex-direction: column;
     padding: 30px 20px;
@@ -181,7 +108,5 @@ body {
 
   .company-footer {
     text-align: center;
-    padding: 30px 10px;
-    margin-top: 40px;
   }
-}
+} */

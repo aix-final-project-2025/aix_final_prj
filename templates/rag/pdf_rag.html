@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}PDF-RAG{% endblock %}
+{% block subtitle %}
+<div class="subtitle-container full-width">
+
+    <hr class="subtitle text-base text-gray-500 mt-1">PDF-RAG</hr>
+
+</div>
+{% endblock subtitle %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pdf_rag.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>📄 PDF 기반 RAG 시스템</h1>
+  <h3>(skt/kogpt2-base-v2 — 소규모 한글 모델)</h3>
+
+  <!-- PDF 업로드 -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div id="drop-area" onclick="document.getElementById('fileElem').click();">
+        <p id="drop-message">여기에 PDF 파일을 드래그하거나 클릭해서 선택하세요</p>
+        <input id="fileElem" type="file" name="pdfs" accept=".pdf" multiple required>
+    </div>
+    <button type="submit">📤 PDF 업로드 및 처리</button>
+  </form>
+
+  <hr>
+
+  <h3>업로드된 PDF 파일 (tokenize / VectorDB 처리 완료)</h3>
+  <ul>
+    {% for filename in uploaded_filenames %}
+      <li>
+        <a href="{% static 'uploaded_pdfs/' %}{{ filename }}" target="_blank">{{ filename }}</a>
+      </li>
+    {% empty %}
+      <li>아직 업로드된 PDF가 없습니다.</li>
+    {% endfor %}
+  </ul>
+
+  <hr>
+
+  <!-- 질의응답 -->
+  <h2>질문하기 💬</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="text" name="query" placeholder="PDF 내용에 대해 질문하세요">
+    <button type="submit">질문</button>
+  </form>
+
+  {% if query and answer %}
+    <hr>
+    <h3>질문: {{ query }}</h3>
+    <p><strong>답변:</strong> {{ answer }}</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/pdf_rag.js' %}"></script>
+{% endblock %}
