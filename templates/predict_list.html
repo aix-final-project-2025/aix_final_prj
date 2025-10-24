@@ -66,9 +66,9 @@ body { font-family:'Arial', sans-serif; margin:0; padding:0; background:#f2f2f2;
 #modal-image { display:block; margin:0 auto 10px auto; width:224px; height:224px; object-fit:cover; border-radius:10px; }
 
 /* 모바일 select 대체 버튼형 */
-.select-button-group { display:flex; flex-wrap:wrap; gap:5px; }
+/* .select-button-group { display:flex; flex-wrap:wrap; gap:5px; }
 .select-button-group button { flex:1 1 45%; padding:8px; border:none; border-radius:6px; background:#eee; cursor:pointer; font-size:14px; transition:0.2s; }
-.select-button-group button.active { background:#4CAF50; color:white; }
+.select-button-group button.active { background:#4CAF50; color:white; } */
 
 /* 수정 버튼 */
 #modal-update-btn { width:100%; padding:12px; margin-top:5px; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; font-weight:bold; font-size:16px; transition:0.2s; }
@@ -105,9 +105,9 @@ body.modal-open .container { pointer-events:none; user-select:none; }
     </div>
     <div class="modal-card">
       <h4>쓰레기 분류</h4>
-      <div class="select-button-group" id="modal-category-buttons"></div>
+      <div  id="modal-category-buttons"></div>
     </div>
-    <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button>
+    <!-- <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button> -->
   </div>
 </div>
 {% endblock %}
@@ -130,15 +130,23 @@ function renderCard(item){
 
   const content=document.createElement('div');
   content.className='card-content';
-  content.innerHTML=`
+  // content.innerHTML=`
+  //   <div class="content-box"><strong>예측결과:</strong> ${item.predicted_result}</div>
+  //   <div class="content-box mobile-hide"><strong>분리처리 안내:</strong> ${item.recycling_guide}</div>
+  //   <div class="content-box mobile-hide"><strong>Top 3:</strong> ${item.top3}</div>
+  //   <div class="card-row mobile-hide">
+  //     <select id='predicted_class_${item.id}'>
+  //       ${categories.map(c=>`<option value="${c.id}" ${c.id===item.group_code_id?'selected':''}>${c.name}</option>`).join('')}
+  //     </select>
+  //     <button class="update-btn" onclick="predicChange(${item.id})">수정</button>
+  //   </div>
+  // `;
+    content.innerHTML=`
     <div class="content-box"><strong>예측결과:</strong> ${item.predicted_result}</div>
     <div class="content-box mobile-hide"><strong>분리처리 안내:</strong> ${item.recycling_guide}</div>
     <div class="content-box mobile-hide"><strong>Top 3:</strong> ${item.top3}</div>
     <div class="card-row mobile-hide">
-      <select id='predicted_class_${item.id}'>
-        ${categories.map(c=>`<option value="${c.id}" ${c.id===item.group_code_id?'selected':''}>${c.name}</option>`).join('')}
-      </select>
-      <button class="update-btn" onclick="predicChange(${item.id})">수정</button>
+       ${item.group_code_id}
     </div>
   `;
   card.appendChild(content);
@@ -155,19 +163,19 @@ async function codeLoad(){
 }
 
 /** 예측 결과 수정 */
-async function predicChange(itemId){
-  try{
-    const res=await fetch("{% url 'predict_class_change' %}?id="+itemId+"&group_code_id="+selectedCategoryId);
-    const data=await res.json();
-    if(data.success!==true) alert("수정 실패");
-    else{
-      alert("수정 성공");
-      document.getElementById('modal-sheet').classList.remove('show');
-      document.body.style.overflow='';
-      document.body.classList.remove('modal-open');
-    }
-  }catch(err){console.error(err);}
-}
+// async function predicChange(itemId){
+//   try{
+//     const res=await fetch("{% url 'predict_class_change' %}?id="+itemId+"&group_code_id="+selectedCategoryId);
+//     const data=await res.json();
+//     if(data.success!==true) alert("수정 실패");
+//     else{
+//       alert("수정 성공");
+//       document.getElementById('modal-sheet').classList.remove('show');
+//       document.body.style.overflow='';
+//       document.body.classList.remove('modal-open');
+//     }
+//   }catch(err){console.error(err);}
+// }
 
 /** 카드 목록 로드 */
 let loading=false;
@@ -210,20 +218,20 @@ document.getElementById('waste-container').addEventListener('click', function(e)
     document.getElementById('modal-guide').innerText = guide;
     document.getElementById('modal-top3').innerText = top3;
 
-    const buttonGroup = document.getElementById('modal-category-buttons');
-    buttonGroup.innerHTML = '';
-    categories.forEach(c=>{
-      const btn = document.createElement('button');
-      btn.innerText = c.name;      // 버튼에 표시될 이름
-      btn.dataset.codeId = c.id;   // 코드값 저장
-      btn.className = (c.id === categoryId ? 'active' : '');
-      btn.addEventListener('click', ()=>{
-        selectedCategoryId = c.id; 
-        Array.from(buttonGroup.children).forEach(b => b.classList.remove('active')); 
-        btn.classList.add('active');
-      });
-      buttonGroup.appendChild(btn);
-    });
+    // const buttonGroup = document.getElementById('modal-category-buttons');
+    // buttonGroup.innerHTML = '';
+    // categories.forEach(c=>{
+    //   const btn = document.createElement('button');
+    //   btn.innerText = c.name;      // 버튼에 표시될 이름
+    //   btn.dataset.codeId = c.id;   // 코드값 저장
+    //   btn.className = (c.id === categoryId ? 'active' : '');
+    //   btn.addEventListener('click', ()=>{
+    //     selectedCategoryId = c.id; 
+    //     Array.from(buttonGroup.children).forEach(b => b.classList.remove('active')); 
+    //     btn.classList.add('active');
+    //   });
+    //   buttonGroup.appendChild(btn);
+    // });
 
     document.getElementById('modal-sheet').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -233,14 +241,14 @@ document.getElementById('waste-container').addEventListener('click', function(e)
 
 
 // 수정 버튼 클릭 시
-document.getElementById('modal-update-btn').addEventListener('click', ()=>{
-  if(selectedCategoryId === null) {
-    alert("항목을 선택해주세요.");
-    return;
-  }
-  // 서버로 선택한 코드값 전송
-  predicChange(selectedCategoryId);
-});
+// document.getElementById('modal-update-btn').addEventListener('click', ()=>{
+//   if(selectedCategoryId === null) {
+//     alert("항목을 선택해주세요.");
+//     return;
+//   }
+//   // 서버로 선택한 코드값 전송
+//   predicChange(selectedCategoryId);
+// });
 
 /** 모달 닫기 */
 document.querySelector('.modal-close').addEventListener('click',()=>{
