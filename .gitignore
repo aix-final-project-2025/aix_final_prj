@@ -46,3 +46,10 @@ chunks.npy
 faiss_index
 *.pdf
 *.csvstaticfiles/
+
+chroma_db_new/
+keras/
+skt/
+static/plots/
+static/uploads_pdf
+paraphrase-multilingual-MiniLM-L12-v2*
