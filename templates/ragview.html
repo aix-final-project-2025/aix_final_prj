@@ -92,7 +92,7 @@
       @media (max-width: 600px) {
           /* body { margin: 20px; } */ /* base.html의 .main 스타일을 따름 */
           #drop-area img {
-              max-width: 100%;
+              max-width: 60%;
           }
       }  
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
@@ -138,7 +138,7 @@
     <h2>질문하기</h2>
     <form method="post">
         {% csrf_token %}
-        <input type="text" name="query" placeholder="질문을 입력하세요" style="width: 300px;">
+        <input type="text" name="query" placeholder="질문을 입력하세요" style="width: 300px; height: 50px; ">
         <button type="submit">질문</button>
     </form>
 
