@@ -29,17 +29,17 @@ h1 {
 /* 2. ✅ 최종 해결책: .line 요소를 뷰포트 너비 전체로 강제 확장 */
 /* 이 설정은 상위 컨테이너의 max-width 제약 조건을 무시하고, 라인만 화면 전체 너비에 맞춥니다.
    margin-left: calc(50% - 50vw)를 사용하여 라인을 정확히 중앙에 배치합니다. */
-.page-header .line {
-    width: 90vw; /* 뷰포트 너비 전체 */
-    /* 현재 .line의 중앙 위치(50%)를 뷰포트의 중앙(50vw)과 일치시켜 정확히 정렬합니다. */
+/* .page-header .line {
+    width: 90vw;
+
     margin-left: calc(50% - 45vw); 
-    max-width: none; /* 혹시 모를 max-width 제한을 제거합니다. */
-}
+    max-width: none;
+} */
 /* 드래그 영역 */
 #drop-area {
   border: 3px dashed #4caf50;
   border-radius: 12px;
-  width: 200%;
+  width: 90%;
   margin: 0 auto;
   display:flex;
   align-items:center;

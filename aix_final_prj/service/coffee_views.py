@@ -9,7 +9,7 @@ coffee_logic.get_trained_model()
 
 # 메인 페이지를 렌더링하는 뷰
 def index(request):
-    return render(request, 'coffee.html')
+    return render(request, 'coffee_menu.html')
 
 # --- API 역할을 하는 View 함수들 ---
 @csrf_exempt # 외부에서 POST 요청을 받기 위해 CSRF 보호 비활성화

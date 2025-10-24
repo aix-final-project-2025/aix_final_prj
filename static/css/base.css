@@ -60,10 +60,16 @@
           border: none;
           height: 1px;
           background-color: #454444;
-          width: 100%;
-          max-width: none;  
-          margin: 8px auto;
+          width: 100vw; /* 화면 전체 너비 */
+          max-width: 85vw;
+          position: relative;
+          left: 50%;
+          transform: translateX(-50%); /* 가운데 정렬 보정 */
+          margin: 8px 0;
         }
+
+
+
 
         .top-line { margin-bottom: 6px; }
         .bottom-line { margin-top: 6px; }
