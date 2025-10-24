@@ -1,0 +1,9 @@
+<h2>BBC Asia 최신 뉴스</h2>
+<ul>
+{% for article in articles %}
+    <li>
+        <a href="{{ article.link }}" target="_blank">{{ article.title }}</a>
+        <p>{{ article.content|truncatechars:200 }}</p>
+    </li>
+{% endfor %}
+</ul>

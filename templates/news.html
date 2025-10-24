@@ -1,9 +1,301 @@
-<h2>BBC Asia 최신 뉴스</h2>
-<ul>
-{% for article in articles %}
-    <li>
-        <a href="{{ article.link }}" target="_blank">{{ article.title }}</a>
-        <p>{{ article.content|truncatechars:200 }}</p>
-    </li>
-{% endfor %}
-</ul>
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}News DB{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=delete,more_vert" />
+
+<link rel="stylesheet" href="{% static 'css/recyclables.css' %}">
+<style>
+       
+      /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
+      :root {
+        --naver: #03c75a;
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --card: #ffffff;
+        --shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --naver: #10b981;
+            --bg: #0b0f14;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2a37;
+            --card: #0f1720;
+            --shadow: 0 8px 24px rgba(0,0,0,0.35);
+        }
+    }
+    html, body {
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Apple SD Gothic Neo, Helvetica, Arial;
+    }
+    .wrap {
+        max-width: 1100px;
+        margin: 28px auto;
+        padding: 0 14px;
+    }
+    .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+    }
+    .section {
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+    .title {
+        font-weight: 800;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    .naverbar {
+        display: flex;
+        gap: 0;
+        border: 2px solid var(--naver);
+        border-radius: 999px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .naverbar input {
+        flex: 1 1 auto;
+        border: 0;
+        padding: 14px 16px;
+        font-size: 16px;
+        outline: none;
+    }
+    .naverbar button {
+        border: 0;
+        background: var(--naver);
+        color: #fff;
+        padding: 0 18px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .naverbar button:hover {
+        filter: brightness(0.95);
+    }
+    .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    @media (max-width: 960px) {
+        .cols {
+            grid-template-columns: 1fr;
+        }
+    }
+    .panel {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .panel header {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(3,199,90,0.08);
+        font-weight: 700;
+    }
+    .panel .body {
+        padding: 14px;
+        line-height: 1.7;
+    }
+    .muted {
+        color: var(--muted);
+    }
+    .small {
+        font-size: 12px;
+        color: var(--muted);
+    }
+    .err {
+        color: #b91c1c;
+    }
+    .newslist {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+    }
+    .newslist li {
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--border);
+    }
+    .newslist li:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .news-title {
+        font-weight: 700;
+        margin: 0 0 6px 0;
+    }
+    .news-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .news-title a:hover {
+        text-decoration: underline;
+    }
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .chip {
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        font-size: 12px;
+    }
+    .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+    .cta:hover {
+        background: #f9fafb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="wrap">
+        <!-- 상단: Gemini (네이버창) -->
+        <section class="section card">
+            <div class="title">🔎 Gemini 답변 & 참고 기사</div>
+            <form class="naverbar" method="get" action="{% url 'news' %}">
+                {% csrf_token %}
+                <input type="hidden" name="mode" value="gemini" />
+                <input type="text" name="q" placeholder="질문을 입력하세요 (예: AI 최신 동향은?)" value="{{ q_gemini|default_if_none:'' }}" />
+                <button type="submit">검색</button>
+            </form>
+            <div class="cols" style="margin-top:14px;">
+                <div class="panel">
+                    <header>🤖 Gemini 답변 {% if model_name_gemini %}<span class="small">· {{ model_name_gemini }}</span>{% endif %}</header>
+                    <div class="body">
+                        {% if gemini_error %}
+                            <p class="err">{{ gemini_error }}</p>
+                        {% elif gemini_answer %}
+                            <div>{{ gemini_answer|linebreaksbr }}</div>
+                        {% else %}
+                            <p class="muted">윗 검색창에 질문을 입력하고 Enter를 누르세요.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="panel">
+                    <header>📰 참고 기사</header>
+                    <div class="body">
+                        {% if news_list and news_list|length > 0 %}
+                            <ul class="newslist">
+                                {% for n in news_list %}
+                                    <li>
+                                        <h4 class="news-title">
+                                            {% if n.url %}
+                                                <a href="{{ n.url }}" target="_blank" rel="noopener noreferrer">{{ n.title|default:"제목 없음" }}</a>
+                                            {% else %}
+                                                {{ n.title|default:"제목 없음" }}
+                                            {% endif %}
+                                        </h4>
+                                        <div class="meta">
+                                            {% if n.source %}
+                                                <span class="chip">출처 · {{ n.source }}</span>
+                                            {% endif %}
+                                            {% if n.published_at %}
+                                                <span class="small">{{ n.published_at }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if n.snippet %}
+                                            <div class="small">{{ n.snippet }}</div>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <!-- 기사 → 크롤링 → 청크 → 크로마 저장 -->
+                            <form method="get" action="{% url 'news' %}" style="margin-top:14px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="mode" value="gemini" />
+                                <input type="hidden" name="q" value="{{ q_gemini|default_if_none:'' }}" />
+                                <input type="hidden" name="ingest" value="1" />
+                                <button class="cta" type="submit">🔄 참고 기사 크롤링 → 크로마 저장</button>
+                                {% if ingest_result %}
+                                    <span class="small">({{ ingest_result }})</span>
+                                {% endif %}
+                                {% if ingest_error %}
+                                    <span class="err small">{{ ingest_error }}</span>
+                                {% endif %}
+                            </form>
+                        {% else %}
+                            <p class="muted">참고 기사가 여기에 표시됩니다. (네이버 뉴스 API 또는 Gemini 링크 추출)</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 하단: RAG (네이버창) -->
+        <section class="section card">
+            <div class="title">📚 RAG (Chroma 벡터DB) 답변</div>
+            <form class="naverbar" method="get" action="{% url 'news' %}" style="margin-bottom:14px;">
+                {% csrf_token %}
+                <input type="hidden" name="mode" value="rag" />
+                <input type="text" name="q" placeholder="내 지식(Chroma) 기반으로 묻기" value="{{ q_rag|default_if_none:'' }}" />
+                <button type="submit">검색</button>
+            </form>
+            <div class="panel">
+                <header>📘 RAG 답변 {% if model_name_rag %}<span class="small">· {{ model_name_rag }}</span>{% endif %}</header>
+                <div class="body">
+                    {% if rag_error %}
+                        <p class="err">{{ rag_error }}</p>
+                    {% elif rag_answer %}
+                        <div>{{ rag_answer|linebreaksbr }}</div>
+                        {% if rag_sources %}
+                            <hr />
+                            <div class="small">참고 소스:</div>
+                            <ul class="small">
+                                {% for s in rag_sources %}
+                                    <li>{{ s }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% else %}
+                        <p class="muted">아래 검색창에 질문을 입력하고 Enter를 누르세요.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+
+    {% block extra_script %}
+    <script>
+        (function () {
+            try {
+                // 브라우저가 '리로드'로 들어왔는지 감지
+                var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+                var isReload = nav ? (nav.type === 'reload') : (performance && performance.navigation && performance.navigation.type === 1);
+                if (isReload) {
+                    // 쿼리/해시가 있거나 루트가 아니면 즉시 루트로 교체(히스토리 오염 X)
+                    var notRoot = !(location.pathname === '/' || location.pathname === '');
+                    if (notRoot || location.search || location.hash) {
+                        window.location.replace('{% url "news" %}');
+                    }
+                }
+            } catch (e) {
+                // 실패해도 무시 (페이지 기능에는 영향 없음)
+            }
+        })();
+    </script>
+    {% endblock %}
