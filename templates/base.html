@@ -43,11 +43,22 @@
             </div>
             
             <!-- ☕ 커피 분석 -->
-            <a href="{% url 'coffee' %}" class="menu-item">
-                <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" alt="Coffee Icon"></span>
-                <span class="text">Coffee Dashboard</span>
-            </a>
-            
+            <div class="menu-item-group">
+                <a class="main-menu-toggle" data-target="coffee-submenu">
+                    <span class="icon"><img src="https://img.icons8.com/?size=100&id=LbnEo5R8jVm8&format=png&color=000000" alt="Coffee Icon"></span>
+                    <span class="text">Coffee Dashboard</span>
+                    <span class="toggle-arrow">▼</span>
+                </a>
+                <!-- 서브메뉴 -->
+                <div id="coffee-submenu" class="submenu">
+                    <!-- TODO: coffee_detail URL은 예시입니다. 실제 URL에 맞게 수정해주세요. -->
+                    <a href="{% url 'analysis' %}" class="submenu-item"><span class="text">Ds</span></a>
+                    <a href="{% url 'report' %}" class="submenu-item"><span class="text">report</span></a>
+                    <a href="{% url 'bmi' %}" class="submenu-item"><span class="text">Bmi</span></a>
+                    <a href="{% url 'sleep' %}" class="submenu-item"><span class="text">Sleep</span></a>
+                    <a href="{% url 'stress' %}" class="submenu-item"><span class="text">Stress</span></a>
+                </div>
+            </div>
             <!-- 🧠 RAG 챗봇 -->
             <a href="{% url 'rag' %}" class="menu-item">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=61372&format=png&color=000000" alt="RAG Chatbot Icon"></span>

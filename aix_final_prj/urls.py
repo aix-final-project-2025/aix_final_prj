@@ -20,11 +20,11 @@ urlpatterns = [
     path("coffee/", TemplateView.as_view(template_name="coffee/coffee.html"), name="coffee"),
 
     # ▶️ Coffee 내부 탭 (report, analysis, bmi, sleep, stress)
-    path("coffee/report/", TemplateView.as_view(template_name="coffee/report.html"), name="coffee_report"),
-    path("coffee/analysis/", TemplateView.as_view(template_name="coffee/analysis.html"), name="coffee_analysis"),
-    path("coffee/bmi/", TemplateView.as_view(template_name="coffee/bmi.html"), name="coffee_bmi"),
-    path("coffee/sleep/", TemplateView.as_view(template_name="coffee/sleep.html"), name="coffee_sleep"),
-    path("coffee/stress/", TemplateView.as_view(template_name="coffee/stress.html"), name="coffee_stress"),
+    path("report/", TemplateView.as_view(template_name="coffee/report.html"), name="report"),
+    path('analysis/', TemplateView.as_view(template_name='coffee/analysis.html'), name='analysis'),
+    path("bmi/", TemplateView.as_view(template_name="coffee/bmi.html"), name="bmi"),
+    path("sleep/", TemplateView.as_view(template_name="coffee/sleep.html"), name="sleep"),
+    path("stress/", TemplateView.as_view(template_name="coffee/stress.html"), name="stress"),
 
     # 🧠 PDF-RAG (문서 기반 챗봇)
     path("rag/", TemplateView.as_view(template_name="rag/pdf_rag.html"), name="rag"),
