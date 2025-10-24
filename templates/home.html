@@ -1,186 +1,69 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page_title %}Final_project{% endblock %}
+{% block page_title %}Recycling and Coffee{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
-    <style>
-        /* 폰트 및 기본 설정: base.css에 정의되어 있으므로 body는 제거합니다. */
-        /* .main-container, .top-header, .main-logo-area, .main-nav 관련 스타일도 base.css로 이동했거나 base.html에 해당 요소가 없으므로 제거됩니다. */
-
-        /* 3. 메인 콘텐츠 및 사이드 정보 레이아웃 */
-        /* .content-layout {
-            display: flex;
-            justify-content: space-between;
-            padding-bottom: 50px;
-        } */
-        .main-content {
-            flex-grow: 1;
-            margin-right: 20px;
-        }
-        .cs-sidebar {
-            width: 250px; /* 오른쪽 CS 정보 영역 고정 폭 */
-            padding-left: 20px;
-            border-left: 1px solid #eee;
-        }
-
-        /* 4. 프로모션 영역  */
-        .promotion-section {
-            display: flex;
-            background-color: #e0e1df;
-            border: 1px solid #fdfdfd;
-            padding: 50px 0;
-            align-items: center;
-            height: 60%; 
-        }
-        .promo-text-area {
-            flex: 1;
-            padding: 0 40px;
-            text-align: left;
-        }
-        .promo-text-area h2 {
-            font-size: 40px;
-            font-weight: 700;
-            margin: 0 0 10px;
-        }
-        .promo-image-area {
-            width: 90%;              
-            max-width: 600px;         
-            aspect-ratio: 3 / 2;      
-            margin-right: 5%;         
-            position: relative;
-        }
-
-        /* 5. CS 사이드바 스타일 */
-        .cs-sidebar > div {
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .cs-sidebar h3 {
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 0;
-            color: #555;
-        }
-        .cs-sidebar p, .cs-sidebar .cs-detail {
-            font-size: 12px;
-            line-height: 1.6;
-            margin: 5px 0;
-        }
-        .cs-sidebar strong {
-            display: block;
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .btn-up-down {
-            text-align: center;
-            padding-top: 15px;
-        }
-        .btn-up-down button {
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 5px 15px;
-            cursor: pointer;
-            margin: 0 5px;
-        }
-        /* ------------------------------------------- */
-        /* ✨ 모바일 반응형 스타일 (768px 이하) */
-        /* ------------------------------------------- */
-        @media screen and (max-width: 768px) {
-            
-            /* 1. 메인 컨테이너 폭 최대화 및 패딩 조정: base.css로 이동 */
-
-            /* 2. 상단 헤더: base.css로 이동 */
-
-            /* 3. 로고 영역 크기 조정: base.css로 이동 */
-
-            /* 4. 메인 네비게이션: base.css로 이동 */
-            
-            /* 5. 콘텐츠 레이아웃: 메인과 사이드바를 세로로 쌓기 */
-            .content-layout {
-                flex-direction: column; /* 세로 정렬로 변경 */
-                padding-bottom: 20px;
-            }
-            
-            /* 6. 메인 콘텐츠 */
-            .main-content {
-                margin-right: 0; /* 우측 마진 제거 */
-            }
-
-            /* 7. 프로모션 섹션: 이미지와 텍스트를 세로로 쌓기 */
-            .promotion-section {
-                flex-direction: column; /* 세로 정렬로 변경 */
-                padding: 30px 0;
-                border: none; /* 모바일에서 테두리 제거 */
-            }
-            .promo-text-area {
-                padding: 0 10px 20px 10px; /* 패딩 조정 */
-                text-align: center; /* 텍스트 중앙 정렬 */
-                font-size: 28px;
-            }
-            
-            /* 8. 이미지 영역 크기 조정 및 위치 변경 (모바일 비율 유지) */
-            .promo-image-area {
-                width: 100%; 
-                height: 0; 
-                padding-bottom: 75%; 
-                margin: 0 auto; 
-                overflow: hidden;
-            }
-
-            /* 9. CS 사이드바: 메인 콘텐츠 아래로 이동 후 너비 최대화 */
-            .cs-sidebar {
-                width: 100%; 
-                padding-left: 0; 
-                border-left: none; 
-                margin-top: 30px; 
-            }
-            .cs-sidebar > div {
-                border: 1px solid #eee;
-                margin-bottom: 10px;
-                padding: 15px 10px;
-                background-color: #fff;
-            }
-            .cs-sidebar h3 {
-                font-size: 16px;
-                color: #333;
-            }
-            .cs-sidebar strong {
-                font-size: 20px;
-            }
-            .cs-sidebar p, .cs-sidebar .cs-detail {
-                font-size: 13px;
-            }
-        }
-    </style>
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock extra_head %}
 
 {% block content %}
-<div class="content-layout">
-    <div class="main-content">
-        
-        <div class="promotion-section">
-            <div class="promo-text-area">
-                <h2>Recycling and Coffee</h2>
 
-            </div>
-            <div class="promo-image-area">
-                <img src="{% static 'images/main.png' %}"
-                    alt="Decaffeinated Coffee Promotion" 
+  <!-- 🌱 상단 제목 및 부제 -->
+  <div class="page-header">
+    <h1>Recycling and Coffee</h1>
+    <div class="subtitle-container">
+      <hr class="line top-line">
+      <p class="subtitle">당신의 한 잔이 순환이 되고, 지식이 됩니다</p>
+      <hr class="line bottom-line">
+    </div>
+  </div>
 
-                        >
+  <!-- 🍃 메인 프로모션 섹션 -->
+  <section class="promotion-section">
+    <!-- 왼쪽 텍스트 -->
+    <div class="promo-text-area">
+      <div class="main-message-container">
+        <p>
+          <strong>소중한 순환에 깊이를 더하는 프로그램을 체험하세요</strong>
+          <br><br>
+          당신이 마신 커피컵을 분리수거하면, 그것이 곧 땅의 힘이 됩니다.<br>
+          씨앗을 키워 다시 향긋한 커피가 되기까지,<br>
+          당신의 작은 행동이 환경과 우리의 삶을 연결하는 아름다운 순환입니다.<br><br>
+        </p>
+
+        <div class="program-callout">
+          <div class="program-list">
+            <div class="program-item">
+              💡 <strong>바른 재활용 팁</strong>
+              <p class="description">헷갈리는 재활용 분류를 명쾌하게 알려주는 프로그램</p>
             </div>
+            <div class="program-item">
+              🌿 <strong>커피와 우리의 삶</strong>
+              <p class="description">커피가 스트레스 지수와 흡연에 미치는 관계를 탐구하는 프로그램</p>
+            </div>
+          </div>
         </div>
-        
-        {% comment %}
-        <section class="latest-products">
-            <h2>Latest Products</h2>
-            </section>
-        {% endcomment %}
+      </div>
     </div>
 
+    <!-- 오른쪽 이미지 -->
+    <div class="promo-image-area">
+      <img src="{% static 'images/main.png' %}" alt="Recycling and Coffee illustration">
+    </div>
+  </section>
 
-</div>
+  <!-- 🧾 푸터 -->
+  <footer class="company-footer">
+    <div class="footer-info">
+      <p>Team name : Re n Co</p>
+      <p>Product date : 2025.10.20 -</p>
+      <p>Team person : 우상익, 김대영, 정경주, 김정호, 김동건, 이세희, 채창도</p>
+    </div>
+  </footer>
+
 {% endblock content %}
+
+{% block extra_script %}
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock extra_script %}

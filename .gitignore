@@ -1,3 +1,6 @@
+# WEB DESIGNER 
+._sehee
+
 # Python 캐시
 __pycache__/
 *.py[cod]
@@ -42,4 +45,4 @@ uploads/
 chunks.npy
 faiss_index
 *.pdf
-*.csv
+*.csvstaticfiles/
