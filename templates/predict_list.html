@@ -4,10 +4,7 @@
 {% block page_title %}DB{% endblock %}
 
 {% block extra_head %}
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>쓰레기 카드형 리스트 - 모달 이미지 고정</title>
+
 <style>
 body { font-family:'Arial', sans-serif; margin:0; padding:0; background:#f2f2f2; }
 .container { width:90%; max-width:1200px; margin:20px auto; position:relative; }
@@ -80,8 +77,9 @@ body.modal-open .container { pointer-events:none; user-select:none; }
 #empty-message { display:none; text-align:center; margin-top:20px; color:#888; }
 .modal-sheet.show { bottom:0; }
 </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 <div class="container" id="waste-container">
   <p id="empty-message">내용이 존재하지 않습니다.</p>
 </div>
