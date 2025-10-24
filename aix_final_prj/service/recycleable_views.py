@@ -134,7 +134,12 @@ class PredictListPageView(TemplateView):
 생활쓰레기 리스트조회
 """
 class PredictListView(View):
+    template_name = "predict_list.html"
+
+
     def get(self, request):
+
+        print("called ----------")
         page = int(request.GET.get("page", 1))
         per_page = 20
         start = (page - 1) * per_page

@@ -1,10 +1,9 @@
+{% extends "base.html" %}
+{% load static %}
 
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>환경설정 — iOS 스타일</title>
+{% block page_title %}환경설정{% endblock %}
+
+{% block extra_head %}
 <style>
   :root{
     --bg:#f2f2f7;
@@ -19,7 +18,7 @@
   html,body{height:100%;margin:0;background:var(--bg);color:#111;}
   .wrap{max-width:680px;margin:28px auto;padding:18px;}
 
-  h1{font-size:20px;margin:0 0 18px 0;font-weight:600;color:#111}
+  h1{font-size:26px;margin:0 0 18px 0;font-weight:600;color:#111}
   .sub{color:var(--muted);font-size:13px;margin-top:6px}
 
   /* card */
@@ -115,58 +114,50 @@
   }
 
 
-
-
-
-
-
-
-
-
-/* 모바일 화면 폰트 사이즈 조정 (밀림 방지) */
-@media (max-width:420px){
-  h1 {
-    font-size: 18px; /* 제목 */
+  /* 모바일 화면 폰트 사이즈 조정 (밀림 방지) */
+  @media (max-width:420px){
+    h1 {
+      font-size: 18px; /* 제목 */
+    }
+  /* row 레이아웃: 1:1 비율 */
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
-/* row 레이아웃: 1:1 비율 */
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
 
-/* 왼쪽 텍스트 영역 */
-.label {
-  flex: 1 1 50%;      /* 1:1 비율 */
-  min-width: 0;        /* flex-shrink 적용 */
-}
+  /* 왼쪽 텍스트 영역 */
+  .label {
+    flex: 1 1 50%;      /* 1:1 비율 */
+    min-width: 0;        /* flex-shrink 적용 */
+  }
 
-.label .title {
-  font-weight: 600;
-  color: #111;
-  font-size: 16px;
-  line-height: 1.2em;
-  white-space: normal;        /* 자동 줄바꿈 */
-  word-break: break-word;     /* 긴 단어도 줄바꿈 */
-}
+  .label .title {
+    font-weight: 600;
+    color: #111;
+    font-size: 16px;
+    line-height: 1.2em;
+    white-space: normal;        /* 자동 줄바꿈 */
+    word-break: break-word;     /* 긴 단어도 줄바꿈 */
+  }
 
-.label .desc {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 4px;
-  white-space: normal;
-  word-break: break-word;
-}
+  .label .desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    white-space: normal;
+    word-break: break-word;
+  }
 
-/* 오른쪽 버튼/토글 영역 */
-.row > div:last-child {
-  flex: 1 1 50%;      /* 1:1 비율 */
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  min-width: 0;
-}
+  /* 오른쪽 버튼/토글 영역 */
+  .row > div:last-child {
+    flex: 1 1 50%;      /* 1:1 비율 */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+  }
 
   .segmented button, .segmented1 button {
     font-size: 13px;
@@ -196,14 +187,12 @@
     font-size: 14px;
   }
 }
-
-
-
 </style>
-</head>
-<body>
-  {% csrf_token %}
-  <div class="wrap">
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="wrap">
     <h1>환경설정</h1>
     <!-- <div class="muted">앱 설정을 iOS 스타일로 제공합니다.</div> -->
 
@@ -272,7 +261,8 @@
       </div>
     </div>
   </div>
-
+{% endblock %}
+{% block extra_script %}
 <script>
 /*
   동작 요약:
@@ -604,7 +594,5 @@ function fetchSettings(country, gender, active) {
     window._appSettings = settings;
 // })();
 
-
 </script>
-</body>
-</html>
+{% endblock %}
