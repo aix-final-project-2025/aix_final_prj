@@ -4,9 +4,7 @@
 {% block page_title %}쓰레기 분류기{% endblock %}
 
 {% block extra_head %}
-<meta charset="utf-8">
-<title>쓰레기 분류기</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
   
 html, body {
@@ -477,8 +475,9 @@ button {
 /* 모달 열릴 때 배경 스크롤 방지 */
 body.modal-open { overflow: hidden; }
 </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 
 <h1>쓰레기 이미지 업로드 / 촬영</h1>
 <!-- 진행바 -->
