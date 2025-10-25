@@ -2,9 +2,13 @@
 {% load static %}
 
 {% block page_title %}쓰레기 분류기{% endblock %}
-
+{% block subtitle %}
+<p class="subtitle text-base text-gray-500 mt-1">재활용 분류 이미지 업로드 / 촬영</p>
+{% endblock subtitle %}
 {% block extra_head %}
+<meta charset="utf-8">
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   
 html, body {
@@ -22,72 +26,95 @@ h1 {
   text-align: center;
   margin: 20px 0;
 }
+/* 2. ✅ 최종 해결책: .line 요소를 뷰포트 너비 전체로 강제 확장 */
+/* 이 설정은 상위 컨테이너의 max-width 제약 조건을 무시하고, 라인만 화면 전체 너비에 맞춥니다.
+   margin-left: calc(50% - 50vw)를 사용하여 라인을 정확히 중앙에 배치합니다. */
+/* .page-header .line {
+    width: 90vw;
 
+    margin-left: calc(50% - 45vw); 
+    max-width: none;
+} */
 /* 드래그 영역 */
 #drop-area {
-  border: 3px dashed #4caf50;
-  border-radius: 12px;
-  width: 92%;
-  margin: 0 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  cursor:pointer;
-  box-sizing:border-box;
-  min-height:280px;
-  overflow:hidden;
-  background:#fff;
-  padding:18px;
+    border: 3px dashed #4caf50; /* 녹색 점선 */
+    border-radius: 12px;
+    padding: 5px;              /* 위/아래 균일 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    box-sizing: border-box;
+    background: #fff;
+    overflow: hidden;
 }
-#drop-area.dragover { background:#e8f5e9; border-color:#2e7d32; }
-#drop-message { text-align:center; pointer-events:none; font-size:18px; color:#333; }
 
+
+#drop-area.dragover { background:#e8f5e9; border-color:#2e7d32; }
+/* #drop-message { text-align:center; pointer-events:none; font-size:18px; color:#333; } */
+#drop-message {
+    text-align: center;
+    pointer-events: none;
+    font-size: 18px;
+    color: #333;
+}
 
 input[type="file"] { display: none; }
 
-/* 버튼 영역 */
 #buttonWrapper {
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:14px 12px;
-  background:transparent;
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  height:84px;
-  align-items:center;
-  z-index:100;
-  box-sizing:border-box;
+    display: flex;
+    justify-content: center;   /* 수평 중앙 */
+    align-items: center;       /* 수직 중앙 */
+    
+    position: relative;        /* 상위 컨테이너 기준 */
+    top: 0;                    /* 상단에 붙임 */
+    left: 50%;
+    transform: translateX(-50%); /* 수평 중앙 정렬 */
+
+    width: auto;               /* 버튼 폭에 맞춤 */
+    gap: 15px;                 /* 버튼 사이 간격 */
+    margin-bottom: 15px;       /* 아래 여백 필요 시 */
+    z-index: 100;
 }
 
-button {
+
+/* button {
+  border: none;
+  border-radius: 8px;
+  font-size: 30px;
+  cursor:pointer;
+  padding:10px 28px;
+  margin: 0;
+} */
+#cameraButton {             
+  padding: 10px 20px;
+  background: #1976d2;
+  color: white;
   border: none;
   border-radius: 8px;
-  font-size: 26px;
   cursor: pointer;
-  padding: 12px 120px;
+  font-size: 15px; 
 }
-button {
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-  cursor:pointer;
-  padding:10px 28px;
+#submitButton {
+  padding: 10px 20px;
+  background: #4caf50;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
 }
-#cameraButton { background:#1976d2; color:#fff; }
-#submitButton { background:#4caf50; color:#fff; }
-
 
 #drop-area img {
-  margin:0;
-  max-width:100%;
-  max-height:100%;
-  object-fit:contain;
-  border-radius:8px;
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
 }
+
+
 
 /* Modal Overlay */
 #modalOverlay {
@@ -341,13 +368,10 @@ button {
   /* ✅ 수정: 모바일 모달 최대 높이 설정 */
   #mobileModal { max-height: 54vh; } 
   .processing-card {
-     width: 96%;
-    font-size: 14px;
+    width: 96%;
+    font-size: 28px;
     padding: 10px;
   }
-
-
-
 
   /* ... (기존 모바일 스타일 유지) ... */
   .result-card,
@@ -369,30 +393,59 @@ button {
     line-height: 1.3;
   }
 
-  h1 {
-    text-align: center;
-    margin: 20px 0;
-    font-size:24px;
-  }
+
   #drop-area {
-    width: 95%;
-    margin: 0 auto;
-    padding: 20px;
-  }
-/* 
-  #drop-area p { font-size: 24px; }
-  #drop-area img { width: 300px; height: 300px; } */
+      position: relative;
+      order: 3px dashed transparent; /* 점선 색 투명 */
+      border-radius: 12px;
+      overflow: hidden;
 
-  #buttonWrapper {
-    padding: 15px 0 20px 0;
-    bottom: 5px;
-    gap: 15px;
-  }
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-  button {
-    font-size: 24px;
-    padding: 18px 18px;
-  }
+      /* 가로 90% 기준, 세로 비율 자동 */
+      width: 90%;
+      max-width: 400px; /* 원하는 최대 너비 */
+      aspect-ratio: 1 / 1; /* 1:1 비율 유지, 필요 시 16/9 등 변경 */
+      margin: 0 auto;
+
+      background: #ffffff; /* 점선 영역 배경 */
+    }
+    #drop-area::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 50%;
+        height: 50%;
+        background: url('/static/img/camera_icon.png') no-repeat center/contain;
+        transform: translate(-50%, -50%);
+        pointer-events: none; /* 클릭 이벤트 방해 안함 */
+        opacity: 0.5; /* 필요 시 투명도 조정 */
+    }
+
+
+    #drop-message {
+        display: none; /* 모바일에서는 안내 텍스트 숨김 */
+    }
+    #drop-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* cover 대신 contain 사용 */
+        z-index: 1;          /* 아이콘보다 위 */
+    }
+
+    #buttonWrapper {
+      padding: 15px 0 20px 0;
+      bottom: 5px;
+      gap: 15px;
+    }
+
+    button {
+      font-size: 24px;
+      padding: 18px 18px;
+    }
 } 
 
 /* PC 전용 (이미지 왼쪽, 리스트 오른쪽) */
@@ -475,27 +528,32 @@ button {
 /* 모달 열릴 때 배경 스크롤 방지 */
 body.modal-open { overflow: hidden; }
 </style>
-{% endblock %}
+{% endblock extra_head %}
+
 
 {% block content %}
 
-<h1>쓰레기 이미지 업로드 / 촬영</h1>
+<!-- <h1>쓰레기 이미지 업로드 / 촬영</h1> -->
 <!-- 진행바 -->
 <div class="loader-overlay" id="loaderOverlay">
     <div class="loader"></div>
 </div>
 <form id="uploadForm" enctype="multipart/form-data">
   {% csrf_token %}
+  <div id="buttonWrapper">
+    <button id="cameraButton" type="button">📷 카메라촬영</button>
+    <button id="submitButton" type="submit">업로드 및 예측</button>
+  </div>
   <div id="drop-area">
     <p id="drop-message">여기에 이미지를 드래그하거나 클릭하여 선택하세요</p>
     <input type="file" id="fileElemAlbum" name="image" accept="image/*" multiple>
     <input type="file" id="fileElemCamera" name="image" accept="image/*" capture="environment">
   </div>
 
-  <div id="buttonWrapper">
+  <!-- <div id="buttonWrapper">
     <button id="cameraButton" type="button">📷 카메라촬영</button>
     <button id="submitButton" type="submit">업로드 및 예측</button>
-  </div>
+  </div> -->
 </form>
 
 <div id="modalOverlay"></div>
@@ -507,246 +565,312 @@ body.modal-open { overflow: hidden; }
 
 {% block extra_script %}
 <script>
+    // ===========================
+    // ✅ 변수 선언
+    // ===========================
+    const dropArea = document.getElementById("drop-area");
+    const fileInputAlbum = document.getElementById("fileElemAlbum");
+    const fileInputCamera = document.getElementById("fileElemCamera");
+    const modal = document.getElementById("mobileModal");
+    const overlay = document.getElementById("modalOverlay");
+    const modalHandle = document.getElementById("modalHandle");
+    const modalContent = document.getElementById("modalContent");
+    const cameraButton = document.getElementById("cameraButton");
+    const form = document.getElementById("uploadForm");
+    const loaderOverlay = document.getElementById("loaderOverlay");
 
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-async function playTTS(url) {
-    
-     if (url) {
-        // 서버에서 생성된 mp3 URL
-        const audio = new Audio(url);
-        audio.play();
-    } else {
-        console.error("TTS 생성 실패", data);
+    // ===========================
+    // ✅ 로더
+    // ===========================
+    function showLoader(){ loaderOverlay.style.display="flex"; }
+    function hideLoader(){ loaderOverlay.style.display="none"; }
+
+    // ===========================
+    // ✅ 이미지 미리보기
+    // ===========================
+    function showPreview(file){
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const existingImg = dropArea.querySelector("img");
+            if(existingImg) dropArea.removeChild(existingImg);
+
+            const newImg = document.createElement("img");
+            newImg.src = e.target.result;
+            dropArea.appendChild(newImg);
+
+            // ✅ PC/모바일 공통: 안내 문구 숨기기
+            const dropMessage = document.getElementById("drop-message");
+            if(dropMessage) dropMessage.style.display = "none";
+
+            if(isMobile){
+                dropArea.style.height = `${window.innerWidth * 9 / 16}px`;
+            } else {
+                dropArea.style.height = "auto";
+            }
+        }
+        reader.readAsDataURL(file);
     }
-}
-//playTTS('/media/tts_ko.mp3');
 
-// JavaScript 상단에 로더 오버레이 변수 추가
-const loaderOverlay = document.getElementById("loaderOverlay");
-
-// 로더 표시 함수
-function showLoader() {
-    loaderOverlay.style.display = "flex";
-}
-
-// 로더 숨김 함수
-function hideLoader() {
-    loaderOverlay.style.display = "none";
-}
-
-const dropArea = document.getElementById("drop-area");
-const fileInputAlbum = document.getElementById("fileElemAlbum");
-const fileInputCamera = document.getElementById("fileElemCamera");
-const dropMessage = document.getElementById("drop-message");
-const modal = document.getElementById("mobileModal");
-const overlay = document.getElementById("modalOverlay");
-const modalHandle = document.getElementById("modalHandle");
-const cameraButton = document.getElementById("cameraButton");
-const modalContent = document.getElementById("modalContent");
-
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-//####################################################//
-// 기존 높이 조정 로직 유지
-function adjustDropAreaHeight() {
-  const btnHeight = document.getElementById('buttonWrapper').offsetHeight;
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const extraMargin = isMobile ? 450 : 140;
-  dropArea.style.height = `${window.innerHeight - btnHeight - extraMargin}px`;
-}
-window.addEventListener('load', adjustDropAreaHeight);
-window.addEventListener('resize', adjustDropAreaHeight);
-
-// 파일 선택 이벤트
-dropArea.addEventListener("click", () => { fileInputAlbum.click(); });
-dropArea.addEventListener("dragover", e => { e.preventDefault(); dropArea.classList.add("dragover"); });
-dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
-dropArea.addEventListener("drop", e => {
-  e.preventDefault();
-  dropArea.classList.remove("dragover");
-  const files = e.dataTransfer.files;
-  showPreview(files[0]);
-  fileInputAlbum.files = files;
-});
-fileInputAlbum.addEventListener("change", () => { if(fileInputAlbum.files[0]) showPreview(fileInputAlbum.files[0]); });
-if(!isMobile) cameraButton.textContent = "파일선택";
-cameraButton.addEventListener("click", () => { fileInputAlbum.click(); });
-fileInputCamera.addEventListener("change", () => { if(fileInputCamera.files[0]) showPreview(fileInputCamera.files[0]); });
-
-// ✅ 수정: 미리보기 로직 개선 (기존 이미지 삭제 후 추가)
-function showPreview(file){
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    // 1. 기존 이미지 삭제 (갱신)
-    let existingImg = dropArea.querySelector("img");
-    if(existingImg) { 
-        dropArea.removeChild(existingImg); 
-    }
-    
-    // 2. 메시지 숨기기
-    dropMessage.style.display = "none";
-
-    // 3. 새로운 이미지 요소 생성 및 속성 설정
-    const newImg = document.createElement("img");
-    newImg.src = e.target.result;
-
-    // 4. 이미지 추가
-    dropArea.appendChild(newImg);
-  }
-  reader.readAsDataURL(file);
-}
-
-// Modal 열기/닫기 (수정됨)
-function openModal(data) {
-  modal.classList.remove("slide-down");
-  
-  // 추가: 모달이 열릴 때 flex 속성 부여
-  modal.style.display = "flex";
-  overlay.style.display = "block";
-  document.body.classList.add("modal-open");
-  
-  modal.classList.add("slide-up");
-  if (data.tts_able == 1){
-    playTTS(data.tts_url);
-  }
-}
-
-function closeModal() {
-  modal.classList.remove("slide-up");
-
-  modal.classList.add("slide-down");
-  
-  modal.addEventListener("animationend", function handleAnimationEnd() {
-    if (modal.classList.contains("slide-down")) {
-      modal.style.display = "none";
-      overlay.style.display = "none";
-      modal.classList.remove("slide-down");
-      document.body.classList.remove("modal-open");
-    }
-    modal.removeEventListener("animationend", handleAnimationEnd);
-  });
-}
-
-// 예측 요청
-const form = document.getElementById("uploadForm");
-form.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  
-  // 추가: 파일 선택 여부 확인
-  const fileToUpload = fileInputAlbum.files[0];
-  if (!fileToUpload) {
-      alert("이미지를 선택하거나 드래그하여 넣어주세요.");
-      return;
-  }
-  // 1. 요청 직전 로더 표시
-  showLoader();
-  const formData = new FormData(form);
-  try {
-    // URL은 Django 템플릿 태그로 처리되므로 그대로 둡니다.
-    const response = await fetch("{% url 'api_predict' %}",{
-      method:"POST",
-      headers:{"X-CSRFToken":form.querySelector('[name=csrfmiddlewaretoken]').value},
-      body: formData
+    // ===========================
+    // ✅ dropArea 이벤트
+    // ===========================
+    dropArea.addEventListener("click", ()=> fileInputAlbum.click());
+    dropArea.addEventListener("dragover", e=> { e.preventDefault(); dropArea.classList.add("dragover"); });
+    dropArea.addEventListener("dragleave", ()=> dropArea.classList.remove("dragover"));
+    dropArea.addEventListener("drop", e=>{
+        e.preventDefault();
+        dropArea.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if(files[0]) showPreview(files[0]);
+        fileInputAlbum.files = files;
     });
-    const data = await response.json();
-    renderResult(data);
-    openModal(data);
-    
-  }catch(error) {
-    console.error("서버 요청 오류:", error);
-    alert("예측 요청 중 오류가 발생했습니다.");
-    
-  } finally {
-    // ✅ 2. 응답을 받거나 오류가 발생하면 로더 숨김
-    hideLoader(); 
-  }
-});
 
-// 결과 렌더링 (PC/모바일 자동 적용)
-function renderResult(data){
-  let html = '<div class="result-container">';
-  if(data.image_data_uri){
-    html += `
-      <div class="result-card-img">
-        <img src="${data.image_data_uri}">
-      </div>
+    fileInputAlbum.addEventListener("change", ()=> { if(fileInputAlbum.files[0]) showPreview(fileInputAlbum.files[0]); });
+    fileInputCamera.addEventListener("change", ()=> { if(fileInputCamera.files[0]) showPreview(fileInputCamera.files[0]); });
 
-      <div class="result-right">
-        <div class="processing-card">
-          <h3>📌 분리처리 안내</h3>
-          <p>${data.result_message}</p>
-        </div>
-        <div class="result-card">
-          <h3>Top 3 예측결과</h3>
-          <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>
-        </div>`;
-    if(data.recycling_guide){
-      html += `
-        <div class="guide-card">
-          <h3>♻️ 분리수거 가이드</h3>
-          <p><strong>카테고리:</strong> ${data.recycling_guide.category}</p>
-          <p><strong>방법:</strong> ${data.recycling_guide.action}</p>
-        </div>`;
+    if(!isMobile) cameraButton.textContent = "파일선택";
+    cameraButton.addEventListener("click", ()=> fileInputAlbum.click());
+
+    // ===========================
+    // ✅ TTS 재생
+    // ===========================
+    async function playTTS(url){
+        if(url){
+            const audio = new Audio(url);
+            audio.play();
+        }
     }
-    html += `</div>`; // result-right 닫기
-  }
-  html += '</div>'; // result-container 닫기
-  modalContent.innerHTML = html;
-}
 
-// Modal 닫기 이벤트 리스너 (중복 제거 및 정리)
-overlay.addEventListener("click", closeModal);
+    // ===========================
+    // ✅ Modal 열기/닫기 (사이드바/모달 시트 수정 방식)
+    // ===========================
+    function openModal(data){
 
-// 드래그 내리기 (기존 로직 유지)
-let startY = 0, isDragging = false;
-modalHandle.addEventListener("mousedown", e => { 
-  isDragging=true; 
-  startY=e.clientY; 
-  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
-  e.preventDefault(); 
-});
-document.addEventListener("mousemove", e => { 
-  if(!isDragging) return; 
-  const moveY=e.clientY-startY; 
-  if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
-});
-document.addEventListener("mouseup", e => { 
-  if(!isDragging) return; 
-  isDragging=false; 
-  const moveY=e.clientY-startY; 
-  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
-  if(moveY>100){ closeModal(); } 
-  // 닫히지 않았으면 제자리로 복귀
-  else { modal.style.transform="translateY(0)"; }
-});
-modalHandle.addEventListener("touchstart", e => { 
-  isDragging=true; 
-  startY=e.touches[0].clientY; 
-  modal.style.transition = 'none'; // 드래그 중 애니메이션 제거
-});
-document.addEventListener("touchmove", e => { 
-  if(!isDragging) return; 
-  const moveY=e.touches[0].clientY-startY; 
-  if(moveY>0) modal.style.transform=`translateY(${moveY}px)`; 
-});
-document.addEventListener("touchend", e => { 
-  if(!isDragging) return;
-  isDragging=false; 
-  const moveY=e.changedTouches[0].clientY-startY; 
-  modal.style.transition = 'transform 0.3s ease-in-out'; // 복귀 시 애니메이션 추가
-  if(moveY>100){ closeModal(); } 
-  // 닫히지 않았으면 제자리로 복귀
-  else { modal.style.transform="translateY(0)"; }
-});
 
-// 드래그 닫기 외에, 탭/클릭으로도 닫을 수 있게 추가
-modalHandle.addEventListener("click", closeModal);
-modalHandle.addEventListener("touchend", (e) => {
-    const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
-    if (Math.abs(moveY) < 5) { // 드래그 이동 거리가 작을 때만 탭으로 간주
-        closeModal();
+        modal.style.display="flex";       // flex 적용
+        overlay.style.display="block";
+        document.body.classList.add("modal-open");
+
+        modal.classList.remove("slide-down");
+        modal.classList.add("slide-up");
+
+        if(data.tts_able==1) playTTS(data.tts_url);
     }
-});
+
+    function closeModal(){
+        modal.classList.remove("slide-up");
+        modal.classList.add("slide-down");
+
+        modal.addEventListener("animationend", function handler(){
+            if(modal.classList.contains("slide-down")){
+                modal.style.display="none";
+                overlay.style.display="none";
+                modal.classList.remove("slide-down");
+                document.body.classList.remove("modal-open");
+            }
+            modal.removeEventListener("animationend", handler);
+        });
+    }
+
+    overlay.addEventListener("click", closeModal);
+
+    document.addEventListener("click", (e) => {
+        const sidebar = document.getElementById("mySidebar");
+        const toggleButton = document.querySelector(".togglebtn");
+        const modal = document.getElementById("mobileModal");
+
+        // 사이드바 열림 여부 확인
+        if (sidebar.classList.contains("open")) {
+
+            // 클릭이 사이드바 또는 토글 버튼 내부가 아니고, 모달이 열려있지 않으면
+            if (!sidebar.contains(e.target) &&
+                !toggleButton.contains(e.target) &&
+                modal.style.display !== "flex") {
+
+                // 사이드바 닫기
+                sidebar.classList.remove("open");
+                toggleButton.textContent = "☰";
+
+                // 클릭 이벤트 전파 막기 (아래 화면 요소 이벤트 방지)
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+    });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const sidebar = document.getElementById("mySidebar");
+        let toggleButton = document.querySelector(".togglebtn");
+        const modal = document.getElementById("mobileModal");
+        const uploadForm = document.getElementById("uploadForm");
+
+        if (!sidebar || !toggleButton || !uploadForm) return;
+
+
+        // --------------------------
+        // toggleButton 재생성
+        // --------------------------
+        const newToggleButton = toggleButton.cloneNode(true);
+        toggleButton.replaceWith(newToggleButton);
+        toggleButton = newToggleButton;
+
+        // --------------------------
+        // 업데이트 함수
+        // --------------------------
+        function updateToggleButton() {
+            const isOpen = sidebar.classList.contains('open');
+            toggleButton.textContent = isOpen ? "✕" : "☰";
+        }
+
+        // --------------------------
+        // 상태 플래그
+        // --------------------------
+        let pendingEvent = null; // 실제 이벤트를 나중에 실행할 용도
+
+        // --------------------------
+        // 사이드바 토글 + 모달 체크
+        // --------------------------
+        toggleButton.addEventListener('click', () => {
+            const isModalActive = modal.style.display === "flex";
+            const isSidebarOpen = sidebar.classList.contains('open');
+
+            if (isModalActive) {
+                // 1단계: 모달 닫기
+                closeModal();
+                
+            } else if (isSidebarOpen) {
+                // 1단계: 사이드바 닫기
+                sidebar.classList.remove('open');
+                updateToggleButton();
+            } else {
+                // 2단계: 사이드바 토글
+                sidebar.classList.toggle('open');
+                updateToggleButton();
+            }
+        });
+
+        
+    });
+
+
+
+    // ===========================
+    // ✅ 업로드/예측
+    // ===========================
+    form.addEventListener("submit", async e=>{
+        e.preventDefault();
+        const fileToUpload = fileInputAlbum.files[0];
+        if(!fileToUpload){
+            alert("이미지를 선택하거나 드래그하여 넣어주세요.");
+            return;
+        }
+
+        showLoader();
+        const formData = new FormData(form);
+
+        try{
+            const response = await fetch("{% url 'dev1:api_predict' %}",{
+                method:"POST",
+                headers:{"X-CSRFToken": form.querySelector('[name=csrfmiddlewaretoken]').value},
+                body: formData
+            });
+            const data = await response.json();
+            renderResult(data);
+            openModal(data);
+        }catch(err){
+            console.error(err);
+            alert("예측 요청 중 오류가 발생했습니다.");
+        }finally{
+            hideLoader();
+        }
+    });
+
+    // ===========================
+    // ✅ 결과 렌더링
+    // ===========================
+    function renderResult(data){
+        let html = '<div class="result-container">';
+        if(data.image_data_uri){
+            html += `
+            <div class="result-card-img">
+                <img src="${data.image_data_uri}">
+            </div>
+            <div class="result-right">
+                <div class="processing-card">
+                    <h3>📌 분리처리 안내</h3>
+                    <p>${data.result_message}</p>
+                </div>
+                <div class="result-card">
+                    <h3>Top 3 예측결과</h3>
+                    <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>
+                </div>`;
+            if(data.recycling_guide){
+                html += `
+                <div class="guide-card">
+                    <h3>♻️ 분리수거 가이드</h3>
+                    <p><strong>카테고리:</strong> ${data.recycling_guide.category}</p>
+                    <p><strong>방법:</strong> ${data.recycling_guide.action}</p>
+                </div>`;
+            }
+            html += `</div>`; // result-right 닫기
+        }
+        html += '</div>'; // result-container 닫기
+        modalContent.innerHTML = html;
+    }
+
+    // ===========================
+    // ✅ Modal 드래그/터치 (사이드바/모달 시트 수정 방식)
+    // ===========================
+    let startY=0, isDragging=false;
+
+    modalHandle.addEventListener("mousedown", e=>{
+        isDragging=true;
+        startY=e.clientY;
+        modal.style.transition='none';
+    });
+    document.addEventListener("mousemove", e=>{
+        if(!isDragging) return;
+        const moveY = e.clientY-startY;
+        if(moveY>0) modal.style.transform=`translateY(${moveY}px)`;
+    });
+    document.addEventListener("mouseup", e=>{
+        if(!isDragging) return;
+        isDragging=false;
+        modal.style.transition='transform 0.3s ease-in-out';
+        const moveY = e.clientY-startY;
+        if(moveY>100) closeModal();
+        else modal.style.transform="translateY(0)";
+    });
+
+    modalHandle.addEventListener("touchstart", e=>{
+        isDragging=true;
+        startY=e.touches[0].clientY;
+        modal.style.transition='none';
+    });
+    document.addEventListener("touchmove", e=>{
+        if(!isDragging) return;
+        const moveY=e.touches[0].clientY-startY;
+        if(moveY>0) modal.style.transform=`translateY(${moveY}px)`;
+    });
+    document.addEventListener("touchend", e=>{
+        if(!isDragging) return;
+        isDragging=false;
+        modal.style.transition='transform 0.3s ease-in-out';
+        const moveY = e.changedTouches[0].clientY-startY;
+        if(moveY>100) closeModal();
+        else modal.style.transform="translateY(0)";
+    });
+
+    // 탭으로 닫기
+    modalHandle.addEventListener("click", closeModal);
+    modalHandle.addEventListener("touchend", e=>{
+        const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
+        if(Math.abs(moveY)<5) closeModal();
+    });
+
 
 </script>
 {% endblock %}

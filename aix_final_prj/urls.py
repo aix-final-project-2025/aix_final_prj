@@ -10,7 +10,7 @@ urlpatterns = [
 
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     # path('', include('core.urls')),  # core 앱의 URL 포함
-    path("dev/", include("aix_final_prj.dev.urls1")),  # 개발자 1
+    path("dev/", include(("aix_final_prj.dev.urls1","dev1") , namespace="dev1")),  # 개발자 1
     path("dev/", include("aix_final_prj.dev.urls2")),  # 개발자 2
     # path('', include('core.urls')), # 세희
     # path('recyclables/', views.recyclables_view, name='recyclables'), # 세희

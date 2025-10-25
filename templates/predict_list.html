@@ -1,11 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page_title %}DB{% endblock %}
+{% block page_title %}Recyclables DB{% endblock %}
+{% block subtitle %}
+<div class="subtitle-container full-width">
 
-{% block extra_head %}
+    <hr class="subtitle text-base text-gray-500 mt-1">재활용 분류 이미지 리스트</hr>
 
-<title>쓰레기 카드형 리스트 - 모달 이미지 고정</title>
+</div>
+{% endblock subtitle %}
+<!-- { -- % block extra_head % --} -->
+<!-- <link rel="stylesheet" href="{% static 'css/recycle.css' %}"> -->
+<!-- {-- % endblock % -- } -->
+{% block extra_head %} 
 <style>
 body { font-family:'Arial', sans-serif; margin:0; padding:0; background:#f2f2f2; }
 .container { width:90%; max-width:1200px; margin:20px auto; position:relative; }
@@ -64,9 +71,9 @@ body { font-family:'Arial', sans-serif; margin:0; padding:0; background:#f2f2f2;
 #modal-image { display:block; margin:0 auto 10px auto; width:224px; height:224px; object-fit:cover; border-radius:10px; }
 
 /* 모바일 select 대체 버튼형 */
-.select-button-group { display:flex; flex-wrap:wrap; gap:5px; }
+/* .select-button-group { display:flex; flex-wrap:wrap; gap:5px; }
 .select-button-group button { flex:1 1 45%; padding:8px; border:none; border-radius:6px; background:#eee; cursor:pointer; font-size:14px; transition:0.2s; }
-.select-button-group button.active { background:#4CAF50; color:white; }
+.select-button-group button.active { background:#4CAF50; color:white; } */
 
 /* 수정 버튼 */
 #modal-update-btn { width:100%; padding:12px; margin-top:5px; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; font-weight:bold; font-size:16px; transition:0.2s; }
@@ -79,7 +86,6 @@ body.modal-open .container { pointer-events:none; user-select:none; }
 .modal-sheet.show { bottom:0; }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="container" id="waste-container">
   <p id="empty-message">내용이 존재하지 않습니다.</p>
@@ -110,151 +116,185 @@ body.modal-open .container { pointer-events:none; user-select:none; }
   </div>
 </div>
 {% endblock %}
-
 {% block extra_script %}
 <script>
-let categories = [];
-let page = 1;
-let selectedCategoryId = null;
+document.addEventListener("DOMContentLoaded", () => {
+    const sidebar = document.getElementById("mySidebar");
+    let toggleButton = document.querySelector(".togglebtn");
+    const modal = document.getElementById("modal-sheet");
+    const modalClose = modal.querySelector(".modal-close");
+    const container = document.getElementById("waste-container");
 
-/** 카드 렌더링 */
-function renderCard(item){
-  const card=document.createElement('div');
-  card.className='card';
-  card.dataset.id=item.id;
+    let selectedCategoryId = null;
+    let categories = [];
+    let page = 1;
+    let loading = false;
 
-  const img=document.createElement('img');
-  img.src=item.image_url;
-  card.appendChild(img);
+    // ===========================
+    // 🔹 base.js 이벤트 제거
+    // ===========================
+    const newToggleButton = toggleButton.cloneNode(true);
+    toggleButton.replaceWith(newToggleButton);
+    toggleButton = newToggleButton;
 
-  const content=document.createElement('div');
-  content.className='card-content';
-  content.innerHTML=`
-    <div class="content-box"><strong>예측결과:</strong> ${item.predicted_result}</div>
-    <div class="content-box mobile-hide"><strong>분리처리 안내:</strong> ${item.recycling_guide}</div>
-    <div class="content-box mobile-hide"><strong>Top 3:</strong> ${item.top3}</div>
-    <div class="card-row mobile-hide">
-      <select id='predicted_class_${item.id}'>
-        ${categories.map(c=>`<option value="${c.id}" ${c.id===item.group_code_id?'selected':''}>${c.name}</option>`).join('')}
-      </select>
-      <button class="update-btn" onclick="predicChange(${item.id})">수정</button>
-    </div>
-  `;
-  card.appendChild(content);
-  return card;
-}
+    // ===========================
+    // 🔹 카드 클릭 → 모달 열기 (모바일 전용)
+    // ===========================
+    container.addEventListener("click", (e) => {
+        const card = e.target.closest(".card");
+        if (!card) return;
 
-/** 코드 로드 */
-async function codeLoad(){
-  try{
-    const res=await fetch("{% url 'code_list' %}");
-    const data=await res.json();
-    categories=data.codelist;
-  }catch(err){console.error(err);}
-}
+        // 사이드바 열려있으면 닫기만
+        if (sidebar.classList.contains("open")) {
+            sidebar.classList.remove("open");
+            toggleButton.textContent = "☰";
+            return;
+        }
 
-/** 예측 결과 수정 */
-async function predicChange(itemId){
-  try{
-    const res=await fetch("{% url 'predict_class_change' %}?id="+itemId+"&group_code_id="+selectedCategoryId);
-    const data=await res.json();
-    if(data.success!==true) alert("수정 실패");
-    else{
-      alert("수정 성공");
-      document.getElementById('modal-sheet').classList.remove('show');
-      document.body.style.overflow='';
-      document.body.classList.remove('modal-open');
-    }
-  }catch(err){console.error(err);}
-}
+        // 모바일에서만 모달 열기
+        if (window.innerWidth < 768) {
+            const imgSrc = card.querySelector("img").src;
+            const predicted = card.querySelector(".content-box strong").nextSibling.textContent;
+            const guide = card.querySelectorAll(".content-box")[1].textContent;
+            const top3 = card.querySelectorAll(".content-box")[2].textContent;
+            selectedCategoryId = parseInt(card.querySelector('select')?.value || 0);
 
-/** 카드 목록 로드 */
-let loading=false;
-async function loadData(){
-  const container=document.getElementById('waste-container');
-  const emptyMessage=document.getElementById('empty-message');
-  if(loading) return;
-  loading=true;
-  try{
-    const res=await fetch(`{% url 'predict_list' %}?page=${page}`);
-    const data=await res.json();
-    if(page===1 && data.items.length===0) emptyMessage.style.display='block';
-    else{
-      emptyMessage.style.display='none';
-      data.items.forEach(item=>container.appendChild(renderCard(item)));
-      page++;
-    }
-    loading=false;
-    if(!data.has_more) window.removeEventListener('scroll',scrollHandler);
-  }catch(err){console.error(err); loading=false;}
-}
-function scrollHandler(){ if((window.innerHeight+window.scrollY)>=document.body.offsetHeight-300) loadData();}
-window.addEventListener('scroll',scrollHandler);
+            document.getElementById("modal-image").src = imgSrc;
+            document.getElementById("modal-predicted").innerText = predicted;
+            document.getElementById("modal-guide").innerText = guide;
+            document.getElementById("modal-top3").innerText = top3;
 
-
-// 모달 열기
-document.getElementById('waste-container').addEventListener('click', function(e){
-  const card = e.target.closest('.card');
-  if(!card) return;
-  if(window.innerWidth < 768){
-    const imgSrc = card.querySelector('img').src;
-    const predicted = card.querySelector('.content-box strong').nextSibling.textContent;
-    const guide = card.querySelectorAll('.content-box')[1].textContent;
-    const top3 = card.querySelectorAll('.content-box')[2].textContent;
-    const categoryId = parseInt(card.querySelector('select')?.value || 0);
-    selectedCategoryId = categoryId;
-
-    document.getElementById('modal-image').src = imgSrc;
-    document.getElementById('modal-predicted').innerText = predicted;
-    document.getElementById('modal-guide').innerText = guide;
-    document.getElementById('modal-top3').innerText = top3;
-
-    const buttonGroup = document.getElementById('modal-category-buttons');
-    buttonGroup.innerHTML = '';
-    categories.forEach(c=>{
-      const btn = document.createElement('button');
-      btn.innerText = c.name;      // 버튼에 표시될 이름
-      btn.dataset.codeId = c.id;   // 코드값 저장
-      btn.className = (c.id === categoryId ? 'active' : '');
-      btn.addEventListener('click', ()=>{
-        selectedCategoryId = c.id; 
-        Array.from(buttonGroup.children).forEach(b => b.classList.remove('active')); 
-        btn.classList.add('active');
-      });
-      buttonGroup.appendChild(btn);
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+            document.body.classList.add("modal-open");
+        }
     });
 
-    document.getElementById('modal-sheet').classList.add('show');
-    document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
-  }
+    // ===========================
+    // 🔹 모달 닫기
+    // ===========================
+    modalClose.addEventListener("click", () => {
+        modal.classList.remove("show");
+        document.body.style.overflow = "";
+        document.body.classList.remove("modal-open");
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("show")) {
+            modal.classList.remove("show");
+            document.body.style.overflow = "";
+            document.body.classList.remove("modal-open");
+        }
+    });
+
+    // ===========================
+    // 🔹 사이드바 버튼
+    // ===========================
+    toggleButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const isMobile = window.innerWidth < 768;
+
+        // 모바일: 모달 열려있으면 닫고 사이드바 열기
+        if (isMobile && modal.classList.contains("show")) {
+            modal.classList.remove("show");
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+
+            setTimeout(() => {
+                sidebar.classList.add("open");
+                toggleButton.textContent = "×";
+            }, 50);
+            return;
+        }
+
+        // 사이드바만 열린 상태 → 닫기
+        if (sidebar.classList.contains("open")) {
+            sidebar.classList.remove("open");
+            toggleButton.textContent = "☰";
+            return;
+        }
+
+        // 둘 다 닫혀있으면 사이드바 열기
+        sidebar.classList.add("open");
+        toggleButton.textContent = "×";
+    });
+
+    // ===========================
+    // 🔹 카드 렌더링 및 데이터 로딩
+    // ===========================
+    async function codeLoad() {
+        try {
+            const res = await fetch("{% url 'dev1:code_list' %}");
+            const data = await res.json();
+            categories = data.codelist;
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderCard(item) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.id = item.id;
+
+        const img = document.createElement("img");
+        img.src = item.image_url;
+        card.appendChild(img);
+
+        const content = document.createElement("div");
+        content.className = "card-content";
+        content.innerHTML = `
+          <div class="content-box"><strong>예측결과:</strong> ${item.predicted_result}</div>
+          <div class="content-box mobile-hide"><strong>분리처리 안내:</strong> ${item.recycling_guide}</div>
+          <div class="content-box mobile-hide"><strong>Top 3:</strong> ${item.top3}</div>
+          <div class="card-row mobile-hide">${item.group_code_id}</div>
+        `;
+        card.appendChild(content);
+        return card;
+    }
+
+    async function loadData() {
+        if (loading) return;
+        loading = true;
+        const emptyMessage = document.getElementById("empty-message");
+
+        try {
+            const res = await fetch(`{% url 'dev1:predict_list' %}?page=${page}`);
+            const data = await res.json();
+            if (page === 1 && data.items.length === 0) emptyMessage.style.display = "block";
+            else {
+                emptyMessage.style.display = "none";
+                data.items.forEach(item => container.appendChild(renderCard(item)));
+                page++;
+            }
+            loading = false;
+            if (!data.has_more) window.removeEventListener("scroll", scrollHandler);
+        } catch (err) {
+            console.error(err);
+            loading = false;
+        }
+    }
+
+    function scrollHandler() {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) loadData();
+    }
+
+    window.addEventListener("scroll", scrollHandler);
+
+    // 초기화
+    async function init() {
+        await codeLoad();
+        loadData();
+    }
+    init();
 });
-
-
-// 수정 버튼 클릭 시
-document.getElementById('modal-update-btn').addEventListener('click', ()=>{
-  if(selectedCategoryId === null) {
-    alert("항목을 선택해주세요.");
-    return;
-  }
-  // 서버로 선택한 코드값 전송
-  predicChange(selectedCategoryId);
-});
-
-/** 모달 닫기 */
-document.querySelector('.modal-close').addEventListener('click',()=>{
-  console.log(" close modal =======")
-  const modal=document.getElementById('modal-sheet');
-  modal.classList.remove('show');
-  document.body.style.overflow='';
-  document.body.classList.remove('modal-open');
-});
-
-/** 초기화 */
-async function init(){
-  await codeLoad();
-  loadData();
-}
-init();
 </script>
 {% endblock %}
+
+
+
+
+
+

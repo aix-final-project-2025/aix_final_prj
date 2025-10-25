@@ -37,8 +37,8 @@
                 </a>
                 <!-- 서브메뉴 -->
                 <div id="recycling-submenu" class="submenu">
-                    <a href="{% url 'upload' %}" class="submenu-item"><span class="text">Upload</span></a>
-                    <a href="{% url 'predict_list' %}" class="submenu-item"><span class="text">Recycling data</span></a>
+                    <a href="{% url 'dev1:upload' %}" class="submenu-item"><span class="text">Upload</span></a>
+                    <a href="{% url 'dev1:predict_request' %}" class="submenu-item"><span class="text">Recycling data</span></a>
                 </div>
             </div>
             
@@ -80,7 +80,7 @@
             </a>
 
             <!-- ⚙️ 설정 -->
-            <a href="{% url 'settings' %}" class="menu-item">
+            <a href="{% url 'dev1:settings' %}" class="menu-item">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" alt="Settings Icon"></span>
                 <span class="text">Settings</span>
             </a>

@@ -30,6 +30,12 @@
     margin-bottom:14px;
   }
 
+
+  .btn.saved {
+    background-color: #22c55e !important; /* Tailwind green-500 */
+    color: #fff !important;
+    transition: background-color 0.4s ease, color 0.3s ease;
+  }
   /* row layout common */
   .row{display:flex;align-items:center;justify-content:space-between;}
   .label{
@@ -186,6 +192,8 @@
   .btn {
     font-size: 14px;
   }
+
+
 }
 </style>
 {% endblock %}
@@ -247,14 +255,6 @@
 
     <!-- 3. 랭체인 목소리 리스트 -->
     <div class="card" id="card-voices">
-      <!-- <div class="label">
-        <div class="title">랭체인 목소리</div>
-        <div class="desc">사용할 음성(또는 TTS 음성)을 선택하세요.</div>
-      </div>
-
-      <div class="voice-list" id="voice-list">
-      </div> -->
-
       <div class="footer">
         <button class="btn ghost" id="reset-btn">초기화</button>
         <button class="btn primary" id="save-btn">저장</button>
@@ -285,15 +285,18 @@ const VOICES = [
   { id: 'es-2', name: 'Carlos', lang: 'es-ES' }
 ];
 
+let settings 
+
+
 // 초기값 로드
-function loadSettings(){
+async function loadSettings(){
   try{
-    //const raw = localStorage.getItem(STORAGE_KEY);
-    //if(!raw) 
-    let sinfo = getSettingInfo()
-    return  JSON.parse(sinfo);
+
+    let sinfo = await getSettingInfo()
+    if (!sinfo) throw new Error("sinfo is null")
+    return sinfo;
+
   }catch(e){
-    //console.error('loadSettings',e);
     return { active:false, country:'ko', gender: '2' };
   }
   
@@ -317,8 +320,6 @@ const segmented1 = document.querySelectorAll('.segmented1 button');
 const voiceListEl = document.getElementById('voice-list');
 const saveBtn = document.getElementById('save-btn');
 const resetBtn = document.getElementById('reset-btn');
-
-
 
 
 /* 토글 초기화/토글 함수 */
@@ -361,9 +362,9 @@ function setCountryUI(country){
 }
 
 /* segmented1 (country) 초기화/핸들러 */
-function setPepleUI(gender){
+function setGender(gender){
   segmented1.forEach(btn=>{
-    if(btn.dataset.gender === gender){
+    if(btn.dataset.gender == gender){
       btn.classList.add('active');
       btn.setAttribute('aria-pressed','true');
     } else {
@@ -372,20 +373,18 @@ function setPepleUI(gender){
     }
   });
   settings.gender = gender;
-  console.log(JSON.stringify(settings))
 }
 
 segmented.forEach(btn=>{
   btn.addEventListener('click', ()=> {
     setCountryUI(btn.dataset.country);
     // country 변경 시 보이스 리스트를 필터링하거나 권장 보이스 제안 가능
-    //renderVoiceList();
   });
 });
 
 segmented1.forEach(btn=>{
   btn.addEventListener('click', ()=> {
-    setPepleUI(btn.dataset.gender);
+    setGender(btn.dataset.gender);
     // country 변경 시 보이스 리스트를 필터링하거나 권장 보이스 제안 가능
     //renderVoiceList();
   });
@@ -395,6 +394,7 @@ segmented1.forEach(btn=>{
 /* 저장/초기화 핸들러 */
 saveBtn.addEventListener('click', ()=>{
   if(saveSettings(settings)){
+    saveBtn.classList.add('saved');
     saveBtn.textContent = '저장중 ✓';
     // setTimeout(()=> saveBtn.textContent = '저장', 1200);
     fetchSaving(settings.country,settings.gender,settings.active)
@@ -412,14 +412,14 @@ resetBtn.addEventListener('click', ()=>{
   };
   updateToggleUI(settings.active);
   setCountryUI(settings.country);
-  setPepleUI(settings.gender)
+  setGender(settings.gender)
   //renderVoiceList();
 });
 
 
 async function getSettingInfo() {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; 
-    const apiUrl = "{% url 'settingsInfo' %}"; // Django URL
+    const apiUrl = "{% url 'dev1:settingsInfo' %}"; // Django URL
 
     try {
         const response = await fetch(apiUrl, {
@@ -432,12 +432,12 @@ async function getSettingInfo() {
         });
 
         if (!response.ok) {
+          console.log(">>>>>>Django 서버 응답: !response.ok");
           return { active:false, country:'ko', gender: '2' };
           //throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log(">>>>>>Django 서버 응답:", data.settingInfo);
 
         return data.settingInfo || null;
 
@@ -470,9 +470,7 @@ function fetchSaving(country, gender, active) {
         lookupData.active = active;
     }
 
-    const apiUrl = "{% url 'settings_save' %}"; // SettingDetailView URL
-
-    console.log("요청 JSON 데이터:", lookupData);
+    const apiUrl = "{% url 'dev1:settings_save' %}"; // SettingDetailView URL
 
     fetch(apiUrl, {
         method: 'POST', // Django View가 POST 요청을 받도록 구현됨
@@ -493,24 +491,28 @@ function fetchSaving(country, gender, active) {
         // 3. 응답 데이터 처리
         console.log("Django 서버 응답:", data);
 
-        if (data.exists) {
-            // 기존 설정이 조회된 경우
-            console.log("기존 설정 로드 완료.");
-            console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
-            // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
-        } else {
-            // 설정이 없는 경우 (신규 등록 준비)
-            console.log("신규 설정 필요.");
-            console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
-            // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
-        }
-        setTimeout(()=> saveBtn.textContent = '저장', 1200);
+        // if (data.exists) {
+        //     // 기존 설정이 조회된 경우
+        //     console.log("기존 설정 로드 완료.");
+        //     console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
+        //     // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
+        // } else {
+        //     // 설정이 없는 경우 (신규 등록 준비)
+        //     console.log("신규 설정 필요.");
+        //     console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
+        //     // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
+        // }
+        setTimeout(()=> {
+            saveBtn.textContent = '저장'
+            saveBtn.classList.remove('saved')
+        }, 1200);
     })
     .catch(error => {
         // 네트워크 오류 또는 서버 에러 처리
         console.error('환경설정 조회 실패:', error);
         alert('환경설정 데이터를 불러오는 중 오류가 발생했습니다.');
         saveBtn.textContent = '저장실패'
+        saveBtn.classList.remove('saved')
     });
 }
 /**
@@ -529,17 +531,13 @@ function fetchSettings(country, gender, active) {
     const lookupData = {
         "country": country,
         "gender": gender
-        // active 값이 null이 아니면 JSON에 포함
-        // Django utils의 get_profile_setting 함수에서 active: null일 경우 필터 조건을 무시하도록 구현했기 때문에,
-        // 조회 조건으로 사용하려면 명시적으로 포함합니다.
-        // 만약 active가 필수 조회 조건이라면 이 부분을 if문 없이 포함해야 합니다.
-        // 현재는 선택적 필터이므로, 값이 주어졌을 때만 포함합니다.
+       
     };
     if (active !== null && active !== undefined) {
         lookupData.active = active;
     }
 
-    const apiUrl = "{% url 'settings_detail' %}"; // SettingDetailView URL
+    const apiUrl = "{% url 'dev1:settings_detail' %}"; // SettingDetailView URL
     fetch(apiUrl, {
         method: 'POST', // Django View가 POST 요청을 받도록 구현됨
         headers: {
@@ -564,12 +562,13 @@ function fetchSettings(country, gender, active) {
             console.log("기존 설정 로드 완료.");
             console.log(`국가: ${data.country}, 성별: ${data.gender}, 사용여부: ${data.active}`);
             // 여기에 화면 요소(폼 필드, 체크박스 등)를 업데이트하는 로직을 추가합니다.
-        } else {
-            // 설정이 없는 경우 (신규 등록 준비)
-            console.log("신규 설정 필요.");
-            console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
-            // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
-        }
+            return
+        } 
+        // 설정이 없는 경우 (신규 등록 준비)
+        console.log("신규 설정 필요.");
+        console.log(`기본값: 사용여부 ${data.active}로 폼 초기화`);
+        // 여기에 신규 등록을 위한 화면 초기화 로직을 추가합니다.
+        
     })
     .catch(error => {
         // 네트워크 오류 또는 서버 에러 처리
@@ -579,20 +578,18 @@ function fetchSettings(country, gender, active) {
 }
 
 
-// (async () => {
-    let settings = loadSettings();
-    console.log('최종 settings:', settings);
-
+(async () => {
+    settings = await loadSettings();
     /* 초기 적용 */
     updateToggleUI(settings.active);
     setCountryUI(settings.country);
-    setPepleUI(settings.gender)
+    setGender(settings.gender)
 
-    fetchSettings(settings.country,settings.gender,settings.active)
-
+    if(settings.result == 1)
+      fetchSettings(settings.country,settings.gender,settings.active)
     /* Expose settings for console debugging */
     window._appSettings = settings;
-// })();
+ })();
 
 </script>
 {% endblock %}
