@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
     'corsheaders',
     'aix_final_prj.service.apps.ServiceConfig', # 선언은 service/apps.py를 구동시킴
 ]
@@ -128,7 +127,6 @@ REST_FRAMEWORK = {
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static", # 전역 static 폴더
-    BASE_DIR / "core" / "static",
 ]
 
 # ✅ Docker, Cloud Run 등 배포 환경에서는 필요
