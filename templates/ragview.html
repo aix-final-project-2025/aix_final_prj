@@ -109,6 +109,7 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        hr { .hr_dotted{border:0px, border-bottom: 5px dotted #000000  }}
     </style>
 
 {% endblock %}
@@ -129,8 +130,8 @@
     <br>
     <br>
     <hr>
-    <h3>업로드된 PDF 파일 / tokenize / VectorDB(faiss) 처리</h3>
-    
+    <h3>업로드된 PDF 파일 ( tokenize --> VectorDB(faiss-cpu) ) </h3>
+    <hr/> 
     <ul>
         {% for filename in uploaded_filenames %}
             <li><a href="{% static 'uploaded_pdfs/' %}{{ filename }}" target="_blank">{{ filename }}</a></li>
