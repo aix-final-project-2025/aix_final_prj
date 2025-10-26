@@ -16,6 +16,15 @@ IMAGE_SIZE = (224, 224)
 # THRESHOLD_DEFAULT = 0.9
 THRESHOLD_DEFAULT = 0.7
 
+# ====== 모델 로드 (Cloud Run 환경 감지) ======
+if os.getenv("CLOUD_RUN_ENV", "false") == "true":
+    # ☁️ Cloud Run 환경에서는 GCS에서 모델 다운로드
+    from aix_final_prj.service import model_loader_gcs
+    model = model_loader_gcs.load_model_from_gcs()
+else:
+    # 💻 로컬 환경에서는 기존 경로의 모델 직접 로드
+    model = tf.keras.models.load_model(f"aix_final_prj/keras/{MODEL_PATH}")
+
 # ====== 분리수거 가이드 (모든 클래스 매핑) ======
 TRASH_GUIDE_MAP = {
     # --- 캔류 ---
