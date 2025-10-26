@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block body_class %}news-page{% endblock %}
 {% load static %}
 
 {% block page_title %}News DB{% endblock %}
@@ -8,6 +9,31 @@
 
 <link rel="stylesheet" href="{% static 'css/recycleables.css' %}">
 <style>
+        /* ✅ base.css의 공통 헤더 스타일 재사용 (통일감 유지) */
+    .page-header {
+        text-align: center;
+        margin-top: 80px;
+        margin-bottom: 0;
+        margin-left: -20px;
+        margin-right: -20px;
+    }
+
+    .page-header h1 {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 2.9rem;
+        letter-spacing: 2px;
+        color: #111; /* 기본값 */
+        margin-bottom: 30px;
+        text-transform: none;
+    }
+
+    /* ✅ news 페이지에서만 헤더 폰트를 흰색으로 덮어쓰기 */
+    body.news-page .page-header h1,
+    body.news-page .page-header .subtitle,
+    body.news-page .page-header p {
+    color: #ffffff !important;
+    }
        
       /* 템플릿 콘텐츠 영역에만 적용되도록 스타일 조정 */
       :root {

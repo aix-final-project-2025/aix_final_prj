@@ -17,7 +17,8 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
+
     <!-- ➡️ 전체 컨테이너 -->
     <div class="main-layout flex min-h-screen">
         

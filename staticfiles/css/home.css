@@ -1,32 +1,17 @@
-/* 
-.content-layout {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
+/* ================================
+   🏠 HOME PAGE (Recycling & Coffee)
+   Final Integration: 2025.10.22 by ChangDo
+================================ */
+
+/* =============================== */
+/* 🌿 Google Font 적용 */
+/* =============================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Noto+Sans+KR:wght@400&display=swap');
 
 
-.page-header {
-  text-align: center;
-  margin-top: 80px;
-  margin-bottom: 50px;
-}
-
-.page-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #111;
-  letter-spacing: 0.5px;
-}
-
-.page-header .subtitle {
-  color: #666;
-  font-size: 1rem;
-  margin-top: 10px;
-  letter-spacing: 0.3px;
-}
-
-
+/* =============================== */
+/* ☕ 메인 프로모션 섹션 */
+/* =============================== */
 .promotion-section {
   display: flex;
   justify-content: space-between;
@@ -38,7 +23,7 @@
   margin: 0 auto;
 }
 
-
+/* 왼쪽 텍스트 */
 .promo-text-area {
   flex: 1;
   padding-right: 40px;
@@ -64,7 +49,7 @@
   font-size: 15px;
 }
 
-
+/* 오른쪽 이미지 */
 .promo-image-area img {
   width: 100%;
   max-width: 550px;
@@ -73,23 +58,33 @@
   display: block;
 }
 
-
+/* =============================== */
+/* 🧾 푸터 (중앙 정렬 개선) */
+/* =============================== */
 .company-footer {
   width: 100%;
-  padding: 30px 40px;
-  background-color: #f9f9f9;
+  padding: 20px 20px;
+  background-color: #d8d8d8;
   border-top: 1px solid #eee;
   color: #777;
   font-size: 13px;
-  text-align: right;
-  margin-top: 70px;
+  text-align: center;          /* 가운데 정렬 */
+  margin-top: 40px;
+}
+
+.footer-info {
+  max-width: 800px;            /* 폭 제한 */
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 .footer-info p {
   margin: 5px 0;
-  line-height: 1.6;
 }
 
+/* =============================== */
+/* 📱 반응형 디자인 */
+/* =============================== */
 @media screen and (max-width: 768px) {
   .promotion-section {
     flex-direction: column;
@@ -108,5 +103,6 @@
 
   .company-footer {
     text-align: center;
+    padding: 30px 10px;
   }
-} */
+}
