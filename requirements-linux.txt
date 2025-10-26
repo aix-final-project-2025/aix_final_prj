@@ -1,11 +1,11 @@
 # ============================================================
-# 🧩 AIX Final Project — Unified Requirements (Linux Optimized)
-# Version: 2025-10 (Final)
+# 🧩 AIX Final Project — Unified Requirements (Linux Deploy)
+# Version: 2025-10 (Cloud Run Verified)
 # Author: Chang-Do (kopynara)
 # Description:
-#   - Linux/macOS 전용 통합본
-#   - Windows 전용 패키지(pywin32 등)는 제외
-#   - LangChain v0.x + TensorFlow 2.20 + PyTorch 2.9 + tf-keras 호환
+#   - Linux 서버 (Cloud Run / Ubuntu 22.04) 전용
+#   - Windows/Mac 전용 패키지 제거
+#   - LangChain v0.x + TensorFlow 2.20 + PyTorch 2.9 안정화
 # ============================================================
 
 # === Core Framework ===
@@ -18,7 +18,7 @@ gunicorn==23.0.0
 whitenoise==6.7.0
 
 # === Data Science / ML ===
-numpy==1.26.4
+numpy==2.3.4
 pandas==2.3.3
 pillow==12.0.0
 tensorflow==2.20.0
@@ -37,7 +37,7 @@ faiss-cpu==1.12.0
 # === TTS / Audio ===
 gTTS==2.5.4
 pydub==0.25.1
-playsound==1.2.2  # 1.3.0은 Linux 빌드 오류 (OSError)
+# ⚠️ playsound 제외: Linux에서 OSError 빈번 발생
 python-dotenv==1.1.1
 
 # === LangChain / LLM / OpenAI ===
@@ -126,16 +126,14 @@ google-cloud-storage==3.4.1
 # === PyMuPDF / Document Parsing ===
 PyMuPDF==1.26.5
 
-# === Optional AI Stack (for Llama & Graph) ===
+# === Optional AI Stack (Llama & Graph) ===
 llama_stack==0.2.11
 llama_stack_client==0.2.12
 
-
-generativeai google-genai
 # ============================================================
 # ✅ Notes:
-# - Linux 환경 최적화 (WSL, Ubuntu 22.04 기준)
-# - Windows 전용(pywin32, pywinpty)은 제거됨
-# - LangChain v0.x 기반으로 통합
+# - Linux/Cloud Run 최적화 버전
+# - Mac 전용 (tensorflow-macos, metal 등) / Windows 전용(pywin32 등) 제외
 # - TensorFlow/Keras/PyTorch 버전 호환 검증 완료
+# - Cloud Build 및 Docker 이미지 빌드 검증 통과
 # ============================================================
