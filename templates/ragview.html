@@ -98,7 +98,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
         .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { color: #0056b3; }
+        h1, h2, h3 {  font-weight: bold; color: #0056b3; }
         button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background-color: #0056b3; }
         .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
@@ -128,9 +128,10 @@
         <button type="submit">PDF 업로드 및 처리</button>
     </form>
     <br>
-    <br>
     <hr>
+    <br>
     <h3>업로드된 PDF 파일 ( tokenize --> VectorDB(faiss-cpu) ) </h3>
+    <br>
     <hr/> 
     <ul>
         {% for filename in uploaded_filenames %}
@@ -140,16 +141,20 @@
     <br>
     <br>
     <p></p>
-    <h2>질문하기</h2>
+    <h2>< 질문하기 ></h2>
     <form method="post">
         {% csrf_token %}
         <input type="text" name="query" placeholder="질문을 입력하세요" style="width: 300px; height: 50px; ">
         <button type="submit">질문</button>
+        <br>
+        <hr>
     </form>
 
     {% if query and answer %}
         <hr>
+        <br>
         <h3>질문: {{ query }}</h3>
+        <br>
         <p><strong>답변:</strong> {{ answer }}</p>
     {% endif %}
 

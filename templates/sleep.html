@@ -11,8 +11,15 @@
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
         .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1, h2 { color: #0056b3; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background-color: #0056b3; }
+        #torch, #run-regression, #run-classification, #run-clustering {
+        padding: 10px 20px;
+        background: #0056b3;
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        }
         .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
         .loader { display: none; text-align: center; padding: 20px; font-size: 18px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -100,8 +107,10 @@
                         <option value="1">Yes</option>
                     </select>
                 </div>
-            </div>                         
-            <button type="submit">예측 실행</button>
+            </div> 
+            <hr>
+            <br>                        
+            <button id="torch" type="submit">예측 실행</button>
         </form>
         <div class="loader" id="dl-loader">분석 중...</div>
         <div class="results" id="dl-results"></div>
@@ -109,18 +118,24 @@
 
     <div class="section">
         <h2>1. 회귀 모델 분석 (수면 시간 예측)</h2>
+        <hr>
+        <br> 
         <button id="run-regression">회귀 모델링 실행</button>
         <div class="loader" id="regression-loader">분석 중...</div>
         <div class="results" id="regression-results"></div>
     </div>
     <div class="section">
         <h2>2. 분류 모델 분석 (수면품질 여부 분류)</h2>
+        <hr>
+        <br>
         <button id="run-classification">분류 모델링 실행</button>
         <div class="loader" id="classification-loader">분석 중...</div>
         <div class="results" id="classification-results"></div>
     </div>
     <div class="section">
         <h2>3. 군집 모델 분석 (고객 세분화)</h2>
+        <hr>
+        <br>
         <button id="run-clustering">군집 모델링 실행</button>
         <div class="loader" id="clustering-loader">분석 중...</div>
         <div class="results" id="clustering-results"></div>
