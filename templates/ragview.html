@@ -98,7 +98,9 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
         .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2, h3 {  font-weight: bold; color: #0056b3; }
+        #hh1 { color: #0056b3 !important; font-size: 26px !important; font-weight: 600;  }
+        #hh2 { color: #0056b3 !important; font-size: 22px !important; font-weight: 600;  }
+        #hh3 { color: #0056b3 !important; font-size: 19px !important;  font-weight: 600; }  
         button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background-color: #0056b3; }
         .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
@@ -117,8 +119,10 @@
 {% block content %}
 
     <div class="container">
-    <h1>PDF를 이용한 RAG 시스템</h1>
-    <h3>(소규모 한글지원 skt/kogpt2-base-v2모델 사용)</h3>
+    <h1 id="hh1">PDF를 이용한 RAG 시스템</h1>
+    <hr>
+    <br>
+    <h3 id="hh3">(소규모 한글지원 skt/kogpt2-base-v2모델 사용)</h3>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div id="drop-area">
@@ -130,7 +134,7 @@
     <br>
     <hr>
     <br>
-    <h3>업로드된 PDF 파일 ( tokenize --> VectorDB(faiss-cpu) ) </h3>
+    <h3  id="hh3">업로드된 PDF 파일 ( tokenize --> VectorDB(faiss-cpu) ) </h3>
     <br>
     <hr/> 
     <ul>
@@ -141,7 +145,7 @@
     <br>
     <br>
     <p></p>
-    <h2>< 질문하기 ></h2>
+    <h2  id="hh2" >< 질문하기 ></h2>
     <form method="post">
         {% csrf_token %}
         <input type="text" name="query" placeholder="질문을 입력하세요" style="width: 300px; height: 50px; ">

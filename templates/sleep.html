@@ -10,13 +10,16 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
         .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { color: #0056b3; }
+        #hh1 { color: #0056b3 !important; font-size: 26px !important; font-weight: 600;  }
+        #hh2 { color: #0056b3 !important; font-size: 22px !important; font-weight: 600;  }
+        #hh3 { color: #0056b3 !important; font-size: 19px !important;  font-weight: 600; } 
         #torch, #run-regression, #run-classification, #run-clustering {
+        width :230px;
         padding: 10px 20px;
         background: #0056b3;
         border: none;
         color: #fff;
-        border-radius: 8px;
+        border-radius: 0px;
         font-size: 16px;
         cursor: pointer;
         }
@@ -34,9 +37,9 @@
 {% block content %}
 
 <div class="container">
-    <h1>Django 기반 수면부족 데이터 분석 대시보드</h1>
+    <h1 id="hh1">Django 기반 수면부족 데이터 분석 대시보드</h1>
     <div class="section">
-        <h2>1. 딥러닝(PyTorch)을 이용한 수면품질 예측</h2>
+        <h2 id="hh2">1. 딥러닝(PyTorch)을 이용한 수면품질 예측</h2>
         <hr>
         <br>
 
@@ -122,7 +125,7 @@
     </div>
 
     <div class="section">
-        <h2>1. 회귀 모델 분석 (수면 시간 예측)</h2>
+        <h2 id="hh2">2. 회귀 모델 분석 (수면 시간 예측)</h2>
         <hr>
         <br> 
         <button id="run-regression">회귀 모델링 실행</button>
@@ -130,7 +133,7 @@
         <div class="results" id="regression-results"></div>
     </div>
     <div class="section">
-        <h2>2. 분류 모델 분석 (수면품질 여부 분류)</h2>
+        <h2 id="hh2">3. 분류 모델 분석 (수면품질 여부 분류)</h2>
         <hr>
         <br>
         <button id="run-classification">분류 모델링 실행</button>
@@ -138,7 +141,7 @@
         <div class="results" id="classification-results"></div>
     </div>
     <div class="section">
-        <h2>3. 군집 모델 분석 (고객 세분화)</h2>
+        <h2 id="hh2">4. 군집 모델 분석 (고객 세분화)</h2>
         <hr>
         <br>
         <button id="run-clustering">군집 모델링 실행</button>
