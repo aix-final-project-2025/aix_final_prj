@@ -126,7 +126,7 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div id="drop-area">
-            <p id="drop-message">여기에 PDF퍼일 클릭하여 선택하세요</p>
+            <p id="drop-message">여기에 PDF퍼일 클릭하여 선택하세요 [다중선택 가능]</p>
             <input type="file" name="pdfs" accept=".pdf" multiple required>
         </div>
         <button type="submit">PDF 업로드 및 처리</button>
