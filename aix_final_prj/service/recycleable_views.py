@@ -134,7 +134,12 @@ class PredictListPageView(TemplateView):
 생활쓰레기 리스트조회
 """
 class PredictListView(View):
+    template_name = "predict_list.html"
+
+
     def get(self, request):
+
+        print("called ----------")
         page = int(request.GET.get("page", 1))
         per_page = 20
         start = (page - 1) * per_page
@@ -266,8 +271,8 @@ class getSettingInfo(View):
             sdict = {
                 'country': settingInfo.country,
                 'gender': settingInfo.gender,
-                'active': settingInfo.active
-                # 필요한 필드만 선택
+                'active': settingInfo.active,
+                'result': 0
             }
 
         else :
@@ -275,10 +280,10 @@ class getSettingInfo(View):
             sdict = {
                 'country': 'ko',
                 'gender': 2,
-                'active': False
+                'active': False,
+                'result': 1
                 # 필요한 필드만 선택
              }
-        print(f" setting called =={settingInfo}")
         return JsonResponse({
                 'status': 'success', 
                 'message': 'Existing settings updated successfully.',
@@ -424,6 +429,6 @@ class SettingUpdateView(View):
         # 6. 변경 사항이 없는 경우 (is_changed == False)
         # 3개 항목 모두 변경이 없으므로 save()가 호출되지 않고 이 응답을 반환합니다.
         return JsonResponse({
-            'status': 'info', 
+            'status': 'none', 
             'message': 'No changes detected.'
         }, status=200)

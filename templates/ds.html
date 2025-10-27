@@ -5,7 +5,7 @@
 
 {% block extra_head %}
 
-<head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Django 기반 분석 대시보드</title>
@@ -15,8 +15,10 @@
         .card-header { font-weight: bold; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; }
         .table th, .table td { vertical-align: middle; }
     </style>
+{% endblock %}
 
-</head>
+{% block content %}
+
 
     <div class="container">
         <h1 class="mb-4 text-center text-primary">☕ 커피 및 건강 데이터 분석 리포트</h1>

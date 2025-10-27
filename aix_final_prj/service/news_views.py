@@ -596,7 +596,7 @@ def home(request):
             "rag_error": "",
             "rag_sources": [],
         }
-        resp = render(request, "chroma.html", ctx)
+        resp = render(request, "news.html", ctx)
         resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         resp["Pragma"] = "no-cache"
         resp["Expires"] = "0"
@@ -687,7 +687,7 @@ def home(request):
         "rag_error": rag_error,
         "rag_sources": rag_sources,
     }
-    resp = render(request, "chroma.html", ctx)
+    resp = render(request, "news.html", ctx)
     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp["Pragma"] = "no-cache"
     resp["Expires"] = "0"

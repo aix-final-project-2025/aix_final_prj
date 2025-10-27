@@ -1,4 +1,4 @@
-===== 기본 세팅 =====
+/* 
 body {
   margin: 0;
   padding: 0;
@@ -15,7 +15,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ===== 레이아웃 ===== */
+
 header {
   position: fixed;
   top: 0;
@@ -41,8 +41,8 @@ footer {
 }
 
 main {
-  margin-top: 60px;    /* header 높이만큼 띄우기 */
-  margin-bottom: 60px; /* footer 높이만큼 띄우기 */
+  margin-top: 60px;    
+  margin-bottom: 60px; 
 }
 
 nav ul {
@@ -55,19 +55,19 @@ nav ul li {
   margin: 0 15px;
 }
 
-/* ===== 공통 컨테이너 ===== */
+
 .container {
   width: 80%;
   margin: auto;
   overflow: hidden;
 }
 
-/* ===== 텍스트 ===== */
+
 h1, h2, h3 {
   margin-top: 0;
 }
 
-/* ===== 버튼 ===== */
+
 button {
   background-color: #0066cc;
   color: #fff;
@@ -79,7 +79,7 @@ button:hover {
   background-color: #005bb5;
 }
 
-/* ===== 폼 요소 ===== */
+
 input, textarea {
   width: 100%;
   padding: 10px;
@@ -92,7 +92,7 @@ input:focus, textarea:focus {
   outline: none;
 }
 
-/* ===== 테이블 ===== */
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -111,7 +111,7 @@ input:focus, textarea:focus {
   background-color: #f1f1f1;
 }
 
-/* ===== 알림 박스 ===== */
+
 .alert {
   padding: 15px;
   color: white;
@@ -122,7 +122,6 @@ input:focus, textarea:focus {
 .alert.warning { background-color: #ff9800; }
 .alert.error { background-color: #f44336; }
 
-/* ===== 반응형 ===== */
 @media (max-width: 768px) {
   .container { width: 95%; }
   nav ul li {
@@ -137,4 +136,4 @@ input:focus, textarea:focus {
     width: 100%;
     padding: 15px;
   }
-}
+} */

@@ -17,7 +17,8 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
+
     <!-- ➡️ 전체 컨테이너 -->
     <div class="main-layout flex min-h-screen">
         
@@ -37,8 +38,8 @@
                 </a>
                 <!-- 서브메뉴 -->
                 <div id="recycling-submenu" class="submenu">
-                    <a href="{% url 'upload' %}" class="submenu-item"><span class="text">Upload</span></a>
-                    <a href="{% url 'predict_list' %}" class="submenu-item"><span class="text">Recycling data</span></a>
+                    <a href="{% url 'dev1:upload' %}" class="submenu-item"><span class="text">Upload</span></a>
+                    <a href="{% url 'dev1:predict_request' %}" class="submenu-item"><span class="text">Recycling data</span></a>
                 </div>
             </div>
             
@@ -52,9 +53,9 @@
                 <!-- 서브메뉴 -->
                 <div id="coffee-submenu" class="submenu">
                     <!-- TODO: coffee_detail URL은 예시입니다. 실제 URL에 맞게 수정해주세요. -->
-                    <a href="{% url 'ds' %}" class="submenu-item"><span class="text">Ds</span></a>
-                    <a href="{% url 'coffee' %}" class="submenu-item"><span class="text">report</span></a>
-                    <a href="{% url 'bmi' %}" class="submenu-item"><span class="text">Bmi</span></a>
+                    <a href="{% url 'ds' %}" class="submenu-item"><span class="text">DataSet</span></a>
+                    <a href="{% url 'coffee' %}" class="submenu-item"><span class="text">Coffee</span></a>
+                    <a href="{% url 'bmi' %}" class="submenu-item"><span class="text">BMI</span></a>
                     <a href="{% url 'sleep' %}" class="submenu-item"><span class="text">Sleep</span></a>
                     <a href="{% url 'stress' %}" class="submenu-item"><span class="text">Stress</span></a>
                     <!--
@@ -74,13 +75,13 @@
             </a>
 
             <!--  뉴스 -->
-            <a href="{% url 'chroma' %}" class="menu-item">
+            <a href="{% url 'news' %}" class="menu-item">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" alt="News Icon"></span>
                 <span class="text">News</span>
             </a>
 
             <!-- ⚙️ 설정 -->
-            <a href="{% url 'settings' %}" class="menu-item">
+            <a href="{% url 'dev1:settings' %}" class="menu-item">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=52146&format=png&color=000000" alt="Settings Icon"></span>
                 <span class="text">Settings</span>
             </a>

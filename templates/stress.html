@@ -5,17 +5,21 @@
 
 {% block extra_head %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Django 기반 분석 대시보드</title>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
         .container { max-width: 1200px; margin: auto; overflow: hidden; padding: 0 20px; }
         .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1, h2 { color: #0056b3; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background-color: #0056b3; }
+        #torch, #run-classification {
+        padding: 10px 20px;
+        background: #0056b3;
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        }
         .results { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-left: 5px solid #007bff; white-space: pre-wrap; word-wrap: break-word; }
         .loader { display: none; text-align: center; padding: 20px; font-size: 18px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -25,12 +29,16 @@
         .form-grid label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-grid input, .form-grid select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
-</head>
+{% endblock %}
+
+{% block content %}
 
 <div class="container">
     <h1>Django 기반 스트레스 레벨 데이터 분석 대시보드</h1>
     <div class="section">
         <h2>1. 딥러닝(PyTorch)을 이용한 Stress 레벨 예측</h2>
+        <hr>
+        <br>
         <form id="dl-form">
             <div class="form-grid">
                 <div>
@@ -99,7 +107,11 @@
                 
                 
             </div>
-            <button type="submit">예측 실행</button>
+            <br>
+
+            <hr>
+            <br>
+            <button id="torch" type="submit">예측 실행</button>
         </form>
         <div class="loader" id="dl-loader">분석 중...</div>
         <div class="results" id="dl-results"></div>
@@ -107,6 +119,8 @@
     <div class="section">
 
         <h2>2. 분류 모델 분석 (Stress Level)</h2>
+        <hr>
+        <br>
         <button id="run-classification">분류 모델링 실행</button>
         <div class="loader" id="classification-loader">분석 중...</div>
         <div class="results" id="classification-results"></div>
