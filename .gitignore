@@ -42,9 +42,7 @@ uploads/
 chunks.npy
 faiss_index
 *.pdf
-
-*.csv
-
+*.csvgit
 skt/
 paraphrase-multilingual-MiniLM-L12-v2*
 plots/
