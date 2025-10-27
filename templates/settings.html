@@ -193,7 +193,9 @@
     font-size: 14px;
   }
 
-
+  #gender {
+    display: none;
+  }
 }
 </style>
 {% endblock %}
@@ -237,7 +239,7 @@
       </div>
     </div>
 
-    <div class="card" id="card-country">
+    <div class="card" id="gender">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div class="label">
           <div class="title">성별 선택</div>
@@ -254,7 +256,7 @@
 
 
     <!-- 3. 랭체인 목소리 리스트 -->
-    <div class="card" id="card-voices">
+    <div class="card" id="card-voices" >
       <div class="footer">
         <button class="btn ghost" id="reset-btn">초기화</button>
         <button class="btn primary" id="save-btn">저장</button>
@@ -591,5 +593,9 @@ function fetchSettings(country, gender, active) {
     window._appSettings = settings;
  })();
 
+ const idgender = document.getElementById("gender");
+  if(idgender){
+      idgender.style.display = "none";
+  }
 </script>
 {% endblock %}
