@@ -276,7 +276,7 @@ def get_trained_model():
         data['BMI'] = pd.cut(data['BMI'], bins=bins, labels=labels, right=False)
         data["Stress_Level"] = pd.Categorical(
             data["Stress_Level"],
-            categories=["Low", "Medium", "High"],
+            categories=["High","Low", "Medium" ],
             ordered=True
         ).codes
         data = data[data["Stress_Level"] != -1]
@@ -293,11 +293,7 @@ def get_trained_model():
             right=True,    # 경계값 포함 여부: True면 '이상~이하' (예: 1.0 < x <= 4.0)
             include_lowest=True # 가장 낮은 경계값(-np.inf)을 포함
         )
-        
-        
-        
-        
-        
+                      
         data = data.dropna(subset=['Coffee_Group']) # qcut으로 인해 NaN이 생길 수 있음
         data['Coffee_Group'] = data['Coffee_Group'].astype(int)
 
