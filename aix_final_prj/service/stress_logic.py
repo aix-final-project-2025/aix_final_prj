@@ -40,7 +40,7 @@ def preprocess_data():
     
     df1["Stress_Level"] = pd.Categorical(
         df1["Stress_Level"],
-        categories=["Low", "Medium", "High"],
+        categories=["High","Low", "Medium" ],
         ordered=True
     ).codes
     X = df1[['Age', 'BMI','Country','Coffee_Intake', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Smoking', 'Alcohol_Consumption']]
@@ -181,7 +181,7 @@ def predict_stress_category(input_data):
         probabilities = F.softmax(logits, dim=1)[0].numpy()
         predicted_class_index = torch.argmax(logits, dim=1).item()
         
-    stress_categories = ['낮음(low)', '보통(Medium)', '높음H(igh)']
+    stress_categories = ['높음(High)','낮음(low)', '보통(Medium)' ]
     predicted_category = stress_categories[predicted_class_index]
     
     return {
