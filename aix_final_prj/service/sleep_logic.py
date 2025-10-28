@@ -228,13 +228,13 @@ def get_trained_model():
         
         data["Stress_Level"] = pd.Categorical(
             data["Stress_Level"],
-            categories=["Low", "Medium", "High"],
+            categories=["High", "Medium", "Low"],
             ordered=True
         ).codes
         data = data[data["Stress_Level"] != -1]
         data["Sleep_Quality"] = pd.Categorical(
             data["Sleep_Quality"],
-            categories=['Poor', 'Average', 'Good', 'Excellent'],
+            categories=['Excellent', 'Fair', 'Good', 'Poor'],
             ordered=True
         ).codes
         data = data[data["Sleep_Quality"] != -1]
@@ -276,7 +276,7 @@ def predict_sleep_category(input_data):
         probabilities = F.softmax(logits, dim=1)[0].numpy()
         predicted_class_index = torch.argmax(logits, dim=1).item()
         
-    sleep_categories = ['수면부족(Fair)', '평균(Average)', '좋음(Good)', '훌륭(Excellent)']
+    sleep_categories = ['훌륭(Excellent)','수면부족(Fair)','좋음(Good)', '안좋음(Poor)'  ]
     predicted_category = sleep_categories[predicted_class_index]
     
     return {
