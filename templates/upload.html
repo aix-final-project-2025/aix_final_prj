@@ -7,8 +7,7 @@
 {% endblock subtitle %}
 {% block extra_head %}
 <meta charset="utf-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, user-scalable=no" />
 <style>
   
 html, body {
@@ -114,6 +113,12 @@ input[type="file"] { display: none; }
     border-radius: 8px;
 }
 
+/* @supports (-webkit-backdrop-filter: none) {
+    .sidebar {
+        backdrop-filter: none;
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+} */
 
 
 /* Modal Overlay */
@@ -126,7 +131,7 @@ input[type="file"] { display: none; }
 }
 
 /* Modal Sheet */
-#modalOverlay {
+/* #modalOverlay {
   display: none;
   position: fixed;
   top:0;
@@ -135,7 +140,7 @@ input[type="file"] { display: none; }
   height:100%;
   background: rgba(0,0,0,0.4);
   z-index: 999;
-}
+} */
 
 /* ✅ 수정: Modal Sheet (공통) - 전체 스크롤 방지 및 flex 컨테이너 설정 */
 #mobileModal {
@@ -448,6 +453,7 @@ input[type="file"] { display: none; }
     }
 } 
 
+
 /* PC 전용 (이미지 왼쪽, 리스트 오른쪽) */
 @media (min-width: 769px) {
 
@@ -579,7 +585,7 @@ body.modal-open { overflow: hidden; }
     const form = document.getElementById("uploadForm");
     const loaderOverlay = document.getElementById("loaderOverlay");
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    //const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     // ===========================
     // ✅ 로더
@@ -616,7 +622,10 @@ body.modal-open { overflow: hidden; }
     // ===========================
     // ✅ dropArea 이벤트
     // ===========================
-    dropArea.addEventListener("click", ()=> fileInputAlbum.click());
+    // dropArea.addEventListener("click", ()=> fileInputAlbum.click());
+    dropArea.addEventListener("click", e => {
+      if(e.target === dropArea) fileInputAlbum.click(); // drop-area 자체만 반응
+    });
     dropArea.addEventListener("dragover", e=> { e.preventDefault(); dropArea.classList.add("dragover"); });
     dropArea.addEventListener("dragleave", ()=> dropArea.classList.remove("dragover"));
     dropArea.addEventListener("drop", e=>{
@@ -648,6 +657,12 @@ body.modal-open { overflow: hidden; }
     // ===========================
     function openModal(data){
 
+        console.log("[openModal] 실행됨:", data);
+
+        if (!modal) {
+          console.warn("⚠️ mobileModal 요소를 찾을 수 없습니다.");
+          return;
+        }
 
         modal.style.display="flex";       // flex 적용
         overlay.style.display="block";
@@ -655,8 +670,15 @@ body.modal-open { overflow: hidden; }
 
         modal.classList.remove("slide-down");
         modal.classList.add("slide-up");
-
+        
+        modalOpen = true;
         if(data.tts_able==1) playTTS(data.tts_url);
+        console.log("[openModal] display:", modal.style.display, "opacity:", modal.style.opacity);
+   
+        modalHandle.style.pointerEvents = 'none';
+        
+        setTimeout(()=> modalHandle.style.pointerEvents = 'auto', 300);
+
     }
 
     function closeModal(){
@@ -669,46 +691,50 @@ body.modal-open { overflow: hidden; }
                 overlay.style.display="none";
                 modal.classList.remove("slide-down");
                 document.body.classList.remove("modal-open");
+                modalOpen = false;
             }
             modal.removeEventListener("animationend", handler);
         });
     }
 
     overlay.addEventListener("click", closeModal);
+ 
+    // document.addEventListener("click", (e) => {
+    //     const sidebar = document.getElementById("mySidebar");
+    //     const toggleButton = document.querySelector(".togglebtn");
+    //     const modal = document.getElementById("mobileModal");
 
-    document.addEventListener("click", (e) => {
-        const sidebar = document.getElementById("mySidebar");
-        const toggleButton = document.querySelector(".togglebtn");
-        const modal = document.getElementById("mobileModal");
+    //     // 사이드바 열림 여부 확인
+    //     if (sidebar.classList.contains("open")) {
 
-        // 사이드바 열림 여부 확인
-        if (sidebar.classList.contains("open")) {
+    //         // 클릭이 사이드바 또는 토글 버튼 내부가 아니고, 모달이 열려있지 않으면
+    //         if (!sidebar.contains(e.target) &&
+    //             !toggleButton.contains(e.target) &&
+    //             modal.style.display !== "flex") {
 
-            // 클릭이 사이드바 또는 토글 버튼 내부가 아니고, 모달이 열려있지 않으면
-            if (!sidebar.contains(e.target) &&
-                !toggleButton.contains(e.target) &&
-                modal.style.display !== "flex") {
+    //             // 사이드바 닫기
+    //             sidebar.classList.remove("open");
+    //             toggleButton.textContent = "☰";
 
-                // 사이드바 닫기
-                sidebar.classList.remove("open");
-                toggleButton.textContent = "☰";
+    //             // 클릭 이벤트 전파 막기 (아래 화면 요소 이벤트 방지)
+    //             e.stopPropagation();
+    //             e.preventDefault();
+    //         }
+    //     }
+    // });
 
-                // 클릭 이벤트 전파 막기 (아래 화면 요소 이벤트 방지)
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        }
-    });
+    document.addEventListener("DOMContentLoaded", (e) => {
+        
+        e.preventDefault(); 
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
-
-    document.addEventListener("DOMContentLoaded", () => {
         const sidebar = document.getElementById("mySidebar");
         let toggleButton = document.querySelector(".togglebtn");
         const modal = document.getElementById("mobileModal");
         const uploadForm = document.getElementById("uploadForm");
 
         if (!sidebar || !toggleButton || !uploadForm) return;
-
 
         // --------------------------
         // toggleButton 재생성
@@ -717,10 +743,12 @@ body.modal-open { overflow: hidden; }
         toggleButton.replaceWith(newToggleButton);
         toggleButton = newToggleButton;
 
+        console.log(" ===================1111 ")
         // --------------------------
         // 업데이트 함수
         // --------------------------
         function updateToggleButton() {
+          console.log(" ===================22222 ")
             const isOpen = sidebar.classList.contains('open');
             toggleButton.textContent = isOpen ? "✕" : "☰";
         }
@@ -734,25 +762,29 @@ body.modal-open { overflow: hidden; }
         // 사이드바 토글 + 모달 체크
         // --------------------------
         toggleButton.addEventListener('click', () => {
+
+          console.log(" ===================33333 ")
             const isModalActive = modal.style.display === "flex";
             const isSidebarOpen = sidebar.classList.contains('open');
 
             if (isModalActive) {
                 // 1단계: 모달 닫기
                 closeModal();
-                
+               
+                console.log(" ===================1- 33333 ")
             } else if (isSidebarOpen) {
                 // 1단계: 사이드바 닫기
                 sidebar.classList.remove('open');
                 updateToggleButton();
+                console.log(" ===================2- 33333 ")
             } else {
                 // 2단계: 사이드바 토글
-                sidebar.classList.toggle('open');
+                // sidebar.classList.toggle('open');
+                 sidebar.classList.add('open');
                 updateToggleButton();
+                console.log(" ===================3- 33333 ")
             }
         });
-
-        
     });
 
 
@@ -779,7 +811,7 @@ body.modal-open { overflow: hidden; }
             });
             const data = await response.json();
             renderResult(data);
-            openModal(data);
+           
         }catch(err){
             console.error(err);
             alert("예측 요청 중 오류가 발생했습니다.");
@@ -819,6 +851,8 @@ body.modal-open { overflow: hidden; }
         }
         html += '</div>'; // result-container 닫기
         modalContent.innerHTML = html;
+
+        setTimeout(() => openModal(data), 1000);
     }
 
     // ===========================
@@ -846,6 +880,7 @@ body.modal-open { overflow: hidden; }
     });
 
     modalHandle.addEventListener("touchstart", e=>{
+       if(modalOpen) return; // modal 열려있는 동안 드래그 잠시 무시
         isDragging=true;
         startY=e.touches[0].clientY;
         modal.style.transition='none';
@@ -856,7 +891,7 @@ body.modal-open { overflow: hidden; }
         if(moveY>0) modal.style.transform=`translateY(${moveY}px)`;
     });
     document.addEventListener("touchend", e=>{
-        if(!isDragging) return;
+        if(!isDragging || !modalOpen) return; // modal 열려있을 때만
         isDragging=false;
         modal.style.transition='transform 0.3s ease-in-out';
         const moveY = e.changedTouches[0].clientY-startY;
@@ -872,5 +907,11 @@ body.modal-open { overflow: hidden; }
     });
 
 
+
+// 페이지가 reload/close 되거나 이동하려고 할 때
+window.addEventListener("beforeunload", (event) => {
+    console.log("⚠️ 페이지가 reload 되거나 닫히려 함!");
+});
 </script>
+
 {% endblock %}

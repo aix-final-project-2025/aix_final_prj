@@ -90,7 +90,7 @@
             z-index: 1001;
         }
 
-        .togglebtn {
+        /* .togglebtn {
             font-size: 24px;
             background: none;
             border: none;
@@ -101,6 +101,21 @@
             border-radius: 8px;
             background-color: #fff;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        } */
+
+          /* 토글 버튼 */
+        .togglebtn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 2000;
+            padding: 10px 15px;
+            font-size: 18px;
+            background: #fff;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            border-radius: 6px;
+            pointer-events: auto; 
         }
 
         .togglebtn:hover {
@@ -110,7 +125,7 @@
         /* =============================== */
         /* 📚 사이드바 기본 구조 */
         /* =============================== */
-        .sidebar {
+        .sidebar-back {
             position: fixed;
             top: 0;
             left: 0;
@@ -130,9 +145,38 @@
             border-right: 1px solid #eee;
         }
 
-        .sidebar.expanded, .sidebar.open {
+        .sidebar.expanded-back, .sidebar.open-back {
             transform: translateX(0);
         }
+
+/* 사이드바 */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px; /* 화면 밖 초기 위치 */
+        width: 280px;
+        height: 100%;
+        background-color: #fff;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        transition: left 0.3s ease;
+        z-index: 1000;
+        padding-top: 60px;
+    }
+
+    .sidebar.open {
+        left: 0; /* 활성화 시 왼쪽에서 나타남 */
+    }
+
+    /* .sidebar a {
+        display: block;
+        padding: 12px 20px;
+        color: #333;
+        text-decoration: none;
+    } */
+
+    .sidebar a:hover {
+        background-color: #f4f4f4;
+    }
 
 
         /* =============================== */

@@ -3,7 +3,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block page_title %}Recycling and Coffee{% endblock %}</title>
 
     <!-- 🧩 기본 폰트 -->
@@ -58,22 +59,14 @@
                     <a href="{% url 'bmi' %}" class="submenu-item"><span class="text">BMI</span></a>
                     <a href="{% url 'sleep' %}" class="submenu-item"><span class="text">Sleep</span></a>
                     <a href="{% url 'stress' %}" class="submenu-item"><span class="text">Stress</span></a>
-                    <!--
-                    
-                    
-                    추가해야 할 공간임
-                    
-                    
-                    
-                    -->
+                  
                 </div>
             </div>
             <!-- 🧠 RAG 챗봇 -->
-            <a href="{% url 'ragview' %}" class="menu-item">
+            <a href="{% url 'ragview' %}" class="menu-item" id="pdf-rag">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=61372&format=png&color=000000" alt="RAG Chatbot Icon"></span>
                 <span class="text">PDF-RAG</span>
             </a>
-
             <!--  뉴스 -->
             <a href="{% url 'news' %}" class="menu-item">
                 <span class="icon"><img src="https://img.icons8.com/?size=100&id=44030&format=png&color=000000" alt="News Icon"></span>
@@ -126,6 +119,26 @@
 
     <!-- ⚙️ 공용 스크립트 -->
     <script src="{% static 'js/base.js' %}"></script>
-    {% block extra_script %}{% endblock %}
+    <script>
+            /* 경주가 추가 했습니다 
+               모바일일때 특정메뉴 숨기기함 
+            */
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            /* 모바일이면 메뉴를 숨겨주세요 */
+            if(isMobile) {
+                const coffeeMenuGroup = document.querySelector('.menu-item-group > #coffee-submenu').closest('.menu-item-group');
+                const pdfag           = document.getElementById("pdf-rag");
+                // 요소가 존재하면 숨기기
+                if (coffeeMenuGroup) {
+                    coffeeMenuGroup.style.display = 'none';
+                    pdfag.style.display = 'none';
+                }
+            }
+
+    </script>   
+    {% block extra_script %}
+   
+    
+    {% endblock %}
 </body>
 </html>
