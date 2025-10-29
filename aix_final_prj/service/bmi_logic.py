@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("Agg")  # 메인스레드만 GUI 허용, 서브프로세스는 파일 저장만
+
 import os
 import pandas as pd
 import numpy as np
