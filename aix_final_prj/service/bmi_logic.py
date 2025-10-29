@@ -155,6 +155,7 @@ def run_clustering_analysis():
     # Django의 static 폴더에 저장
     if not os.path.exists("static/plots"):
         os.makedirs("static/plots")
+    print("1")
     plot_filename = f"cluster_plot_{int(time.time())}.png"
     plot_path = os.path.join("static/plots", plot_filename)
     plt.savefig(plot_path)
@@ -172,7 +173,7 @@ def run_clustering_analysis():
             "means": cluster_data[clustering_features].mean().round(2).to_dict()
         }
         cluster_analysis_results.append(analysis)
-       
+    
     return {
         "optimal_k": int(optimal_k),
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
