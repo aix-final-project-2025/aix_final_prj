@@ -158,7 +158,7 @@ def run_clustering_analysis():
     # Django의 static 폴더에 저장
     if not os.path.exists("static/plots"):
         os.makedirs("static/plots")
-    print("1")
+    
     plot_filename = f"cluster_plot_{int(time.time())}.png"
     plot_path = os.path.join("static/plots", plot_filename)
     plt.savefig(plot_path)
