@@ -261,12 +261,12 @@ def predict_from_pil(image: Image.Image, threshold=0.5):
 
     # 이미지 위에 예측 텍스트 표시
     result_img = image.copy()
-    draw = ImageDraw.Draw(result_img)
-    try:
-        font = ImageFont.truetype("arial.ttf", 24)
-    except:
-        font = ImageFont.load_default()
-    draw.text((10, 10), f"{predicted_class} ({max_prob*100:.1f}%)", fill="red", font=font)
+    # draw = ImageDraw.Draw(result_img)
+    # try:
+    #     font = ImageFont.truetype("arial.ttf", 24)
+    # except:
+    #     font = ImageFont.load_default()
+    # draw.text((10, 10), f"{predicted_class} ({max_prob*100:.1f}%)", fill="red", font=font)
 
     return {
         "predicted_class": predicted_class,
