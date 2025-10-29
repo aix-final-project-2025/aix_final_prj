@@ -38,7 +38,7 @@ def preprocess_data():
     
     df1['Country'] = le_country.fit_transform(df1['Country'])
     df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
-    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    #df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
     df1['Gender'] = le_gender.fit_transform(df1['Gender'])
     
     df1['Poor_Sleep'] = (df1['Sleep_Hours'] < 6).astype(int)

@@ -164,7 +164,7 @@
                 let html = '<h3>분류 모델 성능 비교</h3>' + '<table><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th></tr>';
                 for (const modelName in data.results) {
                     const res = data.results[modelName];
-                    html += `<tr><td>${modelName}</td><td>${res.accuracy}</td><td>${res.precision}</td><td>${res.recall}</td><td>${res.f1_score}</td></tr>`;
+                    html += `<tr><td><strong>${modelName}</strong></td><td>${res.accuracy}</td><td>${res.precision}</td><td>${res.recall}</td><td>${res.f1_score}</td></tr>`;
                 }
                 html += '</table>';
                 showResults('classification-results', html);
