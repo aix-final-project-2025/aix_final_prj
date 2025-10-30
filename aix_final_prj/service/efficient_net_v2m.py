@@ -191,10 +191,10 @@ def predict_from_pil_ver_1(image: Image.Image, threshold=THRESHOLD_DEFAULT):
     predicted_class = _CLASS_NAMES[max_idx]
     
     if max_prob >= threshold:
-        result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
+        result_message = f"{predicted_class}로 분류되었습니다."
         confidence_level = "높음"
     else:
-        result_message = f"🟡 [불확실]: {predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
+        result_message = f"{predicted_class}로 예측되지만, 신뢰도({max_prob*100:.2f}%)가 낮아 재확인이 필요합니다."
         confidence_level = "낮음"
     top3_idx = np.argsort(preds)[::-1][:3]
     top_3 = [( _CLASS_NAMES[int(i)], float(preds[int(i)]) ) for i in top3_idx]
@@ -246,10 +246,10 @@ def predict_from_pil(image: Image.Image, threshold=0.5):
 
     # 결과 판정
     if max_prob >= threshold:
-        result_message = f"🟢 [확정]: {predicted_class}로 분류되었습니다."
+        result_message = f"{predicted_class}로 분류되었습니다."
         confidence_level = "높음"
     else:
-        result_message = f"🟡 [불확실]: {predicted_class} (신뢰도 {max_prob*100:.1f}%)"
+        result_message = f"{predicted_class} (신뢰도 {max_prob*100:.1f}%)"
         confidence_level = "낮음"
 
     # 상위 3개 클래스
@@ -261,12 +261,12 @@ def predict_from_pil(image: Image.Image, threshold=0.5):
 
     # 이미지 위에 예측 텍스트 표시
     result_img = image.copy()
-    draw = ImageDraw.Draw(result_img)
-    try:
-        font = ImageFont.truetype("arial.ttf", 24)
-    except:
-        font = ImageFont.load_default()
-    draw.text((10, 10), f"{predicted_class} ({max_prob*100:.1f}%)", fill="red", font=font)
+    # draw = ImageDraw.Draw(result_img)
+    # try:
+    #     font = ImageFont.truetype("arial.ttf", 24)
+    # except:
+    #     font = ImageFont.load_default()
+    # draw.text((10, 10), f"{predicted_class} ({max_prob*100:.1f}%)", fill="red", font=font)
 
     return {
         "predicted_class": predicted_class,
