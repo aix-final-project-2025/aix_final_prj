@@ -552,7 +552,7 @@ body.modal-open { overflow: hidden; }
   </div>
   <div id="drop-area">
     <p id="drop-message">여기에 이미지를 드래그하거나 클릭하여 선택하세요</p>
-    <input type="file" id="fileElemAlbum" name="image" accept="image/*" multiple>
+    <input type="file" id="fileElemAlbum" name="image" accept="image/*" capture="environment">
     <input type="file" id="fileElemCamera" name="image" accept="image/*" capture="environment">
   </div>
 
@@ -677,8 +677,10 @@ body.modal-open { overflow: hidden; }
    
         modalHandle.style.pointerEvents = 'none';
         
-        setTimeout(()=> modalHandle.style.pointerEvents = 'auto', 300);
-
+        //setTimeout(()=> modalHandle.style.pointerEvents = 'auto', 300);
+        requestAnimationFrame(() => { // 강제 렌더 후 transition
+                modal.style.opacity = '1';
+        });
     }
 
     function closeModal(){
@@ -743,7 +745,6 @@ body.modal-open { overflow: hidden; }
         toggleButton.replaceWith(newToggleButton);
         toggleButton = newToggleButton;
 
-        console.log(" ===================1111 ")
         // --------------------------
         // 업데이트 함수
         // --------------------------
@@ -763,26 +764,21 @@ body.modal-open { overflow: hidden; }
         // --------------------------
         toggleButton.addEventListener('click', () => {
 
-          console.log(" ===================33333 ")
             const isModalActive = modal.style.display === "flex";
             const isSidebarOpen = sidebar.classList.contains('open');
 
             if (isModalActive) {
                 // 1단계: 모달 닫기
                 closeModal();
-               
-                console.log(" ===================1- 33333 ")
             } else if (isSidebarOpen) {
                 // 1단계: 사이드바 닫기
                 sidebar.classList.remove('open');
                 updateToggleButton();
-                console.log(" ===================2- 33333 ")
             } else {
                 // 2단계: 사이드바 토글
                 // sidebar.classList.toggle('open');
                  sidebar.classList.add('open');
                 updateToggleButton();
-                console.log(" ===================3- 33333 ")
             }
         });
     });
@@ -832,7 +828,7 @@ body.modal-open { overflow: hidden; }
             </div>
             <div class="result-right">
                 <div class="processing-card">
-                    <h3>📌 분리처리 안내</h3>
+                    <h3>분리처리 안내</h3>
                     <p>${data.result_message}</p>
                 </div>
                 <div class="result-card">
@@ -842,7 +838,7 @@ body.modal-open { overflow: hidden; }
             if(data.recycling_guide){
                 html += `
                 <div class="guide-card">
-                    <h3>♻️ 분리수거 가이드</h3>
+                    <h3>분리수거 가이드</h3>
                     <p><strong>카테고리:</strong> ${data.recycling_guide.category}</p>
                     <p><strong>방법:</strong> ${data.recycling_guide.action}</p>
                 </div>`;
@@ -908,10 +904,6 @@ body.modal-open { overflow: hidden; }
 
 
 
-// 페이지가 reload/close 되거나 이동하려고 할 때
-window.addEventListener("beforeunload", (event) => {
-    console.log("⚠️ 페이지가 reload 되거나 닫히려 함!");
-});
 </script>
 
 {% endblock %}

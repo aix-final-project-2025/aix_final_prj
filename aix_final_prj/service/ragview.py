@@ -33,7 +33,7 @@ class RagView(View):
                     for chunk in pdf_file.chunks():
                         f.write(chunk)
                 all_text += extract_text_from_pdf(path)
-
+                #print(all_text)
             chunks = chunk_text(all_text)
             build_vector_db(chunks)
 
