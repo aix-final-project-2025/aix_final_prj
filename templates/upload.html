@@ -640,7 +640,11 @@ body.modal-open { overflow: hidden; }
     fileInputCamera.addEventListener("change", ()=> { if(fileInputCamera.files[0]) showPreview(fileInputCamera.files[0]); });
 
     if(!isMobile) cameraButton.textContent = "파일선택";
-    cameraButton.addEventListener("click", ()=> fileInputAlbum.click());
+    // cameraButton.addEventListener("click", ()=> fileInputAlbum.click());
+    cameraButton.addEventListener("click", ()=>{
+      fileInputAlbum.click()
+      //window.webkit.messageHandlers.openCamera.postMessage("");
+    });
 
     // ===========================
     // ✅ TTS 재생
@@ -658,7 +662,9 @@ body.modal-open { overflow: hidden; }
     function openModal(data){
 
         console.log("[openModal] 실행됨:", data);
-
+         requestAnimationFrame(() => { // 강제 렌더 후 transition
+                modal.style.opacity = '1';
+        });
         if (!modal) {
           console.warn("⚠️ mobileModal 요소를 찾을 수 없습니다.");
           return;
@@ -672,15 +678,10 @@ body.modal-open { overflow: hidden; }
         modal.classList.add("slide-up");
         
         modalOpen = true;
+     
         if(data.tts_able==1) playTTS(data.tts_url);
         console.log("[openModal] display:", modal.style.display, "opacity:", modal.style.opacity);
-   
-        modalHandle.style.pointerEvents = 'none';
         
-        //setTimeout(()=> modalHandle.style.pointerEvents = 'auto', 300);
-        requestAnimationFrame(() => { // 강제 렌더 후 transition
-                modal.style.opacity = '1';
-        });
     }
 
     function closeModal(){
@@ -847,8 +848,8 @@ body.modal-open { overflow: hidden; }
         }
         html += '</div>'; // result-container 닫기
         modalContent.innerHTML = html;
-
-        setTimeout(() => openModal(data), 1000);
+        openModal(data)
+        // setTimeout(() => openModal(data), 1000);
     }
 
     // ===========================

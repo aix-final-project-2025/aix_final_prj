@@ -13,6 +13,7 @@ from io import BytesIO
 
 from aix_final_prj.service.keras_utils import pil_to_base64,fix_image_orientation
 from .efficient_net_v2m import predict_from_pil
+from .efficient_net_v2m_v2 import predict_with_tta_file
 from .tts_utils import translate_and_tts
 from .models import RecyclableResult, GroupCode
 import json
@@ -39,8 +40,7 @@ class UploadView(FormView):
     
 
 
-# ver 1 #############################
-class PredictApiView(View):
+class PredictApiView_v1(View):
     def post(self, request, *args, **kwargs):
         if 'image' not in request.FILES:
             return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
@@ -115,6 +115,176 @@ class PredictApiView(View):
             #JSON 반환
             print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
             
+            tts_name = translate_and_tts(f'{result_message}',rsEnable.country,rsEnable.gender)
+            host = request.scheme + "://" + request.get_host()
+            res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
+     
+        return JsonResponse(res)
+
+
+
+# ====== 분리수거 가이드 (모든 클래스 매핑) ======
+TRASH_GUIDE_MAP = {
+    # --- 캔류 ---
+    "steel_can1": {"category": "캔류", "action": "내용물 비우고, 물로 헹군 후 압착하여 배출"},
+    "steel_can2": {"category": "캔류", "action": "내용물 비우고, 물로 헹군 후 압착하여 배출"},
+    "steel_can3": {"category": "캔류", "action": "내용물 비우고, 물로 헹군 후 압착하여 배출"},
+    "aluminum_can1": {"category": "캔류", "action": "내용물 비우고, 물로 헹군 후 압착하여 배출"},
+    "aluminum_can2": {"category": "캔류", "action": "내용물 비우고, 물로 헹군 후 압착하여 배출"},
+
+    # --- 종이류 ---
+    "paper1": {"category": "종이류", "action": "물기에 젖지 않도록 모아서 끈으로 묶어 배출"},
+    "paper2": {"category": "종이류", "action": "스프링·코팅 제거 후 묶어서 배출"},
+
+    # --- 플라스틱 (PET 투명) ---
+    "pet_clear_single1": {"category": "플라스틱(PET 투명)", "action": "내용물 비우고 라벨·뚜껑 제거 후 압착하여 배출"},
+    "pet_clear_single2": {"category": "플라스틱(PET 투명)", "action": "내용물 비우고 라벨·뚜껑 제거 후 압착하여 배출"},
+    "pet_clear_single3": {"category": "플라스틱(PET 투명)", "action": "내용물 비우고 라벨·뚜껑 제거 후 압착하여 배출"},
+
+    # --- 플라스틱 (PET 유색) ---
+    "pet_colored_single1": {"category": "플라스틱(PET 유색)", "action": "내용물 비우고 라벨·뚜껑 제거 후 배출"},
+    "pet_colored_single2": {"category": "플라스틱(PET 유색)", "action": "내용물 비우고 라벨·뚜껑 제거 후 배출"},
+    "pet_colored_single3": {"category": "플라스틱(PET 유색)", "action": "내용물 비우고 라벨·뚜껑 제거 후 배출"},
+
+    # --- 플라스틱 (기타 재질) ---
+    "plastic_pe1": {"category": "플라스틱(PE)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_pe2": {"category": "플라스틱(PE)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_pp1": {"category": "플라스틱(PP)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_pp2": {"category": "플라스틱(PP)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_pp3": {"category": "플라스틱(PP)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_ps1": {"category": "플라스틱(PS)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_ps2": {"category": "플라스틱(PS)", "action": "내용물 비우고 이물질 제거 후 배출"},
+    "plastic_ps3": {"category": "플라스틱(PS)", "action": "내용물 비우고 이물질 제거 후 배출"},
+
+    # --- 유리류 ---
+    "glass_clear": {"category": "유리류", "action": "뚜껑 제거 후 색상별로 배출"},
+    "glass_brown": {"category": "유리류", "action": "뚜껑 제거 후 색상별로 배출"},
+    "glass_green": {"category": "유리류", "action": "뚜껑 제거 후 색상별로 배출"},
+
+    # --- 스티로폼 ---
+    "styrofoam1": {"category": "스티로폼", "action": "내용물 제거 후 깨끗이 세척하여 배출"},
+    "styrofoam2": {"category": "스티로폼", "action": "이물질 제거 후 배출 (오염 심하면 종량제 봉투)"},
+
+    # --- 비닐류 ---
+    "vinyl": {"category": "비닐류", "action": "깨끗이 세척 후 건조하여 배출 (오염 심하면 종량제 봉투)"},
+
+    # --- 특수 폐기물 ---
+    "battery": {"category": "특수 폐기물", "action": "폐건전지 수거함에 배출 (분리수거 아님)"},
+    "fluorescent_lamp": {"category": "특수 폐기물", "action": "전용 수거함에 배출 (분리수거 아님)"}
+}
+
+def get_recycling_guidance(predicted_class):
+    """
+    예측된 클래스 이름을 기반으로 분리수거 가이드를 반환
+    """
+    if predicted_class in TRASH_GUIDE_MAP:
+        return TRASH_GUIDE_MAP[predicted_class]
+    else:
+        # 기본 가이드 제공 (혹시 누락된 클래스가 있을 경우)
+        return {"category": "일반 분류", "action": "라벨/뚜껑 제거 후 깨끗이 세척하여 배출"}
+
+
+def get_top_result_value(result_list, key_name):
+    """
+    결과 리스트(result_list)의 첫 번째 항목(가장 확률 높은 딕셔너리)에서 
+    특정 키(key_name)에 해당하는 값을 추출하여 반환합니다.
+    
+    Args:
+        result_list (list): 분석 결과 딕셔너리들의 리스트. 
+                            예: [{'class': 'battery', 'prob': 0.991...}, ...]
+        key_name (str): 찾고자 하는 키 이름. 예: 'class', 'prob', 'idx'.
+        
+    Returns:
+        any: 해당 키의 값. 리스트가 비어있거나 키가 존재하지 않으면 None을 반환합니다.
+    """
+    # 1. 리스트가 비어있는지 확인
+    if not result_list:
+        return None
+        
+    # 2. 가장 확률이 높은 첫 번째 딕셔너리 선택
+    top_result_dict = result_list[0]
+    print(f"result {top_result_dict}")
+    # 3. 딕셔너리에서 해당 키의 값을 추출 (키가 없으면 None 반환)
+    return top_result_dict.get(key_name)
+
+
+# ver 1 #############################
+class PredictApiView(View):
+    def post(self, request, *args, **kwargs):
+        if 'image' not in request.FILES:
+            return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
+
+        file = request.FILES['image']
+        
+        try:
+            res = predict_with_tta_file(file)
+            res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
+        except Exception as e:
+            return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
+       
+        try:
+            predicted_class = res.get("top_k")  # predict_from_pil에서 반환되도록 수정 필요
+            code = get_top_result_value(predicted_class,'class')
+            print(f" predict : {code}")
+            group_code = None
+            if predicted_class:
+                group_code = GroupCode.objects.filter(code=code).first()
+                if group_code:
+                   numeric_code = group_code.id  # numeric_code 가져오기
+
+            print(f"group_code {numeric_code}")
+
+            # top3_idx = np.argsort(preds)[::-1][:3]
+            # top_3 = [(_CLASS_NAMES[i], float(preds[i])) for i in top3_idx]
+            top_3 = res.get("top_k")
+            top_3_list_of_tuples = [
+                (d['class'], d['prob']) 
+                for d in top_3
+            ]
+            res["top_3"] = top_3_list_of_tuples
+            
+            
+            result_message = f"{group_code}로 분류되었습니다."
+            recycling_guide = get_recycling_guidance(code)
+            res["result_message"] = result_message
+            res["recycling_guide"] = recycling_guide
+            print(f"1 top_3 {res.get('top_3')}")
+
+            print(f"2 result_message {result_message}")
+            # print(f"group_code.id {group_code.id}")
+            print(f"3 predicted_class {code}")
+            print(f"4 confidence {res.get('confidence', '')}")
+            print(f"5 confidence_level {res.get('confidence_level', '')}")
+            print(f"6 recycling_guide {res.get('recycling_guide')}")
+        #     # RecyclableResult 저장
+            RecyclableResult.objects.create(
+                PREDICTED_CLASS=code,
+                CONFIDENCE=res.get("confidence", 0.0),
+                CONFIDENCE_LEVEL=res.get("confidence_level", ""),
+                RESULT_MESSAGE=result_message,
+                TOP_3=top_3_list_of_tuples,
+                RECYCLING_GUIDE= res.get("recycling_guide"),
+                RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
+                group_code_id=numeric_code
+            )
+        except Exception as e:
+            # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
+            print("DB save error:", e)
+
+
+        enable = os.getenv('ENABLE')
+
+        rsEnable = CountryPf.objects.all().order_by('-created_at').first()
+        # enable = 0
+        if rsEnable:
+            enable = rsEnable.active
+            print(f"TTs 사용여부 : {enable}")
+      
+        print(f" enable data {enable}")
+        res["tts_able"] = enable
+        if(enable == 1):
+            #JSON 반환
+            print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
             tts_name = translate_and_tts(f'{result_message}',rsEnable.country,rsEnable.gender)
             host = request.scheme + "://" + request.get_host()
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']

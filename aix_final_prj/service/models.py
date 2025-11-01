@@ -5,7 +5,7 @@ class GroupCode(models.Model):
     분류 코드 사전 테이블
     """
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=200, verbose_name='코드명(한글)', unique=True)
+    name = models.CharField(max_length=200, verbose_name='코드명(한글)')
     code = models.CharField(max_length=50, verbose_name='기존 코드명', unique=True)
     numeric_code = models.CharField(max_length=5, verbose_name='문자형 숫자 코드', unique=True, editable=False)
     desc = models.TextField(blank=True, null=True, verbose_name='설명')

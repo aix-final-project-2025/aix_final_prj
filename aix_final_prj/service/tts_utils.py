@@ -23,12 +23,8 @@ from pydub.playback import play
 # ----------------------------------------------------
 # 📌 v0.x 호환성을 위해 import 경로 수정됨 📌
 # ----------------------------------------------------
-# from langchain_classic.chains import LLMChain  # <- v0.x 환경에서 제거됨
 from langchain.chains import LLMChain             # 👈 v0.x의 올바른 경로
-# from langchain_core.prompts import PromptTemplate # <- v1.0 이전 버전에서도 작동하지만, 통일성을 위해 변경
 from langchain.prompts import PromptTemplate      # 👈 v0.x의 표준 경로
-
-# from langchain_openai import ChatOpenAI  # <- 그대로 유지 (v0.x 패키지 사용)
 from langchain_openai import ChatOpenAI
 # ----------------------------------------------------
 
@@ -39,8 +35,6 @@ import platform
 # ------------------------
 try:
     if platform.system() in ["Darwin", "Linux"]:
-        # playsound2 패키지가 requirements.txt에 없으므로 playsound로 통일하거나 playsound2 설치가 필요합니다.
-        # 현재 playsound2가 없는 가정 하에 playsound만 시도하도록 수정합니다.
         from playsound import playsound 
     else:
         from playsound import playsound
@@ -82,7 +76,7 @@ llm = ChatOpenAI(
 )
 
 # LLMChain은 v0.x의 langchain.chains에서 가져옵니다.
-# chain = LLMChain(llm=llm, prompt=prompt_template)   -- # runserver시 LangChain 에러 발생 임시 주석처리
+chain = LLMChain(llm=llm, prompt=prompt_template)  # runserver시 LangChain 에러 발생 임시 주석처리
 
 # ------------------------
 # 3. JSON 파싱 유틸
@@ -115,10 +109,11 @@ def fallback_parse(s: str) -> Dict[str, str]:
 
 def get_translations(input_text: str) -> Dict[str, str]:
     """LLMChain으로 한국어, 영어, 스페인어 번역 결과를 JSON으로 반환"""
-    
-    # 📌 v0.x에서 딕셔너리 {'text': '...'} 반환을 보장하는 안전한 호출 방식으로 수정
-    resp = chain({"input_text": input_text}) 
-    
+    try:
+        # 📌 v0.x에서 딕셔너리 {'text': '...'} 반환을 보장하는 안전한 호출 방식으로 수정
+        resp = chain({"input_text": input_text}) 
+    except Exception as e:
+        print(f"chain error {e}")    
     # 응답에서 텍스트 추출
     # v0.3.x에서는 주로 딕셔너리 {'text': '...'} 형태로 반환됩니다.
     if isinstance(resp, dict) and "text" in resp:
@@ -140,12 +135,16 @@ def get_translations(input_text: str) -> Dict[str, str]:
 # ------------------------
 # 4. TTS 유틸
 # ------------------------
-# (TTS 유틸리티 함수는 버전 변경과 무관하므로 그대로 유지)
-def tts_generate_play(text, lang_code, filename=None, use_pydub=False):
+# 🌟 변경: gender_key 파라미터를 추가하고 gTTS 대신 다른 TTS를 사용할 때를 대비하여 주석 처리
+def tts_generate_play(text, lang_code, gender_key=None, filename=None, use_pydub=False):
     if not filename:
-        filename = f"tts_{lang_code}.mp3"
+        filename = f"tts_{lang_code}_{gender_key or 'default'}.mp3"
+    
+    # 🚨 G-TTS는 성별 옵션을 지원하지 않습니다. 이 키는 파일명에만 사용됩니다.
+    #    실제 성별 출력을 원하시면 Google Cloud TTS, Naver Clova Voice 등으로 전환해야 합니다.
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filename)
+    
     try:
         if use_pydub or not playsound:
             sound = AudioSegment.from_file(filename, format="mp3")
@@ -157,15 +156,20 @@ def tts_generate_play(text, lang_code, filename=None, use_pydub=False):
     
     return filename
 
-def tts_generate_save(text, lang_code, filename=None, use_pydub=False):
+# 🌟 변경: gender_key 파라미터를 추가
+def tts_generate_save(text, lang_code, gender_key=None, filename=None, use_pydub=False):
     if not filename:
-        filename = f"tts_{lang_code}.mp3"
+        # 🌟 파일명에 gender_key를 포함
+        filename = f"tts_{lang_code}_{gender_key or 'default'}.mp3"
+        
     # settings.MEDIA_ROOT가 정의되어 있지 않을 경우를 대비하여 현재 디렉토리를 사용
     base_dir = getattr(settings, 'MEDIA_ROOT', os.getcwd())
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
         
     filepath = os.path.join(base_dir, filename)
+    
+    # 🚨 G-TTS는 성별 옵션을 지원하지 않습니다. 
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filepath)
     return filename
@@ -176,7 +180,7 @@ def tts_generate_save(text, lang_code, filename=None, use_pydub=False):
 def translate_and_tts(
     text: str,
     country: str = "ko",
-    gender: str = "female",
+    gender: str = "female", # 🌟 성별 키값 기본값 유지
     translate_first: bool = True,
     use_pydub: bool = False
 ) -> Dict[str, str]:
@@ -192,10 +196,16 @@ def translate_and_tts(
     else:
         text_to_read = text
 
-    fname = f"tts_{country}_{gender}.mp3"
-    tts_name = tts_generate_save(text_to_read, lang_code=country, filename=fname, use_pydub=use_pydub)
+    # 🌟 tts_generate_save 함수에 gender 키값 전달
+    tts_name = tts_generate_save(
+        text_to_read, 
+        lang_code=country, 
+        gender_key=gender, # 🌟 gender_key 전달
+        filename=None, 
+        use_pydub=use_pydub
+    )
     print(f"[INFO] TTS 저장 완료: {tts_name}")
-    return {country: fname, "tts_name": tts_name}
+    return {country: tts_name, "tts_name": tts_name} # tts_name을 country 키에도 반환
 
 # ------------------------
 # 테스트 실행

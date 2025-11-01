@@ -255,7 +255,7 @@ def predict_from_pil(image: Image.Image, threshold=0.5):
     # 상위 3개 클래스
     top3_idx = np.argsort(preds)[::-1][:3]
     top_3 = [(_CLASS_NAMES[i], float(preds[i])) for i in top3_idx]
-
+    print(f"top_3 {top_3}")
     # 분리배출 가이드 불러오기
     guide = get_recycling_guidance(predicted_class)
 
