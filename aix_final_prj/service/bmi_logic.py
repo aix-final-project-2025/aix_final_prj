@@ -38,7 +38,7 @@ def preprocess_data():
     
     df1['Country'] = le_country.fit_transform(df1['Country'])
     df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
-    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    #df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
     df1['Gender'] = le_gender.fit_transform(df1['Gender'])
     
     df1['High_BMI'] = (df1['BMI'] >= 25).astype(int)
@@ -165,7 +165,7 @@ def run_clustering_analysis():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['BMI','Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours']
+    clustering_features = ['BMI','Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours','Country',"Heart_Rate",'Occupation', 'Alcohol_Consumption']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
