@@ -4,8 +4,8 @@
 # 설치: pip install langchain openai gTTS pydub python-dotenv playsound (LangChain v0.x 버전 설치 필요)
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # 🚫 GPU 탐색 비활성화 > import os 바로 밑에 코드 위치해야
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"   # ⚡ 불필요한 로그 줄이기 > import os 바로 밑에 코드 위치해야
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # GPU 탐색 비활성화 > import os 바로 밑에 코드 위치해야
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"   # 불필요한 로그 줄이기 > import os 바로 밑에 코드 위치해야
 
 # ----------------------------------------------------
 # 🧩 2️⃣ 표준 라이브러리 & 외부 라이브러리
@@ -21,10 +21,10 @@ from pydub import AudioSegment
 from pydub.playback import play
 
 # ----------------------------------------------------
-# 📌 v0.x 호환성을 위해 import 경로 수정됨 📌
+#  v0.x 호환성을 위해 import 경로 수정됨 
 # ----------------------------------------------------
-from langchain.chains import LLMChain             # 👈 v0.x의 올바른 경로
-from langchain.prompts import PromptTemplate      # 👈 v0.x의 표준 경로
+from langchain.chains import LLMChain             
+from langchain.prompts import PromptTemplate      
 from langchain_openai import ChatOpenAI
 # ----------------------------------------------------
 
@@ -76,7 +76,7 @@ llm = ChatOpenAI(
 )
 
 # LLMChain은 v0.x의 langchain.chains에서 가져옵니다.
-chain = LLMChain(llm=llm, prompt=prompt_template)  # runserver시 LangChain 에러 발생 임시 주석처리
+chain = LLMChain(llm=llm, prompt=prompt_template)  
 
 # ------------------------
 # 3. JSON 파싱 유틸
@@ -110,7 +110,7 @@ def fallback_parse(s: str) -> Dict[str, str]:
 def get_translations(input_text: str) -> Dict[str, str]:
     """LLMChain으로 한국어, 영어, 스페인어 번역 결과를 JSON으로 반환"""
     try:
-        # 📌 v0.x에서 딕셔너리 {'text': '...'} 반환을 보장하는 안전한 호출 방식으로 수정
+        # v0.x에서 딕셔너리 {'text': '...'} 반환을 보장하는 안전한 호출 방식으로 수정
         resp = chain({"input_text": input_text}) 
     except Exception as e:
         print(f"chain error {e}")    
@@ -135,12 +135,12 @@ def get_translations(input_text: str) -> Dict[str, str]:
 # ------------------------
 # 4. TTS 유틸
 # ------------------------
-# 🌟 변경: gender_key 파라미터를 추가하고 gTTS 대신 다른 TTS를 사용할 때를 대비하여 주석 처리
+# 변경: gender_key 파라미터를 추가하고 gTTS 대신 다른 TTS를 사용할 때를 대비하여 주석 처리
 def tts_generate_play(text, lang_code, gender_key=None, filename=None, use_pydub=False):
     if not filename:
         filename = f"tts_{lang_code}_{gender_key or 'default'}.mp3"
     
-    # 🚨 G-TTS는 성별 옵션을 지원하지 않습니다. 이 키는 파일명에만 사용됩니다.
+    # G-TTS는 성별 옵션을 지원하지 않습니다. 이 키는 파일명에만 사용됩니다.
     #    실제 성별 출력을 원하시면 Google Cloud TTS, Naver Clova Voice 등으로 전환해야 합니다.
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filename)
@@ -156,10 +156,10 @@ def tts_generate_play(text, lang_code, gender_key=None, filename=None, use_pydub
     
     return filename
 
-# 🌟 변경: gender_key 파라미터를 추가
+# 변경: gender_key 파라미터를 추가
 def tts_generate_save(text, lang_code, gender_key=None, filename=None, use_pydub=False):
     if not filename:
-        # 🌟 파일명에 gender_key를 포함
+        # 파일명에 gender_key를 포함
         filename = f"tts_{lang_code}_{gender_key or 'default'}.mp3"
         
     # settings.MEDIA_ROOT가 정의되어 있지 않을 경우를 대비하여 현재 디렉토리를 사용
@@ -169,7 +169,7 @@ def tts_generate_save(text, lang_code, gender_key=None, filename=None, use_pydub
         
     filepath = os.path.join(base_dir, filename)
     
-    # 🚨 G-TTS는 성별 옵션을 지원하지 않습니다. 
+    # G-TTS는 성별 옵션을 지원하지 않습니다. 
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filepath)
     return filename
@@ -180,7 +180,7 @@ def tts_generate_save(text, lang_code, gender_key=None, filename=None, use_pydub
 def translate_and_tts(
     text: str,
     country: str = "ko",
-    gender: str = "female", # 🌟 성별 키값 기본값 유지
+    gender: str = "female", # 성별 키값 기본값 유지
     translate_first: bool = True,
     use_pydub: bool = False
 ) -> Dict[str, str]:
@@ -196,11 +196,11 @@ def translate_and_tts(
     else:
         text_to_read = text
 
-    # 🌟 tts_generate_save 함수에 gender 키값 전달
+    # tts_generate_save 함수에 gender 키값 전달
     tts_name = tts_generate_save(
         text_to_read, 
         lang_code=country, 
-        gender_key=gender, # 🌟 gender_key 전달
+        gender_key=gender, # gender_key 전달
         filename=None, 
         use_pydub=use_pydub
     )

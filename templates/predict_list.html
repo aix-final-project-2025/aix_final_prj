@@ -76,8 +76,8 @@ body { font-family:'Arial', sans-serif; margin:0; padding:0; background:#f2f2f2;
 .select-button-group button.active { background:#4CAF50; color:white; } */
 
 /* 수정 버튼 */
-#modal-update-btn { width:100%; padding:12px; margin-top:5px; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; font-weight:bold; font-size:16px; transition:0.2s; }
-#modal-update-btn:hover { background:#45a049; }
+/* #modal-update-btn { width:100%; padding:12px; margin-top:5px; border:none; border-radius:6px; background:#4CAF50; color:white; cursor:pointer; font-weight:bold; font-size:16px; transition:0.2s; }
+#modal-update-btn:hover { background:#45a049; } */
 
 /* 모달 활성 시 배경 비활성화 */
 body.modal-open .container { pointer-events:none; user-select:none; }
@@ -97,7 +97,7 @@ body.modal-open .container { pointer-events:none; user-select:none; }
   <div class="modal-content">
     <img id="modal-image" src="" alt="이미지 예측 결과">
     <div class="modal-card">
-      <h4>예측결과</h4>
+      <h4>쓰레기 분류</h4>
       <p id="modal-predicted"></p>
     </div>
     <div class="modal-card">
@@ -108,11 +108,11 @@ body.modal-open .container { pointer-events:none; user-select:none; }
       <h4>Top 3 예측결과</h4>
       <p id="modal-top3"></p>
     </div>
-    <div class="modal-card">
+    <!-- <div class="modal-card">
       <h4>쓰레기 분류</h4>
       <div class="select-button-group" id="modal-category-buttons"></div>
-    </div>
-    <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button>
+    </div> -->
+    <!-- <button id="modal-update-btn" onclick="predicChange(this.dataset.codeId)">수정</button> -->
   </div>
 </div>
 {% endblock %}
@@ -158,7 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const guide = card.querySelectorAll(".content-box")[1].textContent;
             const top3 = card.querySelectorAll(".content-box")[2].textContent;
             selectedCategoryId = parseInt(card.querySelector('select')?.value || 0);
-
+            console.log(guide)
+            // let jsonObj = JSON.parse(guide)
             document.getElementById("modal-image").src = imgSrc;
             document.getElementById("modal-predicted").innerText = predicted;
             document.getElementById("modal-guide").innerText = guide;
@@ -243,13 +244,21 @@ document.addEventListener("DOMContentLoaded", () => {
         img.src = item.image_url;
         card.appendChild(img);
 
+        let guide = "";
+        try {
+            const parsed = JSON.parse(item.recycling_guide.replace(/'/g, '"'));
+            guide = parsed.action; 
+        } catch (e) {
+            guide = item.recycling_guide; // fallback
+        }
+
         const content = document.createElement("div");
         content.className = "card-content";
         content.innerHTML = `
-          <div class="content-box"><strong>예측결과:</strong> ${item.predicted_result}</div>
-          <div class="content-box mobile-hide"><strong>분리처리 안내:</strong> ${item.recycling_guide}</div>
-          <div class="content-box mobile-hide"><strong>Top 3:</strong> ${item.top3}</div>
-          <div class="card-row mobile-hide">${item.group_code_id}</div>
+          <div class="content-box"><strong>쓰레기 분류: </strong>${item.predicted_result}</div>
+          <div class="content-box mobile-hide"><strong>분리처리 안내: </strong> ${guide}</div>
+          <div class="content-box mobile-hide"><strong>Top 3:</strong><br> ${item.top3}</div>
+          <!--div class="card-row mobile-hide">${item.group_code_id}</div-->
         `;
         card.appendChild(content);
         return card;

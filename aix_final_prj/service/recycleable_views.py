@@ -207,7 +207,9 @@ def get_top_result_value(result_list, key_name):
     # 3. 딕셔너리에서 해당 키의 값을 추출 (키가 없으면 None 반환)
     return top_result_dict.get(key_name)
 
-
+def load_image_from_file(file_obj) -> Image.Image:
+    img = Image.open(file_obj).convert("RGB")
+    return img
 # ver 1 #############################
 class PredictApiView(View):
     def post(self, request, *args, **kwargs):
@@ -218,6 +220,7 @@ class PredictApiView(View):
         
         try:
             res = predict_with_tta_file(file)
+            res["result_image"] = pil_to_base64(load_image_from_file(file))
             res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
         except Exception as e:
             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
@@ -244,7 +247,7 @@ class PredictApiView(View):
             res["top_3"] = top_3_list_of_tuples
             
             
-            result_message = f"{group_code}로 분류되었습니다."
+            result_message = f"{group_code}로 분류 되었습니다."
             recycling_guide = get_recycling_guidance(code)
             res["result_message"] = result_message
             res["recycling_guide"] = recycling_guide
@@ -255,7 +258,9 @@ class PredictApiView(View):
             print(f"3 predicted_class {code}")
             print(f"4 confidence {res.get('confidence', '')}")
             print(f"5 confidence_level {res.get('confidence_level', '')}")
-            print(f"6 recycling_guide {res.get('recycling_guide')}")
+            print(f"6 recycling_guide {recycling_guide}")
+            print(f"7 recycling_guide {recycling_guide['action']}")
+            
         #     # RecyclableResult 저장
             RecyclableResult.objects.create(
                 PREDICTED_CLASS=code,
@@ -263,7 +268,7 @@ class PredictApiView(View):
                 CONFIDENCE_LEVEL=res.get("confidence_level", ""),
                 RESULT_MESSAGE=result_message,
                 TOP_3=top_3_list_of_tuples,
-                RECYCLING_GUIDE= res.get("recycling_guide"),
+                RECYCLING_GUIDE= recycling_guide,
                 RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
                 group_code_id=numeric_code
             )
@@ -285,7 +290,7 @@ class PredictApiView(View):
         if(enable == 1):
             #JSON 반환
             print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
-            tts_name = translate_and_tts(f'{result_message}',rsEnable.country,rsEnable.gender)
+            tts_name = translate_and_tts(f'{result_message}\n{recycling_guide["action"]}',rsEnable.country,rsEnable.gender)
             host = request.scheme + "://" + request.get_host()
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
      

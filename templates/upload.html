@@ -25,7 +25,7 @@ h1 {
   text-align: center;
   margin: 20px 0;
 }
-/* 2. ✅ 최종 해결책: .line 요소를 뷰포트 너비 전체로 강제 확장 */
+/* 2.최종 해결책: .line 요소를 뷰포트 너비 전체로 강제 확장 */
 /* 이 설정은 상위 컨테이너의 max-width 제약 조건을 무시하고, 라인만 화면 전체 너비에 맞춥니다.
    margin-left: calc(50% - 50vw)를 사용하여 라인을 정확히 중앙에 배치합니다. */
 /* .page-header .line {
@@ -142,7 +142,7 @@ input[type="file"] { display: none; }
   z-index: 999;
 } */
 
-/* ✅ 수정: Modal Sheet (공통) - 전체 스크롤 방지 및 flex 컨테이너 설정 */
+/* 수정: Modal Sheet (공통) - 전체 스크롤 방지 및 flex 컨테이너 설정 */
 #mobileModal {
   display: none;
   position: fixed;
@@ -160,7 +160,7 @@ input[type="file"] { display: none; }
   flex-direction: column;
 }
 
-/* ✅ 수정: handle 표시 - Sticky로 상단 고정 및 배경 설정 */
+/* 수정: handle 표시 - Sticky로 상단 고정 및 배경 설정 */
 #modalHandle {
   width: 60px;
   height: 10px;
@@ -171,7 +171,7 @@ input[type="file"] { display: none; }
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   user-select: none;
   
-  /* ✅ 수정: Sticky로 고정 */
+  /* 수정: Sticky로 고정 */
   position: sticky;
   top: 0;
   background: #fff; /* 스크롤 시 핸들 뒤의 내용이 보이지 않도록 배경을 흰색으로 설정 */
@@ -184,7 +184,7 @@ input[type="file"] { display: none; }
   border-radius: 10px; /* 기존 border-radius 유지 */
 }
 
-/* ✅ 추가: modalContent - 스크롤 영역 설정 */
+/*  추가: modalContent - 스크롤 영역 설정 */
 #modalContent {
     flex-grow: 1; /* 남은 공간 모두 차지 */
     overflow-y: auto; /* 이 영역만 스크롤되도록 설정 */
@@ -195,12 +195,19 @@ input[type="file"] { display: none; }
 
 /* 결과 카드 레이아웃 */
 .result-container {
-  padding: 0 25px 25px 25px;
+  padding: 10px 5px ;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
+/* .result-container {
+  padding: 10px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; 
+  text-align: left;
+} */
 .result-card {
   /* ... (기존 스타일 유지) ... */
   background: #fafafa;
@@ -210,10 +217,10 @@ input[type="file"] { display: none; }
   width: 90%;
   max-width: 600px;
   margin-bottom: 14px;
-
+  margin-top: 14px;
   /* 추가 조정 */
   min-height: 90px;      /* 카드 최소 높이 */
-  font-size: 16px;        /* 전체 텍스트 기본 폰트 크기 */
+  font-size: 20px;        /* 전체 텍스트 기본 폰트 크기 */
   line-height: 1.0;       /* 글자 줄 간격 조절 */
 }
 
@@ -221,7 +228,7 @@ input[type="file"] { display: none; }
   /* ... (기존 스타일 유지) ... */
   margin-top: 0;
   color: #333;
-  font-size: 28px;
+  font-size: 20px;
 }
 
 .result-card ul {
@@ -232,7 +239,7 @@ input[type="file"] { display: none; }
 
 .result-card li {
   /* ... (기존 스타일 유지) ... */
-  font-size: 24px;
+  font-size: 18px;
   margin: 8px 0;
   color: #555;
 }
@@ -242,6 +249,8 @@ input[type="file"] { display: none; }
   display: block;
   width: 65%;
   margin: 0 auto 12px auto;
+  background-color: #b3b3b3;
+  border: 0px solid #5e5e5e;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
   border-radius: 12px;
 }
@@ -253,6 +262,8 @@ input[type="file"] { display: none; }
   border-radius: 12px;
   width: 90%;
   max-width: 600px;
+  background-color: #eeffe5;
+  border: 0px solid #84ff80;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
@@ -260,12 +271,12 @@ input[type="file"] { display: none; }
   /* ... (기존 스타일 유지) ... */
   margin-top: 0;
   color: #2e7d32;
-  font-size: 28px;
+  font-size: 20px;
 }
 
 .guide-card p {
   /* ... (기존 스타일 유지) ... */
-  font-size: 24px;
+  font-size: 18px;
   margin: 10px 0;
   color: #333;
 }
@@ -301,24 +312,25 @@ input[type="file"] { display: none; }
 
 /* 분리처리 안내 카드 */
 .processing-card {
-  width: 99%;
-  padding: 12px;
+  width: 100%;
+  padding: 1px;
   border-radius: 10px;
   background-color: #fff4e5;
-  border: 1px solid #ffcc80;
+  border: 0px solid #ffcc80;
   margin-top: 8px;
   margin-bottom: 12px;
   line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .processing-card h3 {
   margin: 0 0 6px 0;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .processing-card p {
   margin: 0;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 
@@ -370,33 +382,101 @@ input[type="file"] { display: none; }
 
 /* 모바일 전용 */
 @media (max-width: 768px) {
-  /* ✅ 수정: 모바일 모달 최대 높이 설정 */
+  /* 수정: 모바일 모달 최대 높이 설정 */
   #mobileModal { max-height: 54vh; } 
-  .processing-card {
-    width: 96%;
-    font-size: 28px;
-    padding: 10px;
+
+  /* container 분리처리,분리수거 가이드 , Top3 예측결과 CSS */
+  .result-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
+
+  /* 오른쪽 리스트 컨테이너 */
+  .result-right {
+    padding: 0px 20px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center; 
+    text-align: left;   
+    width: 400px;      /* 이미지와 동일 폭 */
+    height: 430px;     /* 이미지 높이에 맞춤 */
+    gap: 0px;
+  }
+  .result-right > div {
+      width: 100%;             /* ← 카드 폭 통일 */
+  }
+
+
+  /* 분리처리 안내 CSS */
+  .processing-card {
+    width: 100%;
+    padding: 10px 5px 10px 24px;
+  }
+  .processing-card h3 {
+    /* margin: 0 0 6px 0; */
+    font-size: 18px;
+  }
+  .processing-card p {
+    /* margin: 0; */
+    font-size: 16px;
+  }
+
 
   /* ... (기존 모바일 스타일 유지) ... */
   .result-card,
   .guide-card {
-    width: 95%;
-    padding: 12px 12px;
-    border-radius: 10px;
+    /* width: 95%; */
+    /* padding: 12px 12px; */
+    border-radius: 18px;
     overflow-y: auto;
   }
 
-  /* 예측 결과 리스트 */
-  .result-card ul {
-    margin: 0;
-    padding-left: 18px;
+  /* 분리수거 가이드 CSS */
+  .guide-card h3 {
+    /* margin-top: 0; */
+    color: #2e7d32;
+    font-size: 18px;
   }
 
+  .guide-card p {
+    /* ... (기존 스타일 유지) ... */
+    font-size: 16px;
+    /* margin: 10px 0; */
+    color: #333;
+  }
+
+
+  /* 예측결과 CSS */
+  /* .result-card {
+    margin-top: 2px;
+  } */
+
+  .result-card h3 {
+    /* ... (기존 스타일 유지) ... */
+    /* margin-top: 0; */
+    color: #333;
+    font-size: 18px;
+  }
+  /* 예측 결과 리스트 */
+  .result-card ul {
+    /* margin: 0; */
+    padding-left: 15px;
+  }
+
+ 
   .result-card li {
-    margin-bottom: 4px;
+    /* ... (기존 스타일 유지) ... */
+    font-size: 16px;
+    /* margin: 8px 0; */
+    color: #555;
+    /* margin-bottom: 2px; */
     line-height: 1.3;
   }
+
+
+
 
 
   #drop-area {
@@ -475,6 +555,9 @@ input[type="file"] { display: none; }
     padding: 30px;
   }
 
+
+
+
   /* 왼쪽 이미지 래퍼 */
   .result-card-img {
     flex-shrink: 0;
@@ -496,16 +579,7 @@ input[type="file"] { display: none; }
     border-radius: 12px;
   }
 
-  /* 오른쪽 리스트 컨테이너 */
-  .result-right {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 400px;      /* 이미지와 동일 폭 */
-    height: 430px;     /* 이미지 높이에 맞춤 */
-    gap: 8px;
-  }
-
+  
   /* 리스트 카드 여백 및 디자인 조정 */
   .result-card,
   .guide-card {
@@ -513,6 +587,7 @@ input[type="file"] { display: none; }
     padding: 12px 12px;
     border-radius: 10px;
     overflow-y: auto;
+    
   }
 
   /* 예측 결과 리스트 */
@@ -572,7 +647,7 @@ body.modal-open { overflow: hidden; }
 {% block extra_script %}
 <script>
     // ===========================
-    // ✅ 변수 선언
+    // 변수 선언
     // ===========================
     const dropArea = document.getElementById("drop-area");
     const fileInputAlbum = document.getElementById("fileElemAlbum");
@@ -588,13 +663,13 @@ body.modal-open { overflow: hidden; }
     //const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     // ===========================
-    // ✅ 로더
+    // 로더
     // ===========================
     function showLoader(){ loaderOverlay.style.display="flex"; }
     function hideLoader(){ loaderOverlay.style.display="none"; }
 
     // ===========================
-    // ✅ 이미지 미리보기
+    // 이미지 미리보기
     // ===========================
     function showPreview(file){
         const reader = new FileReader();
@@ -606,7 +681,7 @@ body.modal-open { overflow: hidden; }
             newImg.src = e.target.result;
             dropArea.appendChild(newImg);
 
-            // ✅ PC/모바일 공통: 안내 문구 숨기기
+            // PC/모바일 공통: 안내 문구 숨기기
             const dropMessage = document.getElementById("drop-message");
             if(dropMessage) dropMessage.style.display = "none";
 
@@ -620,7 +695,7 @@ body.modal-open { overflow: hidden; }
     }
 
     // ===========================
-    // ✅ dropArea 이벤트
+    // dropArea 이벤트
     // ===========================
     // dropArea.addEventListener("click", ()=> fileInputAlbum.click());
     dropArea.addEventListener("click", e => {
@@ -647,7 +722,7 @@ body.modal-open { overflow: hidden; }
     });
 
     // ===========================
-    // ✅ TTS 재생
+    // TTS 재생
     // ===========================
     async function playTTS(url){
         if(url){
@@ -657,7 +732,7 @@ body.modal-open { overflow: hidden; }
     }
 
     // ===========================
-    // ✅ Modal 열기/닫기 (사이드바/모달 시트 수정 방식)
+    // Modal 열기/닫기 (사이드바/모달 시트 수정 방식)
     // ===========================
     function openModal(data){
 
@@ -666,7 +741,7 @@ body.modal-open { overflow: hidden; }
                 modal.style.opacity = '1';
         });
         if (!modal) {
-          console.warn("⚠️ mobileModal 요소를 찾을 수 없습니다.");
+          console.warn("mobileModal 요소를 찾을 수 없습니다.");
           return;
         }
 
@@ -787,7 +862,7 @@ body.modal-open { overflow: hidden; }
 
 
     // ===========================
-    // ✅ 업로드/예측
+    // 업로드/예측
     // ===========================
     form.addEventListener("submit", async e=>{
         e.preventDefault();
@@ -818,7 +893,7 @@ body.modal-open { overflow: hidden; }
     });
 
     // ===========================
-    // ✅ 결과 렌더링
+    // 결과 렌더링
     // ===========================
     function renderResult(data){
         let html = '<div class="result-container">';
@@ -831,19 +906,20 @@ body.modal-open { overflow: hidden; }
                 <div class="processing-card">
                     <h3>분리처리 안내</h3>
                     <p>${data.result_message}</p>
-                </div>
-                <div class="result-card">
-                    <h3>Top 3 예측결과</h3>
-                    <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>
-                </div>`;
-            if(data.recycling_guide){
+                </div>`
+               if(data.recycling_guide){
                 html += `
                 <div class="guide-card">
                     <h3>분리수거 가이드</h3>
                     <p><strong>카테고리:</strong> ${data.recycling_guide.category}</p>
                     <p><strong>방법:</strong> ${data.recycling_guide.action}</p>
                 </div>`;
-            }
+                } 
+                html +=`<div class="result-card">
+                    <h3>Top 3 예측결과</h3>
+                    <ul>${data.top_3.map(item=>`<li>${item[0]} — ${(item[1]*100).toFixed(2)}%</li>`).join('')}</ul>
+                </div>`;
+            
             html += `</div>`; // result-right 닫기
         }
         html += '</div>'; // result-container 닫기
@@ -853,7 +929,7 @@ body.modal-open { overflow: hidden; }
     }
 
     // ===========================
-    // ✅ Modal 드래그/터치 (사이드바/모달 시트 수정 방식)
+    // Modal 드래그/터치 (사이드바/모달 시트 수정 방식)
     // ===========================
     let startY=0, isDragging=false;
 
