@@ -60,7 +60,7 @@ def create_initial_groupcode(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('service', '0002_countrypf'),  # ✅ 여기 추가 — 이게 핵심입니다.
+        ('service', '0002_countrypf'),  # 여기 추가 — 이게 핵심입니다.
     ]
 
     operations = [
