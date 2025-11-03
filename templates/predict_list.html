@@ -158,7 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const guide = card.querySelectorAll(".content-box")[1].textContent;
             const top3 = card.querySelectorAll(".content-box")[2].textContent;
             selectedCategoryId = parseInt(card.querySelector('select')?.value || 0);
-            console.log(guide)
             // let jsonObj = JSON.parse(guide)
             document.getElementById("modal-image").src = imgSrc;
             document.getElementById("modal-predicted").innerText = predicted;
@@ -168,6 +167,13 @@ document.addEventListener("DOMContentLoaded", () => {
             modal.classList.add("show");
             document.body.style.overflow = "hidden";
             document.body.classList.add("modal-open");
+
+            //modalContent 변수 가져오기
+            const modalContent = modal.querySelector(".modal-content");
+            requestAnimationFrame(() => {
+                // 모달 내용 스크롤 초기화
+                modalContent.scrollTop = 0;
+            });
         }
     });
 
@@ -178,6 +184,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.classList.remove("show");
         document.body.style.overflow = "";
         document.body.classList.remove("modal-open");
+          // 3. 애니메이션 적용
+      
     });
 
     document.addEventListener("keydown", (e) => {
@@ -261,6 +269,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <!--div class="card-row mobile-hide">${item.group_code_id}</div-->
         `;
         card.appendChild(content);
+
+       
         return card;
     }
 

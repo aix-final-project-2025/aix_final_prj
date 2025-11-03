@@ -34,6 +34,33 @@
   font-size: 16px;
   line-height: 1.8;
 }
+/* 모바일 전용 */
+@media (max-width: 768px) {
+  .main-message-container {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .p-6{
+    padding: 1.4rem !important;
+  }
+  .pb-4 {
+    padding-bottom: 1.0rem  !important;
+  }
+  .mb-4 {
+    margin-bottom: 1.0rem !important;
+  }
+  .company-footer {
+    /* width: 100%;
+    padding: 20px 20px;
+    background-color: #d8d8d8;
+    border-top: 1px solid #eee;
+    color: #777;
+    font-size: 13px;
+    text-align: center; */
+    margin-top: 12px !important;
+  }
+}
+
 
 .program-item {
   margin: 12px 0;

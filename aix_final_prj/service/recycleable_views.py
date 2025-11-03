@@ -247,7 +247,7 @@ class PredictApiView(View):
             res["top_3"] = top_3_list_of_tuples
             
             
-            result_message = f"{group_code}로 분류 되었습니다."
+            result_message = f"{group_code.name}로 분류 되었습니다."
             recycling_guide = get_recycling_guidance(code)
             res["result_message"] = result_message
             res["recycling_guide"] = recycling_guide

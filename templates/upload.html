@@ -17,10 +17,15 @@ html, body {
   font-family: 'Arial', sans-serif;
   font-size: 16px;
   background: #f5f7fa;
+  overflow-y: auto;  /* 상하 스크롤 허용 */
+  scrollbar-width: none; /* Firefox */
+  overflow-x: hidden;  /* 좌우 스크롤 차단 */
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
-
+body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
 h1 {
   text-align: center;
   margin: 20px 0;
@@ -51,7 +56,6 @@ h1 {
 
 
 #drop-area.dragover { background:#e8f5e9; border-color:#2e7d32; }
-/* #drop-message { text-align:center; pointer-events:none; font-size:18px; color:#333; } */
 #drop-message {
     text-align: center;
     pointer-events: none;
@@ -65,12 +69,10 @@ input[type="file"] { display: none; }
     display: flex;
     justify-content: center;   /* 수평 중앙 */
     align-items: center;       /* 수직 중앙 */
-    
     position: relative;        /* 상위 컨테이너 기준 */
     top: 0;                    /* 상단에 붙임 */
     left: 50%;
     transform: translateX(-50%); /* 수평 중앙 정렬 */
-
     width: auto;               /* 버튼 폭에 맞춤 */
     gap: 15px;                 /* 버튼 사이 간격 */
     margin-bottom: 15px;       /* 아래 여백 필요 시 */
@@ -78,14 +80,6 @@ input[type="file"] { display: none; }
 }
 
 
-/* button {
-  border: none;
-  border-radius: 8px;
-  font-size: 30px;
-  cursor:pointer;
-  padding:10px 28px;
-  margin: 0;
-} */
 #cameraButton {             
   padding: 10px 20px;
   background: #1976d2;
@@ -112,13 +106,6 @@ input[type="file"] { display: none; }
     object-fit: contain;
     border-radius: 8px;
 }
-
-/* @supports (-webkit-backdrop-filter: none) {
-    .sidebar {
-        backdrop-filter: none;
-        background-color: rgba(255, 255, 255, 0.95);
-    }
-} */
 
 
 /* Modal Overlay */
@@ -166,7 +153,6 @@ input[type="file"] { display: none; }
   height: 10px;
   /* margin: 10px auto 25px auto; -> sticky 사용 시 마진 조정 */
   margin: 10px auto 10px auto; 
-  
   cursor: grab;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   user-select: none;
@@ -179,7 +165,6 @@ input[type="file"] { display: none; }
   padding-bottom: 5px; /* 여백 확보 */
   z-index: 1001; /* 다른 요소 위에 위치 */
   pointer-events: auto;
-  
   background: #ccc; /* 기존 배경색 유지 */
   border-radius: 10px; /* 기존 border-radius 유지 */
 }
@@ -200,14 +185,7 @@ input[type="file"] { display: none; }
   flex-direction: column;
   align-items: center;
 }
-/* .result-container {
-  padding: 10px 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; 
-  text-align: left;
-} */
+
 .result-card {
   /* ... (기존 스타일 유지) ... */
   background: #fafafa;
@@ -383,7 +361,53 @@ input[type="file"] { display: none; }
 /* 모바일 전용 */
 @media (max-width: 768px) {
   /* 수정: 모바일 모달 최대 높이 설정 */
-  #mobileModal { max-height: 54vh; } 
+  #mobileModal { max-height: 54vh;
+    overflow-x: hidden; /* 좌우 스크롤 금지 */
+    overflow-y: auto;   /* 상하 스크롤 허용 */
+    -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 유지 */
+    touch-action: pan-y; /* 상하 스크롤만 가능, 좌우 스와이프 차단 */
+  } 
+
+  /* =========================================== */
+    /* 모달이 열릴 때 전체 스크롤 방지 */
+  body.modal-open {
+      overflow: hidden;
+      touch-action: none; /* 터치 기반 스크롤/좌우 스와이프 방지 */
+      overscroll-behavior: none; /* iOS 바운스 스크롤 방지 */
+  }
+
+  #mobileModal {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+      z-index: 1000;
+      overflow-x: hidden;    /* 좌우 스크롤 방지 */
+      overflow-y: auto;      /* 상하 스크롤 허용 */
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;   /* 상하 스크롤만 가능 */
+      transform: translateY(100%); /* 초기 위치: 화면 아래 */
+      transition: transform 0.3s ease-in-out;
+  }
+
+  /* 모바일 모달 내부 스크롤 영역만 가능하도록 */
+  #modalContent {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      /* overscroll-behavior: contain;  */
+  }
+
+  /* 드래그나 터치로 메인 화면 이동 방지 */
+  #mobileModal, #modalOverlay {
+      touch-action: none;
+  }
+/* =========================================== */
 
   /* container 분리처리,분리수거 가이드 , Top3 예측결과 CSS */
   .result-container {
@@ -474,10 +498,6 @@ input[type="file"] { display: none; }
     /* margin-bottom: 2px; */
     line-height: 1.3;
   }
-
-
-
-
 
   #drop-area {
       position: relative;
@@ -603,8 +623,8 @@ input[type="file"] { display: none; }
 }
 
 /* 스크롤바 숨김 */
-#mobileModal::-webkit-scrollbar { display: none; }
-#modalContent::-webkit-scrollbar { display: none; } /* 추가: 내용 스크롤바 숨김 */
+#mobileModal::-webkit-scrollbar { display: none; width: 0px;   }
+#modalContent::-webkit-scrollbar { display: none;  width: 0px;  } /* 추가: 내용 스크롤바 숨김 */
 
 /* 모달 열릴 때 배경 스크롤 방지 */
 body.modal-open { overflow: hidden; }
@@ -737,26 +757,35 @@ body.modal-open { overflow: hidden; }
     function openModal(data){
 
         console.log("[openModal] 실행됨:", data);
-         requestAnimationFrame(() => { // 강제 렌더 후 transition
+        requestAnimationFrame(() => { // 강제 렌더 후 transition
                 modal.style.opacity = '1';
         });
         if (!modal) {
           console.warn("mobileModal 요소를 찾을 수 없습니다.");
           return;
         }
+        // 1. 이전 transform 초기화 (모달 아래 위치)
+        modal.style.transform = "translateY(100%)"; 
+        modal.style.transition = "none";
 
-        modal.style.display="flex";       // flex 적용
-        overlay.style.display="block";
+       
+        // 2. 모달 표시
+        modal.style.display = "flex";
+        overlay.style.display = "block";
         document.body.classList.add("modal-open");
 
-        modal.classList.remove("slide-down");
-        modal.classList.add("slide-up");
-        
-        modalOpen = true;
-     
-        if(data.tts_able==1) playTTS(data.tts_url);
-        console.log("[openModal] display:", modal.style.display, "opacity:", modal.style.opacity);
-        
+        // 3. 애니메이션 적용
+        requestAnimationFrame(() => {
+            // 모달 내용 스크롤 초기화
+            modalContent.scrollTop = 0;
+
+            modal.style.transition = "transform 0.3s ease-in-out";
+            modal.style.transform = "translateY(0)";
+            modal.classList.remove("slide-down");
+            modal.classList.add("slide-up");
+        });
+
+        if(data.tts_able == 1) playTTS(data.tts_url);
     }
 
     function closeModal(){
@@ -924,6 +953,12 @@ body.modal-open { overflow: hidden; }
         }
         html += '</div>'; // result-container 닫기
         modalContent.innerHTML = html;
+
+        // 모달 열기 전에 스크롤 초기화
+        // HTML이 DOM에 반영된 이후 scrollTop 초기화
+        requestAnimationFrame(() => {
+            modalContent.scrollTop = 0;
+        });
         openModal(data)
         // setTimeout(() => openModal(data), 1000);
     }
@@ -959,10 +994,17 @@ body.modal-open { overflow: hidden; }
         modal.style.transition='none';
     });
     document.addEventListener("touchmove", e=>{
+        const deltaX = Math.abs(e.touches[0].clientX - startX || 0);
+        const deltaY = Math.abs(e.touches[0].clientY - startY || 0);
+
+        // 좌우 이동 감지 시 이벤트 차단
+        if(deltaX > deltaY){
+            e.preventDefault();
+        }
         if(!isDragging) return;
         const moveY=e.touches[0].clientY-startY;
         if(moveY>0) modal.style.transform=`translateY(${moveY}px)`;
-    });
+    }, { passive: false });
     document.addEventListener("touchend", e=>{
         if(!isDragging || !modalOpen) return; // modal 열려있을 때만
         isDragging=false;
