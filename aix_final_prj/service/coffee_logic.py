@@ -294,7 +294,7 @@ def get_trained_model():
         data = data[data["Occupation"] != -1]
         
         # Coffee_Intake를 기준으로 그룹 생성
-                
+           
         bins = [-np.inf, 0.0, 1.0, 4.0, np.inf]
         labels = [0, 1, 2, 3]
         data['Coffee_Group'] = pd.cut(
