@@ -58,6 +58,70 @@ def _fail(message: str, extra: Dict[str, Any] | None = None) -> JsonResponse:
         payload.update(extra)
     return JsonResponse(payload, status=200)
 
+# ===== 언어 감지(간단 휴리스틱) & 프롬프트 유틸 =====
+_LANG_RE_KO = re.compile(r'[\uac00-\ud7a3]')
+_LANG_RE_ES = re.compile(r'[¿¡áéíóúüñÁÉÍÓÚÜÑ]')
+
+def _detect_lang(text: str) -> str:
+    s = text or ""
+    if _LANG_RE_KO.search(s):
+        return "ko"
+    if _LANG_RE_ES.search(s):
+        return "es"
+    return "en"
+
+def _mk_news_prompt(question: str, lang: str) -> str:
+    if lang == "ko":
+        return (
+            "한국어로 간결하고 최신성 있게 답하세요.\n"
+            "가능하면 참고할만한 기사/자료의 URL을 3~5개 본문 하단에 적어 주세요.\n\n"
+            f"[질문]\n{question}\n\n[답변]\n"
+        )
+    if lang == "es":
+        return (
+            "Responde de forma concisa en español y teniendo en cuenta la actualidad.\n"
+            "Si es posible, añade 3–5 URL de referencia al final del texto.\n\n"
+            f"[Pregunta]\n{question}\n\n[Respuesta]\n"
+        )
+    # en
+    return (
+        "Answer concisely in English and keep the information up-to-date.\n"
+        "When helpful, list 3–5 reference URLs at the end.\n\n"
+        f"[Question]\n{question}\n\n[Answer]\n"
+    )
+
+def _make_rag_prompt(question: str, context: str, lang: str) -> str:
+    if lang == "ko":
+        return (
+            "아래 제공된 자료만 근거로 한국어로 핵심을 정리해 답하세요.\n"
+            "- 자료에서 확인되는 사실을 묶어서 요약하세요.\n"
+            "- 확실한 근거가 보이면 항목화하고 문장 끝에 [1], [2]처럼 근거 블록 번호를 붙이세요.\n"
+            "- 직접적 근거가 부족하면 한 줄로 '자료 내 직접 근거 부족'이라고 밝힌 뒤, "
+            "자료에서 추론 가능한 범위 내 핵심 포인트를 요약하세요.\n"
+            "- '본문에 없음' 같은 표현은 사용하지 마세요.\n\n"
+            f"[질문]\n{question}\n\n[자료]\n{context}\n\n[답변]\n"
+        )
+    if lang == "es":
+        return (
+            "Responde en español usando únicamente el material proporcionado.\n"
+            "- Agrupa y resume los hechos comprobables.\n"
+            "- Cuando haya evidencia clara, usa viñetas y añade [1], [2]… al final indicando el bloque fuente.\n"
+            "- Si falta evidencia directa, escribe una línea: 'Evidencia directa insuficiente en el material', "
+            "y después resume puntos clave inferibles del material.\n"
+            "- No uses la frase 'no aparece en el texto'.\n\n"
+            f"[Pregunta]\n{question}\n\n[Material]\n{context}\n\n[Respuesta]\n"
+        )
+    # en
+    return (
+        "Answer in English using only the provided context.\n"
+        "- Group and summarize the verifiable facts.\n"
+        "- When evidence is clear, use bullet points and append [1], [2], etc., to cite context blocks.\n"
+        "- If direct evidence is lacking, write one line: 'Insufficient direct evidence in the provided material', "
+        "then summarize key points that are reasonable inferences from the material.\n"
+        "- Do not use the phrase 'not found in the text'.\n\n"
+        f"[Question]\n{question}\n\n[Context]\n{context}\n\n[Answer]\n"
+    )
+
 # Gemini 클라이언트/호출
 try:
     from google import genai
@@ -73,13 +137,9 @@ def _gemini_client():
     if genai is None:
         raise RuntimeError("google-genai 미설치: pip install google-generativeai google-genai")
     api_key = getattr(settings, "GEMINI_API_KEY", None) or os.environ.get("GEMINI_API_KEY")
-    
-    
-    
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY가 설정되지 않았습니다.")
     api_version = getattr(settings, "GEMINI_API_VERSION", os.environ.get("GEMINI_API_VERSION", "v1"))
-    
     try:
         if HttpOptions is not None:
             return genai.Client(api_key=api_key, http_options=HttpOptions(api_version=api_version))
@@ -129,7 +189,6 @@ def _embed_texts(texts: List[str]) -> List[List[float]]:
     models: List[str] = []
     for m in pref:
         models.extend([m] if "/" in m else [m, f"models/{m}"])
-    
     def parse(resp: Any) -> Optional[List[float]]:
         try:
             emb = getattr(resp, "embedding", None)
@@ -163,7 +222,6 @@ def _embed_texts(texts: List[str]) -> List[List[float]]:
             except Exception:
                 pass
         return None
-    
     errors: List[str] = []
     for model in models:
         try:
@@ -371,7 +429,7 @@ def _safe_get_collection_name_matching_dim(base_name: str, want_dim: int):
         if col_dim in (-1, None) or col_dim == want_dim:
             return col, base_name
         else:
-            alt_name = f"{base_name}_{want_dim}"
+            alt_name = f"{base_name}"
             alt = client.get_or_create_collection(
                 name=alt_name,
                 embedding_function=GoogleGenAIEmbeddingFunction()
@@ -453,11 +511,8 @@ def _chroma_query_with_embeddings(col, query: str, topk: int, sources_filter: Op
 
 # 모델 답변 + 관련 뉴스
 def gemini_answer_with_news(question: str):
-    prompt = (
-        "한국어로 간결하고 최신성 있게 답하세요.\n"
-        "가능하면 참고할만한 기사/자료의 URL을 3~5개 본문 하단에 적어 주세요.\n\n"
-        f"[질문]\n{question}\n\n[답변]\n"
-    )
+    lang = _detect_lang(question)
+    prompt = _mk_news_prompt(question, lang)
     answer = _ask_gemini(prompt, model=None)
     try:
         topk = int(getattr(settings, "NEWS_TOPK", 5))
@@ -596,7 +651,7 @@ def home(request):
             "rag_error": "",
             "rag_sources": [],
         }
-        resp = render(request, "chroma.html", ctx)
+        resp = render(request, "news.html", ctx)
         resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         resp["Pragma"] = "no-cache"
         resp["Expires"] = "0"
@@ -687,7 +742,7 @@ def home(request):
         "rag_error": rag_error,
         "rag_sources": rag_sources,
     }
-    resp = render(request, "chroma.html", ctx)
+    resp = render(request, "news.html", ctx)
     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp["Pragma"] = "no-cache"
     resp["Expires"] = "0"
@@ -707,6 +762,7 @@ def api_search(request: HttpRequest):
     if not query:
         return _fail("query가 비었습니다.")
     if mode == "web":
+        # 질의 언어에 맞게 직접 질의 전달 (모델이 자동 처리)
         answer = _ask_gemini(query, model=model)
         news, crawl_err = [], None
         try:
@@ -767,11 +823,8 @@ def api_search(request: HttpRequest):
                 )
                 return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": "[검색 결과 없음]", "hits": [], "reason": reason})
             context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
-            prompt = (
-                "아래 컨텍스트만 근거로 한국어로 간결하게 답하세요. "
-                "없으면 '본문에 없음'이라고 답하세요.\n\n"
-                f"[질문]\n{query}\n\n[컨텍스트]\n{context}\n\n답변:\n"
-            )
+            lang = _detect_lang(query)
+            prompt = _make_rag_prompt(query, context, lang)
             text = _ask_gemini(prompt, model=model)
             return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": text, "hits": hits})
         except Exception as e:
@@ -1017,6 +1070,7 @@ def web_qa_view(request: HttpRequest):
         model = (payload.get("model") or "").strip() or None
     if not q:
         return _fail("query가 비었습니다.")
+    # 직접 질의 전달 → 입력 언어에 맞춰 생성됨
     answer = _ask_gemini(q, model=model)
     news, crawl_err = [], None
     try:
@@ -1090,11 +1144,8 @@ def rag_qa_view(request: HttpRequest):
             )
             return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": "[검색 결과 없음]", "hits": [], "reason": reason})
         context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
-        prompt = (
-            "아래 컨텍스트만 근거로 한국어로 간결하게 답하세요. "
-            "없으면 '본문에 없음'이라고 답하세요.\n\n"
-            f"[질문]\n{q}\n\n[컨텍스트]\n{context}\n\n답변:\n"
-        )
+        lang = _detect_lang(q)
+        prompt = _make_rag_prompt(q, context, lang)
         text = _ask_gemini(prompt, model=model)
         return _ok({"mode": "rag", "model": (model or _gemini_model()), "text": text, "hits": hits})
     except Exception as e:
@@ -1146,7 +1197,7 @@ def api_news_ingest(request: HttpRequest):
             }
             for n in (news or [])
         ]
-        return _ok({"query": q, "news": safe_news, "ingest": ingest_summary})
+        return _ok({"query": q, "news": safe_news, "insgest": ingest_summary})
     except Exception as e:
         return _fail(f"뉴스 인덱싱 실패: {e}")
     
@@ -1169,19 +1220,6 @@ def _parse_hits_from_res(res):
         hits.append({"id": ids[i] if i < len(ids) else "", "score": score, "meta": m, "snippet": snip})
     return hits
 
-def _make_rag_prompt(question: str, context: str) -> str:
-    # ❗️'본문에 없음'이라는 단어 자체를 쓰지 않도록 지시하고,
-    #    제공된 자료를 최대한 통합·요약해 답하게끔 유도
-    return (
-        "아래 제공된 자료만 근거로 한국어로 핵심을 정리해 답하세요.\n"
-        "- 자료에서 확인되는 사실을 묶어서 요약해 주세요.\n"
-        "- 확실한 근거가 보이면 항목화하여 정리하고, 문장 끝에 [1], [2]처럼 근거 블록 번호를 붙이세요.\n"
-        "- 직접적 근거가 부족하면 '자료 내 직접 근거 부족'이라고 한 줄로 밝힌 뒤, "
-        "자료에서 추론 가능한 범위 내 핵심 포인트를 요약하세요.\n"
-        "- '본문에 없음'이라는 표현은 사용하지 마세요.\n\n"
-        f"[질문]\n{question}\n\n[자료]\n{context}\n\n[답변]\n"
-    )
-
 def _rag_answer_best_effort(question: str, initial_topk: int = 5, fallback_topk: int = 12):
     """
     1) 1차 검색(topk) → 컨텍스트 생성 → 답변
@@ -1189,7 +1227,6 @@ def _rag_answer_best_effort(question: str, initial_topk: int = 5, fallback_topk:
        - 키워드 확장(LLM) → 더 넓은 topk로 재검색 → 재답변
     """
     col = _chroma_collection()
-    # (선택) 설정에 소스 필터가 있으면 우선 적용
     sources_filter = getattr(settings, "RAG_SOURCES_FILTER", None)
 
     # --- 1차 검색
@@ -1200,19 +1237,24 @@ def _rag_answer_best_effort(question: str, initial_topk: int = 5, fallback_topk:
 
     hits = _parse_hits_from_res(res)
     context = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits))
-    ans = _ask_gemini(_make_rag_prompt(question, context), model=None)
+    lang = _detect_lang(question)
+    ans = _ask_gemini(_make_rag_prompt(question, context, lang), model=None)
 
     def _weak(a: str) -> bool:
-        t = (a or "").strip()
-        return (not t) or (len(t) < 60) or ("본문에 없음" in t)
+        t = (a or "").strip().lower()
+        # 너무 짧거나 '없음/없다/not found/no aparece' 류의 빈약 응답
+        return (not t) or (len(t) < 60) or ("본문에 없음" in t) or ("not found" in t) or ("no aparece" in t) or ("no se encuentra" in t)
 
     if not hits or _weak(ans):
         # --- 2차: 키워드 확장 + 더 넓은 topk
         try:
-            kw = _ask_gemini(
-                f"아래 질문의 한국어 핵심 키워드를 쉼표로 8~12개만 나열해줘. 설명 없이 키워드만.\n질문: {question}",
-                model=None
-            )
+            if lang == "ko":
+                kw_prompt = f"아래 질문의 한국어 핵심 키워드를 쉼표로 8~12개만 나열해줘. 설명 없이 키워드만.\n질문: {question}"
+            elif lang == "es":
+                kw_prompt = f"Da de 8 a 12 palabras clave esenciales en español para la siguiente pregunta, separadas por comas, sin explicación.\nPregunta: {question}"
+            else:
+                kw_prompt = f"List 8–12 essential English keywords for the question below, separated by commas, with no explanations.\nQuestion: {question}"
+            kw = _ask_gemini(kw_prompt, model=None)
         except Exception:
             kw = ""
         expanded_q = (question + " " + (kw or "")).strip()
@@ -1224,8 +1266,7 @@ def _rag_answer_best_effort(question: str, initial_topk: int = 5, fallback_topk:
         hits2 = _parse_hits_from_res(res2)
         if hits2:
             context2 = "\n\n".join(f"[{i+1}] {h['snippet']}" for i, h in enumerate(hits2))
-            ans2 = _ask_gemini(_make_rag_prompt(question, context2), model=None)
-            # 더 좋은 쪽 선택
+            ans2 = _ask_gemini(_make_rag_prompt(question, context2, lang), model=None)
             if not ans or len((ans2 or "").strip()) > len((ans or "").strip()):
                 return ans2, hits2
 
