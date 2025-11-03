@@ -190,7 +190,7 @@ def run_clustering_analysis():
             "means": cluster_data[clustering_features].mean().round(2).to_dict()
         }
         cluster_analysis_results.append(analysis)
-       
+    
     return {
         "optimal_k": int(optimal_k),
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
@@ -304,7 +304,7 @@ def get_trained_model():
             right=True,    # 경계값 포함 여부: True면 '이상~이하' (예: 1.0 < x <= 4.0)
             include_lowest=True # 가장 낮은 경계값(-np.inf)을 포함
         )
-                      
+    
         data = data.dropna(subset=['Coffee_Group']) # qcut으로 인해 NaN이 생길 수 있음
         data['Coffee_Group'] = data['Coffee_Group'].astype(int)
 
