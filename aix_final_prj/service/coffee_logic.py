@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("Agg")  #
+
 import os
 import pandas as pd
 import numpy as np
@@ -66,9 +69,9 @@ def run_regression_analysis():
     results = {}
     for name, model in models.items():
         if name == 'RandomForest':
-             model.fit(X_train, y_train)
-             y_pred = model.predict(X_test)
-             r2 = model.score(X_test, y_test)
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            r2 = model.score(X_test, y_test)
         else:
             model.fit(X_train_scaled, y_train)
             y_pred = model.predict(X_test_scaled)
@@ -123,14 +126,23 @@ def run_classification_analysis():
 
 # --- 3. 군집 모델 분석 로직 ---
 def run_clustering_analysis():
-    df, X, y = preprocess_data()
+    df,  X, y = preprocess_data()
     df1 = df.copy()
+    le_country = LabelEncoder()
+    le_occupation = LabelEncoder()
+    le_coffee = LabelEncoder()
+    le_gender = LabelEncoder()
     
-    clustering_features = ['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg']
-    X_cluster = df1[clustering_features]
+    df1['Country'] = le_country.fit_transform(df1['Country'])
+    df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
+    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    df1['Gender'] = le_gender.fit_transform(df1['Gender'])
+    X_cluster = df1[['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg','Country', 'Occupation','Gender']] 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_cluster)
-    
+    bins = [-np.inf, 18.5, 25, 30, np.inf]
+    labels = [0, 1, 2, 3]
+    df1['BMI_GU'] = pd.cut(df1['BMI'], bins=bins, labels=labels, right=False)
     inertias = []
     silhouette_scores = []
     k_range = range(2, 11)
@@ -167,8 +179,7 @@ def run_clustering_analysis():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 
-                        'Physical_Activity_Hours', 'Age', 'Caffeine_mg']
+    clustering_features = ['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
@@ -179,7 +190,7 @@ def run_clustering_analysis():
             "means": cluster_data[clustering_features].mean().round(2).to_dict()
         }
         cluster_analysis_results.append(analysis)
-       
+    
     return {
         "optimal_k": int(optimal_k),
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
@@ -276,7 +287,7 @@ def get_trained_model():
         data['BMI'] = pd.cut(data['BMI'], bins=bins, labels=labels, right=False)
         data["Stress_Level"] = pd.Categorical(
             data["Stress_Level"],
-            categories=["Low", "Medium", "High"],
+            categories=["High","Low", "Medium" ],
             ordered=True
         ).codes
         data = data[data["Stress_Level"] != -1]
@@ -293,11 +304,7 @@ def get_trained_model():
             right=True,    # 경계값 포함 여부: True면 '이상~이하' (예: 1.0 < x <= 4.0)
             include_lowest=True # 가장 낮은 경계값(-np.inf)을 포함
         )
-        
-        
-        
-        
-        
+                      
         data = data.dropna(subset=['Coffee_Group']) # qcut으로 인해 NaN이 생길 수 있음
         data['Coffee_Group'] = data['Coffee_Group'].astype(int)
 
