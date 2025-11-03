@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("Agg")  # 메인스레드만 GUI 허용, 서브프로세스는 파일 저장만
+
 import os
 import pandas as pd
 import numpy as np
@@ -35,7 +38,7 @@ def preprocess_data():
     
     df1['Country'] = le_country.fit_transform(df1['Country'])
     df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
-    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    #df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
     df1['Gender'] = le_gender.fit_transform(df1['Gender'])
     
     df1['High_BMI'] = (df1['BMI'] >= 25).astype(int)
@@ -125,7 +128,9 @@ def run_clustering_analysis():
     df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+    bins = [-np.inf, 18.5, 25, 30, np.inf]
+    labels = [0, 1, 2, 3]
+    df1['BMI_GU'] = pd.cut(df1['BMI'], bins=bins, labels=labels, right=False)
     inertias = []
     k_range = range(2, 11)
     for k in k_range:
@@ -153,13 +158,14 @@ def run_clustering_analysis():
     # Django의 static 폴더에 저장
     if not os.path.exists("static/plots"):
         os.makedirs("static/plots")
+    
     plot_filename = f"cluster_plot_{int(time.time())}.png"
     plot_path = os.path.join("static/plots", plot_filename)
     plt.savefig(plot_path)
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['BMI','Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours']
+    clustering_features = ['BMI','Age', 'Coffee_Intake','Sleep_Hours', 'Physical_Activity_Hours','Country',"Heart_Rate",'Occupation', 'Alcohol_Consumption']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
@@ -170,7 +176,7 @@ def run_clustering_analysis():
             "means": cluster_data[clustering_features].mean().round(2).to_dict()
         }
         cluster_analysis_results.append(analysis)
-       
+    
     return {
         "optimal_k": int(optimal_k),
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
