@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("Agg")  #
+
 import os
 import pandas as pd
 import numpy as np
@@ -35,7 +38,7 @@ def preprocess_data():
     
     df1['Country'] = le_country.fit_transform(df1['Country'])
     df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
-    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    #df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
     df1['Gender'] = le_gender.fit_transform(df1['Gender'])
     
     df1['Poor_Sleep'] = (df1['Sleep_Hours'] < 6).astype(int)
@@ -159,7 +162,7 @@ def run_clustering_analysis():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['Age', 'BMI', 'Coffee_Intake','Physical_Activity_Hours']
+    clustering_features = ['Age', 'BMI', 'Coffee_Intake','Physical_Activity_Hours','Country','Occupation','Alcohol_Consumption','Smoking']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
@@ -228,13 +231,13 @@ def get_trained_model():
         
         data["Stress_Level"] = pd.Categorical(
             data["Stress_Level"],
-            categories=["Low", "Medium", "High"],
+            categories=["High", "Medium", "Low"],
             ordered=True
         ).codes
         data = data[data["Stress_Level"] != -1]
         data["Sleep_Quality"] = pd.Categorical(
             data["Sleep_Quality"],
-            categories=['Poor', 'Average', 'Good', 'Excellent'],
+            categories=['Excellent', 'Fair', 'Good', 'Poor'],
             ordered=True
         ).codes
         data = data[data["Sleep_Quality"] != -1]
@@ -276,7 +279,7 @@ def predict_sleep_category(input_data):
         probabilities = F.softmax(logits, dim=1)[0].numpy()
         predicted_class_index = torch.argmax(logits, dim=1).item()
         
-    sleep_categories = ['수면부족(Fair)', '평균(Average)', '좋음(Good)', '훌륭(Excellent)']
+    sleep_categories = ['훌륭(Excellent)','수면부족(Fair)','좋음(Good)', '안좋음(Poor)'  ]
     predicted_category = sleep_categories[predicted_class_index]
     
     return {
