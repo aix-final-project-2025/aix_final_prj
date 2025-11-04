@@ -135,7 +135,7 @@ def run_clustering_analysis():
     
     df1['Country'] = le_country.fit_transform(df1['Country'])
     df1['Occupation'] = le_occupation.fit_transform(df1['Occupation'])
-    df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
+    #df1['Coffee_Intake'] = le_coffee.fit_transform(df1['Coffee_Intake'])
     df1['Gender'] = le_gender.fit_transform(df1['Gender'])
     X_cluster = df1[['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg','Country', 'Occupation','Gender']] 
     scaler = StandardScaler()
@@ -179,7 +179,7 @@ def run_clustering_analysis():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg']
+    clustering_features = ['Coffee_Intake', 'BMI', 'Sleep_Hours', 'Heart_Rate', 'Physical_Activity_Hours', 'Age', 'Caffeine_mg','Country', 'Occupation','Gender']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
