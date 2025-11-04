@@ -69,9 +69,9 @@ def run_regression_analysis():
     results = {}
     for name, model in models.items():
         if name == 'RandomForest':
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            r2 = model.score(X_test, y_test)
+             model.fit(X_train, y_train)
+             y_pred = model.predict(X_test)
+             r2 = model.score(X_test, y_test)
         else:
             model.fit(X_train_scaled, y_train)
             y_pred = model.predict(X_test_scaled)
@@ -148,7 +148,7 @@ def run_clustering_analysis():
     k_range = range(2, 11)
     for k in k_range:
         kmeans = KMeans(n_clusters=k, random_state=537, n_init=10).fit(X_scaled)
-        inertias.append(kmeans.inertia_)
+        inertias.append(kmeans.inertia_)        
         sil_score = silhouette_score(X_scaled, kmeans.labels_)
         silhouette_scores.append(sil_score)
     diffs = np.diff(inertias)
@@ -190,7 +190,7 @@ def run_clustering_analysis():
             "means": cluster_data[clustering_features].mean().round(2).to_dict()
         }
         cluster_analysis_results.append(analysis)
-    
+       
     return {
         "optimal_k": int(optimal_k),
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
@@ -304,7 +304,7 @@ def get_trained_model():
             right=True,    # 경계값 포함 여부: True면 '이상~이하' (예: 1.0 < x <= 4.0)
             include_lowest=True # 가장 낮은 경계값(-np.inf)을 포함
         )
-    
+                      
         data = data.dropna(subset=['Coffee_Group']) # qcut으로 인해 NaN이 생길 수 있음
         data['Coffee_Group'] = data['Coffee_Group'].astype(int)
 
