@@ -181,7 +181,7 @@ def run_clustering_analysis():
     }
 def run_clustering_analysis_compact():
     df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()
-    X = df1[['Coffee_Intake', 'BMI', 'Alcohol_Consumption']]
+    X = df1[['Coffee_Intake', 'BMI', 'Alcohol_Consumption','Sleep_Hours']]
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
@@ -218,7 +218,7 @@ def run_clustering_analysis_compact():
     plt.close()
     
     cluster_analysis_results = []
-    clustering_features = ['Coffee_Intake', 'BMI', 'Alcohol_Consumption']
+    clustering_features = ['Coffee_Intake', 'BMI', 'Alcohol_Consumption','Sleep_Hours']
     
     for cluster_id in range(optimal_k):
         cluster_data = df1[df1['Cluster'] == cluster_id]
