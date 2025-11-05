@@ -35,7 +35,7 @@ class bmi_views(View):
     
     def get(self, request):
         context = {}
-        return (bmiview.run_regression_bmi, bmiview.run_classification_bmi,  bmiview.run_clustering_bmi, bmiview.predict_dl_bmi)
+        return (bmiview.run_regression_bmi, bmiview.run_classification_bmi,  bmiview.run_clustering_bmi, bmiview.predict_dl_bmi, bmiview.run_clustering_bmi_compact)
     
 class coffeePage(View):
     template_name = "coffee.html"
@@ -63,7 +63,7 @@ class sleep_views(View):
     
     def get(self, request):
         context = {}
-        return (sleepview.run_regression_sl, sleepview.run_classification_sl, sleepview.run_clustering_sl, sleepview.predict_dl_sl)
+        return (sleepview.run_regression_sl, sleepview.run_classification_sl, sleepview.run_clustering_sl, sleepview.predict_dl_sl, sleepview.run_clustering_sl_compact)
 
 class stressPage(View):
     template_name = "stress.html"
@@ -92,6 +92,7 @@ urlpatterns = [
     path('run_regression_bmi/', bmiview.run_regression_bmi, name='run_regression_bmi'),
     path('run_classification_bmi/',  bmiview.run_classification_bmi, name='run_classification_bmi'),
     path('run_clustering_bmi/',  bmiview.run_clustering_bmi, name='run_clustering_bmi'),
+    path('run_clustering_bmi_compact/',  bmiview.run_clustering_bmi_compact, name='run_clustering_bmi_compact'),
     path('predict_dl_bmi/',  bmiview.predict_dl_bmi, name='predict_dl_bmi'),
     path('run_regression_cf/', coffeeview.run_regression_cf, name='run_regression_cf'),
     path('run_classification_cf/', coffeeview.run_classification_cf, name='run_classification_cf'),
@@ -100,6 +101,7 @@ urlpatterns = [
     path('run_regression_sl/', sleepview.run_regression_sl, name='run_regression_sl'),
     path('run_classification_sl/', sleepview.run_classification_sl, name='run_classification_sl'),
     path('run_clustering_sl/', sleepview.run_clustering_sl, name='run_clustering_sl'),
+    path('run_clustering_sl_compact/', sleepview.run_clustering_sl_compact, name='run_clustering_sl_compact'),
     path('predict_dl_sl/', sleepview.predict_dl_sl, name='predict_dl_sl'),
     path('run_classification_st/', stressview.run_classification_st, name='run_classification_st'),
     path('predict_dl_st/',stressview.predict_dl_st, name='predict_dl_st'),

@@ -125,7 +125,7 @@ def run_classification_analysis():
 
 # --- 3. 군집 모델 분석 로직 ---
 def run_clustering_analysis():
-    df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()
+    df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()     
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     bins = [-np.inf, 18.5, 25, 30, np.inf]
@@ -182,7 +182,66 @@ def run_clustering_analysis():
         "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
         "analysis": cluster_analysis_results
     }
-
+def run_clustering_analysis_compact():
+    df, df1, X, y, le_country, le_occupation, le_coffee,le_gender = preprocess_data()
+    
+    X = df1[['BMI','Country', 'Occupation', 'Alcohol_Consumption']]
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    bins = [-np.inf, 18.5, 25, 30, np.inf]
+    labels = [0, 1, 2, 3]
+    df1['BMI_GU'] = pd.cut(df1['BMI'], bins=bins, labels=labels, right=False)
+    inertias = []
+    k_range = range(2, 11)
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10).fit(X_scaled)
+        inertias.append(kmeans.inertia_)
+    diffs = np.diff(inertias)
+    diffs2 = np.diff(diffs)
+    optimal_k = np.argmax(diffs2) + 2
+    
+    kmeans_final = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
+    cluster_labels = kmeans_final.fit_predict(X_scaled)
+    df1['Cluster'] = cluster_labels
+    
+    pca = PCA(n_components=2, random_state=42)
+    pca_data = pca.fit_transform(X_scaled)
+    df1["PCA1"] = pca_data[:, 0]
+    df1["PCA2"] = pca_data[:, 1]
+    
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x="PCA1", y="PCA2", hue="Cluster", data=df1, palette="viridis", alpha=0.8)
+    plt.title(f"KMeans Clustering (k={optimal_k}) with PCA", fontsize=14)
+    plt.xlabel("PCA Component 1")
+    plt.ylabel("PCA Component 2")
+    
+    # Django의 static 폴더에 저장
+    if not os.path.exists("static/plots"):
+        os.makedirs("static/plots")
+    
+    plot_filename = f"cluster_plot_{int(time.time())}.png"
+    plot_path = os.path.join("static/plots", plot_filename)
+    plt.savefig(plot_path)
+    plt.close()
+    
+    cluster_analysis_results = []
+    clustering_features = ['BMI','Country', 'Occupation', 'Alcohol_Consumption']
+    
+    for cluster_id in range(optimal_k):
+        cluster_data = df1[df1['Cluster'] == cluster_id]
+        analysis = {
+            "cluster_id": cluster_id,
+            "count": len(cluster_data),
+            "percentage": f"{len(cluster_data) / len(df1) * 100:.1f}%",
+            "means": cluster_data[clustering_features].mean().round(2).to_dict()
+        }
+        cluster_analysis_results.append(analysis)
+    
+    return {
+        "optimal_k": int(optimal_k),
+        "plot_filename": "plots/" + plot_filename, # static 경로 내의 상대 경로
+        "analysis": cluster_analysis_results
+    }
 # --- 4. 딥러닝 모델 준비 및 예측 로직 ---
 # 모델 정의
 class CoffeeModel(nn.Module):

@@ -145,6 +145,7 @@
         <hr>
         <br>
         <button id="run-clustering">군집 모델링 실행</button>
+        <button id="run-clustering-compact">군집 모델링 축소</button>
         <div class="loader" id="clustering-loader">분석 중...</div>
         <div class="results" id="clustering-results"></div>
     </div>
@@ -158,6 +159,7 @@
     const REGRESSION_URL = "{% url 'run_regression_sl' %}";
     const CLASSIFICATION_URL = "{% url 'run_classification_sl' %}";
     const CLUSTERING_URL = "{% url 'run_clustering_sl' %}";
+    const CLUSTERING_COMPACT_URL = "{% url 'run_clustering_sl_compact' %}";
     const DL_PREDICT_URL = "{% url 'predict_dl_sl' %}";
 
     // fetch API 호출 부분을 Django URL로 변경
@@ -249,6 +251,31 @@
             .catch(error => showResults('clustering-results', '<p style="color:red;">분석 중 오류가 발생했습니다.</p>'))
             .finally(() => hideLoader('clustering-loader'));
     });
+
+    document.getElementById('run-clustering-compact').addEventListener('click', () => {
+        showLoader('clustering-loader');
+        showResults('clustering-results', '');
+        fetch(CLUSTERING_COMPACT_URL, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                let html = `<h3>군집 분석 결과 (최적 클러스터 수: ${data.optimal_k})</h3>`;
+                html += `<h4>PCA를 이용한 클러스터 시각화</h4>`;
+                // Django static 경로를 조합
+                html += `<img src="/static/${data.plot_filename}" alt="Cluster Plot" style="max-width:100%; border-radius:5px;">`;
+
+                html += `<h4>각 클러스터별 특성 분석</h4>`;
+                data.analysis.forEach(cluster => {
+                    html += `<div style="border:1px solid #ccc; padding:10px; margin-top:10px; border-radius:5px;">
+                            <strong>Cluster ${cluster.cluster_id}</strong> (${cluster.count}개, ${cluster.percentage})
+                            <ul>${Object.entries(cluster.means).map(([key, value]) => `<li>평균 ${key.replace(/_/g, ' ')}: ${value}</li>`).join('')}</ul>
+                        </div>`;
+                });
+                showResults('clustering-results', html);
+            })
+            .catch(error => showResults('clustering-results', '<p style="color:red;">분석 중 오류가 발생했습니다.</p>'))
+            .finally(() => hideLoader('clustering-loader'));
+    });
+
 
     // 4. 딥러닝 예측 실행
     document.getElementById('dl-form').addEventListener('submit', (event) => {

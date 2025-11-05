@@ -34,6 +34,13 @@ def run_clustering_sl(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 @csrf_exempt
+def run_clustering_sl_compact(request):
+    if request.method == 'POST':
+        results = sleep_logic.run_clustering_analysis_compact()
+        return JsonResponse(results)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
 def predict_dl_sl(request):
     if request.method == 'POST':
         try:

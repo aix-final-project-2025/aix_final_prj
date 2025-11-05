@@ -34,6 +34,14 @@ def run_clustering_bmi(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 @csrf_exempt
+def run_clustering_bmi_compact(request):
+    if request.method == 'POST':
+        results = bmi_logic.run_clustering_analysis_compact()
+        return JsonResponse(results)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@csrf_exempt
 def predict_dl_bmi(request):
     if request.method == 'POST':
         try:
