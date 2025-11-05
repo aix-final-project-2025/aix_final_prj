@@ -40,86 +40,91 @@ class UploadView(FormView):
     
 
 
-class PredictApiView_v1(View):
-    def post(self, request, *args, **kwargs):
-        if 'image' not in request.FILES:
-            return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
+# class PredictApiView_v1(View):
+#     def post(self, request, *args, **kwargs):
+#         if 'image' not in request.FILES:
+#             return JsonResponse({"error": "image file missing (field name 'image')"}, status=400)
 
-        file = request.FILES['image']
-        # 파일을 PIL 이미지로 로드 및 base64 변환
-        try:
-            image = Image.open(file).convert("RGB")
-            image = fix_image_orientation(image)
-            buffered = BytesIO()
-            image.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-            image_data_uri = f"data:image/png;base64,{img_str}"
-        except Exception as e:
-            return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
+#         file = request.FILES['image']
+#         # 파일을 PIL 이미지로 로드 및 base64 변환
+#         try:
+#             image = Image.open(file).convert("RGB")
+#             image = fix_image_orientation(image)
+#             buffered = BytesIO()
+#             image.save(buffered, format="PNG")
+#             img_str = base64.b64encode(buffered.getvalue()).decode()
+#             image_data_uri = f"data:image/png;base64,{img_str}"
+#         except Exception as e:
+#             return JsonResponse({"error": "cannot open image: " + str(e)}, status=400)
 
-        # predict 호출
-        try:
-            res = predict_from_pil(image)
-            print(" ==================== ")
-            res["result_image"] = pil_to_base64(res["result_image"])
-            res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
-        except Exception as e:
-            return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
+#         # predict 호출
+#         try:
+#             res = predict_from_pil(image)
+#             res["result_image"] = pil_to_base64(res["result_image"])
+#             res["image_data_uri"] = "data:image/png;base64," + res["result_image"]
+#         except Exception as e:
+#             return JsonResponse({"error": "prediction error: " + str(e)}, status=500)
 
-        #DB에 결과 등록
-        try:
-            # 예측 결과에서 group_code_name 가져오기 (예: "steel_can1")
-            predicted_class = res.get("predicted_class")  # predict_from_pil에서 반환되도록 수정 필요
-            # predicted_code_name = res.get("predicted_code")  # predict_from_pil에서 반환되도록 수정 필요
-            group_code = None
-            if predicted_class:
-                group_code = GroupCode.objects.filter(code=predicted_class).first()
-                # if group_code:
-                #    numeric_code = group_code.id  # numeric_code 가져오기
+#         #DB에 결과 등록
+#         try:
+#             # 예측 결과에서 group_code_name 가져오기 (예: "steel_can1")
+#             predicted_class = res.get("predicted_class")  # predict_from_pil에서 반환되도록 수정 필요
+#             # predicted_code_name = res.get("predicted_code")  # predict_from_pil에서 반환되도록 수정 필요
+#             group_code = None
+#             if predicted_class:
+#                 group_code = GroupCode.objects.filter(code=predicted_class).first()
+#                 # if group_code:
+#                 #    numeric_code = group_code.id  # numeric_code 가져오기
 
 
-            result_message = res.get('result_message', '')
-            print(f"predicted_class {res.get('predicted_class', '')}")
-            print(f"confidence {res.get('confidence', '')}")
-            print(f"confidence_level {res.get('confidence_level', '')}")
-            print(f"result_message {result_message}")
-            print(f"top3 {res.get('top3', '')}")
-            print(f"category {res.get('category', '')}")
-            print(f"recycling_guide {group_code.id}")
-            # RecyclableResult 저장
-            RecyclableResult.objects.create(
-                PREDICTED_CLASS=res.get("predicted_class", ""),
-                CONFIDENCE=res.get("confidence", 0.0),
-                CONFIDENCE_LEVEL=res.get("confidence_level", ""),
-                RESULT_MESSAGE=result_message,
-                TOP_3=res.get("top3", ""),
-                RECYCLING_GUIDE=res.get("recycling_guide", ""),
-                RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
-                group_code_id=group_code.id
-            )
-        except Exception as e:
-            # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
-            print("DB save error:", e)
+#             result_message = res.get('result_message', '')
+#             print(f"predicted_class {res.get('predicted_class', '')}")
+#             print(f"confidence {res.get('confidence', '')}")
+#             print(f"confidence_level {res.get('confidence_level', '')}")
+#             print(f"result_message {result_message}")
+#             print(f"top3 {res.get('top3', '')}")
+#             print(f"category {res.get('category', '')}")
+#             print(f"recycling_guide {group_code.id}")
+#             # RecyclableResult 저장
+#             RecyclableResult.objects.create(
+#                 PREDICTED_CLASS=res.get("predicted_class", ""),
+#                 CONFIDENCE=res.get("confidence", 0.0),
+#                 CONFIDENCE_LEVEL=res.get("confidence_level", ""),
+#                 RESULT_MESSAGE=result_message,
+#                 TOP_3=res.get("top3", ""),
+#                 RECYCLING_GUIDE=res.get("recycling_guide", ""),
+#                 RESULT_IMAGE=file,  # 실제 업로드된 이미지 그대로 저장
+#                 group_code_id=group_code.id
+#             )
+#         except Exception as e:
+#             # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
+#             print("DB save error:", e)
 
-        # enable = os.getenv('ENABLE')
+#         # enable = os.getenv('ENABLE')
 
-        rsEnable = CountryPf.objects.all().order_by('-created_at').first()
-        enable = 0
-        if rsEnable:
-            enable = rsEnable.active
-            print(f"TTs 사용여부 : {enable}")
+#         rsEnable = CountryPf.objects.all().order_by('-created_at').first()
+#         enable = 0
+#         if rsEnable:
+#             enable = rsEnable.active
+#             print(f"TTs 사용여부 : {enable}")
       
-        print(f" enable data {enable}")
-        res["tts_able"] = enable
-        if(enable == 1):
-            #JSON 반환
-            print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
-            
-            tts_name = translate_and_tts(f'{result_message}',rsEnable.country,rsEnable.gender)
-            host = request.scheme + "://" + request.get_host()
-            res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
-     
-        return JsonResponse(res)
+#         print(f" enable data {enable}")
+#         res["tts_able"] = enable
+#         if(enable == 1):
+#             #JSON 반환
+#             try:
+#                 gnd = "female"
+#                 if( rsEnable.gender == 1):
+#                     gnd = "male"
+
+#                 print(f" TTS URL rsEnable.gender = {rsEnable.gender } , {gnd}")
+#                 tts_name = translate_and_tts(f'{result_message}',rsEnable.country,gnd)
+#                 print(f" TTS URL {tts_name}")
+#             except Exception as e:
+#                 print(e)
+#             host = request.scheme + "://" + request.get_host()
+#             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
+#         return JsonResponse(res)
 
 
 
@@ -210,6 +215,7 @@ def get_top_result_value(result_list, key_name):
 def load_image_from_file(file_obj) -> Image.Image:
     img = Image.open(file_obj).convert("RGB")
     return img
+
 # ver 1 #############################
 class PredictApiView(View):
     def post(self, request, *args, **kwargs):
@@ -228,17 +234,13 @@ class PredictApiView(View):
         try:
             predicted_class = res.get("top_k")  # predict_from_pil에서 반환되도록 수정 필요
             code = get_top_result_value(predicted_class,'class')
-            print(f" predict : {code}")
             group_code = None
             if predicted_class:
                 group_code = GroupCode.objects.filter(code=code).first()
                 if group_code:
                    numeric_code = group_code.id  # numeric_code 가져오기
 
-            print(f"group_code {numeric_code}")
 
-            # top3_idx = np.argsort(preds)[::-1][:3]
-            # top_3 = [(_CLASS_NAMES[i], float(preds[i])) for i in top3_idx]
             top_3 = res.get("top_k")
             top_3_list_of_tuples = [
                 (d['class'], d['prob']) 
@@ -276,7 +278,6 @@ class PredictApiView(View):
             # DB 등록 실패는 로그만 남기고, 예측 결과는 반환
             print("DB save error:", e)
 
-
         enable = os.getenv('ENABLE')
 
         rsEnable = CountryPf.objects.all().order_by('-created_at').first()
@@ -289,8 +290,15 @@ class PredictApiView(View):
         res["tts_able"] = enable
         if(enable == 1):
             #JSON 반환
-            print(f"  TTS called ======{rsEnable.country} {rsEnable.gender}")
-            tts_name = translate_and_tts(f'{result_message}\n{recycling_guide["action"]}',rsEnable.country,rsEnable.gender)
+            try:
+                gnd = "female"
+                if( rsEnable.gender == 1):
+                    gnd = "male"
+
+                tts_name = translate_and_tts(f'{result_message}\n{recycling_guide["action"]}',rsEnable.country,gnd)
+            except Exception as e:
+                print(e)
+
             host = request.scheme + "://" + request.get_host()
             res["tts_url"] = host + settings.MEDIA_URL +  tts_name['tts_name']
      
@@ -301,7 +309,6 @@ class PredictApiView(View):
 생활쓰레기 리스트화면 호출
 """    
 class PredictListPageView(TemplateView):
-    print('PredictListView called')
     template_name = "predict_list.html"
 
 

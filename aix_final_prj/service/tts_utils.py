@@ -168,7 +168,6 @@ def tts_generate_save(text, lang_code, gender_key=None, filename=None, use_pydub
         os.makedirs(base_dir)
         
     filepath = os.path.join(base_dir, filename)
-    
     # G-TTS는 성별 옵션을 지원하지 않습니다. 
     tts = gTTS(text=text, lang=lang_code)
     tts.save(filepath)

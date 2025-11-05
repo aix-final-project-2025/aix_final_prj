@@ -688,6 +688,25 @@ body.modal-open { overflow: hidden; }
     function showLoader(){ loaderOverlay.style.display="flex"; }
     function hideLoader(){ loaderOverlay.style.display="none"; }
 
+    
+    document.body.addEventListener("touchstart", async function initAudio() {
+          if (!ttsAudio) {
+              ttsAudio = new Audio();
+              ttsAudio.autoplay = false;
+              ttsAudio.preload = "auto";
+              console.log("TTS 오디오 객체 초기화 완료");
+          }
+          try {
+              await ttsAudio.play();  // Safari가 이 객체를 '허용된 오디오'로 등록
+              ttsAudio.pause();
+              console.log("Safari 오디오 권한 활성화 완료");
+          } catch (e) {
+              console.log("오디오 권한 활성화 실패:", e);
+          }
+          document.body.removeEventListener("touchstart", initAudio);
+
+    });
+
     // ===========================
     // 이미지 미리보기
     // ===========================
@@ -741,13 +760,56 @@ body.modal-open { overflow: hidden; }
       //window.webkit.messageHandlers.openCamera.postMessage("");
     });
 
-    // ===========================
-    // TTS 재생
-    // ===========================
-    async function playTTS(url){
-        if(url){
-            const audio = new Audio(url);
-            audio.play();
+
+    let ttsAudio = new Audio();
+    ttsAudio.preload = "auto";
+
+    // 모바일 브라우저의 오디오 정책 대응
+    function unlockAudio() {
+        try {
+            const SILENT_MP3 =
+            "data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAwAABAAABGQAAQBpZGVhdGEAAAAA//sQxAAAAAAA";
+            const silentPlay = new Audio(SILENT_MP3);
+            // silentPlay.src = "";
+            silentPlay.play()
+                      .then(() => {
+                          silentPlay.pause();
+                          silentPlay.currentTime = 0;
+                          console.log("오디오 정책 해제 성공");
+                      })
+                      .catch(() => {
+                          console.log("오디오 정책 해제 실패 (사용자 상호작용 필요)");
+                      });
+        } catch (err) {
+            console.error("unlockAudio error:", err);
+        }
+    }
+
+    // TTS 재생 함수
+    async function playTTS(url) {
+        if (!ttsAudio) {
+            console.warn("ttsAudio가 초기화되지 않았습니다.");
+            return;
+        }
+
+        ttsAudio.src = url;
+        ttsAudio.currentTime = 0;
+
+        // Safari에서 반드시 .play()는 try/catch로 감싸야 함
+        ttsAudio.play().then(() => {
+            console.log("TTS 재생 시작:", url);
+        }).catch(err => {
+            console.warn("TTS 재생 실패:", err);
+        });
+
+    }
+
+    //TTS 강제 정지 함수
+    function stopTTS() {
+        if (ttsAudio && !ttsAudio.paused) {
+            ttsAudio.pause();
+            ttsAudio.currentTime = 0;  // 처음으로 되돌림
+            console.log("[TTS] 강제 정지됨");
         }
     }
 
@@ -785,10 +847,16 @@ body.modal-open { overflow: hidden; }
             modal.classList.add("slide-up");
         });
 
-        if(data.tts_able == 1) playTTS(data.tts_url);
+        //TTS 재생 조건
+        if (data && data.tts_able === 1 && data.tts_url) {
+            playTTS(data.tts_url);
+        }
+        //if(data.tts_able == 1) playTTS(data.tts_url);
     }
 
     function closeModal(){
+        stopTTS()
+      
         modal.classList.remove("slide-up");
         modal.classList.add("slide-down");
 
@@ -806,30 +874,6 @@ body.modal-open { overflow: hidden; }
 
     overlay.addEventListener("click", closeModal);
  
-    // document.addEventListener("click", (e) => {
-    //     const sidebar = document.getElementById("mySidebar");
-    //     const toggleButton = document.querySelector(".togglebtn");
-    //     const modal = document.getElementById("mobileModal");
-
-    //     // 사이드바 열림 여부 확인
-    //     if (sidebar.classList.contains("open")) {
-
-    //         // 클릭이 사이드바 또는 토글 버튼 내부가 아니고, 모달이 열려있지 않으면
-    //         if (!sidebar.contains(e.target) &&
-    //             !toggleButton.contains(e.target) &&
-    //             modal.style.display !== "flex") {
-
-    //             // 사이드바 닫기
-    //             sidebar.classList.remove("open");
-    //             toggleButton.textContent = "☰";
-
-    //             // 클릭 이벤트 전파 막기 (아래 화면 요소 이벤트 방지)
-    //             e.stopPropagation();
-    //             e.preventDefault();
-    //         }
-    //     }
-    // });
-
     document.addEventListener("DOMContentLoaded", (e) => {
         
         e.preventDefault(); 
@@ -900,7 +944,7 @@ body.modal-open { overflow: hidden; }
             alert("이미지를 선택하거나 드래그하여 넣어주세요.");
             return;
         }
-
+        
         showLoader();
         const formData = new FormData(form);
 
@@ -959,7 +1003,12 @@ body.modal-open { overflow: hidden; }
         requestAnimationFrame(() => {
             modalContent.scrollTop = 0;
         });
+
         openModal(data)
+        if (data.tts_able == 1) 
+        {
+          playTTS(data.tts_url); // 클릭 이벤트 안에서 호출
+        }
         // setTimeout(() => openModal(data), 1000);
     }
 
@@ -993,6 +1042,7 @@ body.modal-open { overflow: hidden; }
         startY=e.touches[0].clientY;
         modal.style.transition='none';
     });
+
     document.addEventListener("touchmove", e=>{
         const deltaX = Math.abs(e.touches[0].clientX - startX || 0);
         const deltaY = Math.abs(e.touches[0].clientY - startY || 0);
@@ -1016,10 +1066,10 @@ body.modal-open { overflow: hidden; }
 
     // 탭으로 닫기
     modalHandle.addEventListener("click", closeModal);
-    modalHandle.addEventListener("touchend", e=>{
-        const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
-        if(Math.abs(moveY)<5) closeModal();
-    });
+    // modalHandle.addEventListener("touchend", e=>{
+    //     const moveY = e.changedTouches ? e.changedTouches[0].clientY - startY : 0;
+    //     if(Math.abs(moveY)<5) closeModal();
+    // });
 
 
 

@@ -171,3 +171,21 @@ LOGGING = {
         },
     },
 }
+
+
+# =============================================
+# Custom middleware to add CORS for /media/*
+# 오디오 mp3플레이 실행을 위해 필요함 
+# =============================================
+class MediaCORSMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith('/media/'):
+            response["Access-Control-Allow-Origin"] = "*"
+        return response
+
+
+MIDDLEWARE.insert(0, 'aix_final_prj.settings.MediaCORSMiddleware')
