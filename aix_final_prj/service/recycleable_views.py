@@ -321,7 +321,6 @@ class PredictListView(View):
 
     def get(self, request):
 
-        print("called ----------")
         page = int(request.GET.get("page", 1))
         per_page = 20
         start = (page - 1) * per_page
@@ -381,7 +380,6 @@ class PredictListView(View):
 """
 class CodeList(View):   
     def get(self, request):
-            print("===========CodeList=============")
             # 전체 목록 조회
             qs = GroupCode.objects.order_by('-id')
             print(qs.first().__dict__)  # 첫 번째 객체의 내부 dict 확인
@@ -399,30 +397,22 @@ class ClassChange(View):
             
             record_id = int(request.GET.get("id", 1))
             group_code_id = int(request.GET.get("group_code_id", 1))
-            print(f" request group_code_id ={group_code_id} ")
-            print("===========ClassChange=============")
             # 전체 목록 조회
             try:
-                print(f" record_id {record_id}")
                 record = RecyclableResult.objects.get(id=record_id)
-                print(f" record {record}")
             except RecyclableResult.DoesNotExist:
                 return JsonResponse({"success": False, "error": "해당 레코드를 찾을 수 없습니다."})
 
             # 새로운 group_code 존재 여부 확인
             try:
-                print(f" group_code_id {group_code_id}")
                 new_group_code = GroupCode.objects.get(id=group_code_id)
-                print(f" new_group_code {new_group_code}")
             except GroupCode.DoesNotExist:
                 return JsonResponse({"success": False, "error": "해당 GroupCode가 존재하지 않습니다."})
 
-            print(" 1 change class. =========================")
             # group_code 변경 후 저장
             record.group_code = new_group_code
             record.save()
 
-            print(" 2 change class. =========================")
             updated_item = {
                 "id": record.id,
                 "group_code_id": record.group_code.id,
@@ -431,7 +421,6 @@ class ClassChange(View):
                 "category_id": record.PREDICTED_CLASS or "",
                 "guide": record.RECYCLING_GUIDE or ""
             }
-            print(f" response group_code_id ={updated_item['group_code_id']} ")
             return JsonResponse({"success": True, "updated_item": updated_item})
     
 
@@ -449,7 +438,6 @@ class getSettingInfo(View):
 
         settingInfo = CountryPf.objects.all().first() 
         if settingInfo is not None:
-            print(" 1 is not None")
             sdict = {
                 'country': settingInfo.country,
                 'gender': settingInfo.gender,
@@ -458,7 +446,6 @@ class getSettingInfo(View):
             }
 
         else :
-            print(" 2 is not None")
             sdict = {
                 'country': 'ko',
                 'gender': 2,
